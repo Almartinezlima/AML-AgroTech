@@ -1,101 +1,113 @@
-import Image from "next/image";
+import Link from 'next/link'
+
+const categorias = [
+  { nombre: 'Agroquímicos', icono: '🧪', descripcion: 'Fertilizantes, pesticidas y herbicidas' },
+  { nombre: 'Riego', icono: '💧', descripcion: 'Sistemas de riego tecnificado' },
+  { nombre: 'Cañerías', icono: '🔧', descripcion: 'Tuberías y accesorios' },
+  { nombre: 'Herramientas', icono: '⚒️', descripcion: 'Equipos y herramientas agrícolas' },
+  { nombre: 'Semillas', icono: '🌱', descripcion: 'Semillas certificadas de calidad' },
+]
+
+const productosDestacados = [
+  { id: 1, nombre: 'Fertilizante NPK 20-20-20', precio: 85.00, stock: 150, categoria: 'Agroquímicos', icono: '🧪' },
+  { id: 2, nombre: 'Kit Riego por Goteo', precio: 320.00, stock: 45, categoria: 'Riego', icono: '💧' },
+  { id: 3, nombre: 'Herbicida Glifosato 1L', precio: 65.00, stock: 200, categoria: 'Agroquímicos', icono: '🧪' },
+  { id: 4, nombre: 'Semillas Maíz Híbrido', precio: 45.00, stock: 500, categoria: 'Semillas', icono: '🌱' },
+]
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen">
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Hero */}
+      <section className="bg-gradient-to-br from-[#0a0f0a] via-[#0d1a0d] to-[#0a0f0a] py-20 px-4">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-[#111811] border border-[#22c55e] rounded-full px-4 py-2 mb-6">
+            <span className="text-[#22c55e] text-sm font-medium">🌿 Plataforma agrícola boliviana</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold text-[#f0fdf4] mb-6">
+            Insumos agrícolas<br />
+            <span className="text-[#22c55e]">al alcance de tu mano</span>
+          </h1>
+          <p className="text-[#86efac] text-lg md:text-xl mb-10 max-w-2xl mx-auto">
+            Encuentra agroquímicos, sistemas de riego, herramientas y semillas de calidad.
+            Compra en línea desde cualquier lugar de Bolivia.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/catalogo" className="bg-[#22c55e] hover:bg-[#16a34a] text-[#0a0f0a] font-bold px-8 py-4 rounded-xl text-lg transition-colors">
+              Ver Catálogo →
+            </Link>
+            <Link href="/auth/registro" className="border border-[#22c55e] text-[#22c55e] hover:bg-[#111811] font-semibold px-8 py-4 rounded-xl text-lg transition-colors">
+              Registrarse
+            </Link>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+
+      {/* Categorías */}
+      <section className="py-16 px-4 bg-[#0a0f0a]">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-bold text-[#f0fdf4] text-center mb-4">Nuestras Categorías</h2>
+          <p className="text-[#86efac] text-center mb-12">Todo lo que necesitas para tu campo en un solo lugar</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {categorias.map((cat) => (
+              <Link key={cat.nombre} href={`/catalogo?categoria=${cat.nombre}`}
+                className="bg-[#111811] border border-[#1a2e1a] hover:border-[#22c55e] rounded-xl p-6 text-center transition-all hover:bg-[#162016] group">
+                <div className="text-4xl mb-3">{cat.icono}</div>
+                <h3 className="font-semibold text-[#f0fdf4] group-hover:text-[#22c55e] transition-colors mb-1">{cat.nombre}</h3>
+                <p className="text-[#86efac] text-xs">{cat.descripcion}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Productos destacados */}
+      <section className="py-16 px-4 bg-[#0d1a0d]">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h2 className="text-3xl font-bold text-[#f0fdf4]">Productos Destacados</h2>
+              <p className="text-[#86efac] mt-2">Los más vendidos esta semana</p>
+            </div>
+            <Link href="/catalogo" className="text-[#22c55e] hover:text-[#16a34a] font-semibold transition-colors">
+              Ver todos →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {productosDestacados.map((producto) => (
+              <div key={producto.id} className="bg-[#111811] border border-[#1a2e1a] hover:border-[#22c55e] rounded-xl overflow-hidden transition-all hover:bg-[#162016] group">
+                <div className="bg-[#162016] h-48 flex items-center justify-center text-6xl">
+                  {producto.icono}
+                </div>
+                <div className="p-4">
+                  <span className="text-[#22c55e] text-xs font-medium">{producto.categoria}</span>
+                  <h3 className="text-[#f0fdf4] font-semibold mt-1 mb-2 group-hover:text-[#22c55e] transition-colors">{producto.nombre}</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[#22c55e] font-bold text-lg">Bs. {producto.precio.toFixed(2)}</span>
+                    <span className="text-[#86efac] text-xs">Stock: {producto.stock}</span>
+                  </div>
+                  <button className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-[#0a0f0a] font-semibold py-2 rounded-lg transition-colors text-sm">
+                    Agregar al carrito 🛒
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Banner CTA */}
+      <section className="py-16 px-4 bg-[#0a0f0a]">
+        <div className="max-w-4xl mx-auto bg-[#111811] border border-[#22c55e] rounded-2xl p-10 text-center">
+          <h2 className="text-3xl font-bold text-[#f0fdf4] mb-4">¿Eres distribuidor?</h2>
+          <p className="text-[#86efac] mb-8 text-lg">Registra tu negocio y llega a más agricultores en toda Bolivia</p>
+          <Link href="/auth/registro" className="bg-[#22c55e] hover:bg-[#16a34a] text-[#0a0f0a] font-bold px-8 py-4 rounded-xl text-lg transition-colors">
+            Unirse como distribuidor
+          </Link>
+        </div>
+      </section>
+
     </div>
-  );
+  )
 }
