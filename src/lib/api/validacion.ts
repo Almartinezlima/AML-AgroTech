@@ -34,3 +34,14 @@ export async function validarCuerpo<T extends z.ZodType>(request: NextRequest, e
 
   return resultado.data as z.output<T>
 }
+
+// Valida los parámetros de la URL. 400 si no cumplen el esquema.
+export function validarParametros<T extends z.ZodType>(request: NextRequest, esquema: T) {
+  const resultado = esquema.safeParse(Object.fromEntries(request.nextUrl.searchParams))
+
+  if (!resultado.success) {
+    throw new ErrorApi(400, 'PARAMETROS_INVALIDOS', 'Los parámetros de la consulta no son válidos.')
+  }
+
+  return resultado.data as z.output<T>
+}
