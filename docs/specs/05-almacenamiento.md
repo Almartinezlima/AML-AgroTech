@@ -1,17 +1,17 @@
 # 05 — Almacenamiento (inventario)
 
-Fase: `fase/3-almacenamiento`.
+Rama real: `fase/2-comercio`. ✅ Programado. Depende de correr la migración `0003` (pendiente) y de la prueba con sesión real.
 
 ## Historias de usuario
 
 | ID | Historia | Prioridad |
 |---|---|---|
-| HU-A01 | Como **administrador** quiero ver el stock de cada producto con su nivel (normal, bajo, agotado) | Alta |
-| HU-A02 | Como **administrador** quiero registrar entradas de mercadería (compra a proveedor) y ajustes (pérdida, vencimiento) con motivo | Alta |
-| HU-A03 | Como **administrador** quiero ver el kardex de cada producto: cada entrada y salida con fecha, cantidad, saldo y quién la hizo | Alta |
-| HU-A04 | Como **dueño** quiero que el stock baje solo al vender y vuelva al cancelar, sin errores ni ventas sin stock | Alta |
-| HU-A05 | Como **administrador** quiero alertas de productos bajo su stock mínimo en el panel | Alta |
-| HU-A06 | Como **administrador** quiero saber el valor total del inventario en Bs. | Media |
+| ✅ HU-A01 | Como **administrador** quiero ver el stock de cada producto con su nivel (normal, bajo, agotado) | Alta |
+| ✅ HU-A02 | Como **administrador** quiero registrar entradas de mercadería (compra a proveedor) y ajustes (pérdida, vencimiento) con motivo | Alta |
+| ✅ HU-A03 | Como **administrador** quiero ver el kardex de cada producto: cada entrada y salida con fecha, cantidad, saldo y quién la hizo | Alta |
+| ✅ HU-A04 | Como **dueño** quiero que el stock baje solo al vender y vuelva al cancelar, sin errores ni ventas sin stock | Alta |
+| ✅ HU-A05 | Como **administrador** quiero alertas de productos bajo su stock mínimo en el panel | Alta |
+| ✅ HU-A06 | Como **administrador** quiero saber el valor total del inventario en Bs. | Media |
 
 ## Criterios de aceptación
 

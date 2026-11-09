@@ -1,21 +1,21 @@
 # 01 — E-commerce
 
-Fase: `fase/2-ecommerce`. Pilar principal del proyecto.
+Rama real: `fase/2-comercio`. ✅ Programado. Depende de correr la migración `0003` (pendiente) y de la prueba con sesión real.
 
 ## Historias de usuario
 
 | ID | Historia | Prioridad |
 |---|---|---|
-| HU-E01 | Como **visitante** quiero ver el catálogo con foto, precio en Bs., unidad y disponibilidad para saber qué hay sin llamar a la tienda | Alta |
-| HU-E02 | Como **visitante** quiero buscar, filtrar por categoría y ordenar por precio o nombre para encontrar rápido lo que necesito | Alta |
-| HU-E03 | Como **visitante** quiero ver la ficha de un producto (descripción, uso, presentación, stock) para decidir mi compra | Alta |
-| HU-E04 | Como **cliente** quiero agregar productos al carrito y que no se pierda al recargar la página | Alta |
-| HU-E05 | Como **cliente** quiero confirmar mi compra eligiendo zona de envío y forma de pago, y ver el total con envío antes de pagar | Alta |
-| HU-E06 | Como **cliente** quiero ver mis pedidos con su estado, pago y seguimiento | Alta |
-| HU-E07 | Como **cliente** quiero cancelar un pedido mientras esté pendiente | Media |
-| HU-E08 | Como **administrador** quiero crear, editar, activar/desactivar productos con imagen | Alta |
-| HU-E09 | Como **administrador** quiero ver todos los pedidos con filtros por estado | Alta |
-| HU-E10 | Como **administrador** quiero un panel con ventas del día/mes, pedidos por estado, productos más vendidos y alertas, con datos reales | Alta |
+| ✅ HU-E01 | Como **visitante** quiero ver el catálogo con foto, precio en Bs., unidad y disponibilidad para saber qué hay sin llamar a la tienda | Alta |
+| ✅ HU-E02 | Como **visitante** quiero buscar, filtrar por categoría y ordenar por precio o nombre para encontrar rápido lo que necesito | Alta |
+| ✅ HU-E03 | Como **visitante** quiero ver la ficha de un producto (descripción, uso, presentación, stock) para decidir mi compra | Alta |
+| ✅ HU-E04 | Como **cliente** quiero agregar productos al carrito y que no se pierda al recargar la página | Alta |
+| ✅ HU-E05 | Como **cliente** quiero confirmar mi compra eligiendo zona de envío y forma de pago, y ver el total con envío antes de pagar | Alta |
+| ✅ HU-E06 | Como **cliente** quiero ver mis pedidos con su estado, pago y seguimiento | Alta |
+| ✅ HU-E07 | Como **cliente** quiero cancelar un pedido mientras esté pendiente | Media |
+| ✅ HU-E08 | Como **administrador** quiero crear, editar, activar/desactivar productos con imagen | Alta |
+| ✅ HU-E09 | Como **administrador** quiero ver todos los pedidos con filtros por estado | Alta |
+| ✅ HU-E10 | Como **administrador** quiero un panel con ventas del día/mes, pedidos por estado, productos más vendidos y alertas, con datos reales | Alta |
 
 ## Criterios de aceptación clave
 

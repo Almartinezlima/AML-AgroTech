@@ -7,6 +7,8 @@ import { formatoBs } from '@/lib/utils'
 import type { Dashboard } from '@/types/comercio'
 import { GraficoPedidosEstado, GraficoVentas } from './_components/Graficos'
 
+const textoPedidos = (cantidad: number) => `${cantidad} pedido${cantidad === 1 ? '' : 's'}`
+
 function Cifra({ titulo, valor, detalle, href }: { titulo: string; valor: string; detalle?: string; href?: string }) {
   const contenido = (
     <>
@@ -35,8 +37,8 @@ export default function AdminPage() {
         ) : (
           <div className="flex flex-col gap-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Cifra titulo="Ventas de hoy" valor={formatoBs(d.ventas_hoy.total)} detalle={`${d.ventas_hoy.pedidos} pedidos`} />
-              <Cifra titulo="Ventas del mes" valor={formatoBs(d.ventas_mes.total)} detalle={`${d.ventas_mes.pedidos} pedidos`} />
+              <Cifra titulo="Ventas de hoy" valor={formatoBs(d.ventas_hoy.total)} detalle={textoPedidos(d.ventas_hoy.pedidos)} />
+              <Cifra titulo="Ventas del mes" valor={formatoBs(d.ventas_mes.total)} detalle={textoPedidos(d.ventas_mes.pedidos)} />
               <Cifra titulo="Pagos en revisión" valor={String(d.pagos_en_revision)} detalle="Ir a verificar" href="/admin/pagos" />
               <Cifra titulo="Valor del inventario" valor={formatoBs(d.valor_inventario)} />
               <Cifra titulo="Cobrado" valor={formatoBs(d.cobrado)} />
