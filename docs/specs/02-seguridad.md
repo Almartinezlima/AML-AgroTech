@@ -1,17 +1,17 @@
 # 02 — Seguridad
 
-Fase: `fase/1-seguridad`.
+Fase: `fase/1-seguridad`. ✅ Programada. Depende de correr la migración `0002` (pendiente) y de la prueba con sesión real.
 
 ## Historias de usuario
 
 | ID | Historia | Prioridad |
 |---|---|---|
-| HU-S01 | Como **visitante** quiero registrarme con nombre, correo, teléfono y contraseña para comprar | Alta |
-| HU-S02 | Como **usuario** quiero iniciar y cerrar sesión, y que mi sesión se mantenga al recargar | Alta |
-| HU-S03 | Como **usuario** quiero recuperar mi contraseña por correo | Media |
-| HU-S04 | Como **administrador** quiero ver los usuarios, cambiar su rol y desactivar cuentas | Alta |
+| ✅ HU-S01 | Como **visitante** quiero registrarme con nombre, correo, teléfono y contraseña para comprar | Alta |
+| ✅ HU-S02 | Como **usuario** quiero iniciar y cerrar sesión, y que mi sesión se mantenga al recargar | Alta |
+| ✅ HU-S03 | Como **usuario** quiero recuperar mi contraseña por correo | Media |
+| ✅ HU-S04 | Como **administrador** quiero ver los usuarios, cambiar su rol y desactivar cuentas | Alta |
 | HU-S05 | Como **dueño de la tienda** quiero que nadie pueda hacerse administrador por su cuenta ni ver datos de otros | Alta |
-| HU-S06 | Como **cliente** quiero editar mi nombre y teléfono en "Mi cuenta" | Media |
+| ✅ HU-S06 | Como **cliente** quiero editar mi nombre y teléfono en "Mi cuenta" | Media |
 
 ## Criterios de aceptación
 

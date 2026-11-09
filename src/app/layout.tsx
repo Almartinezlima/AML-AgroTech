@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import AvisoCuentaDesactivada from '@/components/layout/AvisoCuentaDesactivada'
 import { CarritoProvider } from '@/context/CarritoContext'
 import { AuthProvider } from '@/context/AuthContext'
 
@@ -24,6 +25,7 @@ export default function RootLayout({
         <AuthProvider>
           <CarritoProvider>
             <Navbar />
+            <AvisoCuentaDesactivada />
             <main className="flex-1">
               {children}
             </main>

@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
 
 interface ItemCarrito {
-  id: number
+  id: string
   nombre: string
   precio: number
   cantidad: number
@@ -14,8 +14,8 @@ interface ItemCarrito {
 interface CarritoContextType {
   items: ItemCarrito[]
   agregarItem: (producto: Omit<ItemCarrito, 'cantidad'>) => void
-  actualizarCantidad: (id: number, cantidad: number) => void
-  eliminarItem: (id: number) => void
+  actualizarCantidad: (id: string, cantidad: number) => void
+  eliminarItem: (id: string) => void
   total: number
   totalItems: number
   limpiarCarrito: () => void
@@ -36,12 +36,12 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const actualizarCantidad = (id: number, cantidad: number) => {
+  const actualizarCantidad = (id: string, cantidad: number) => {
     if (cantidad < 1) return
     setItems(prev => prev.map(i => i.id === id ? { ...i, cantidad } : i))
   }
 
-  const eliminarItem = (id: number) => {
+  const eliminarItem = (id: string) => {
     setItems(prev => prev.filter(i => i.id !== id))
   }
 

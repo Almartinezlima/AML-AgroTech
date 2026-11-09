@@ -8,7 +8,8 @@ interface PerfilUsuario {
   nombre: string
   email: string
   rol: 'admin' | 'cliente' | 'distribuidor'
-  telefono?: string
+  telefono?: string | null
+  activo: boolean
 }
 
 interface AuthContextType {
@@ -17,6 +18,7 @@ interface AuthContextType {
   perfil: PerfilUsuario | null
   cargando: boolean
   cerrarSesion: () => Promise<void>
+  recargarPerfil: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -31,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const cargarPerfil = async (userId: string) => {
     const { data } = await supabase
       .from('perfiles')
-      .select('id, nombre, email, rol, telefono')
+      .select('id, nombre, email, rol, telefono, activo')
       .eq('id', userId)
       .single()
     if (data) setPerfil(data)
@@ -51,15 +53,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     inicializar()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
         if (session?.user) {
-          await cargarPerfil(session.user.id)
+          // Se difiere: llamar a Supabase dentro de este callback puede trabar
+          // otras operaciones de Auth, como updateUser al restablecer la contraseña
+          const userId = session.user.id
+          setTimeout(() => {
+            void cargarPerfil(userId).finally(() => setCargando(false))
+          }, 0)
         } else {
           setPerfil(null)
+          setCargando(false)
         }
-        setCargando(false)
       }
     )
 
@@ -71,8 +78,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPerfil(null)
   }
 
+  const recargarPerfil = async () => {
+    if (user) await cargarPerfil(user.id)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, session, perfil, cargando, cerrarSesion }}>
+    <AuthContext.Provider value={{ user, session, perfil, cargando, cerrarSesion, recargarPerfil }}>
       {children}
     </AuthContext.Provider>
   )

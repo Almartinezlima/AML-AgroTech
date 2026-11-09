@@ -1,13 +1,15 @@
 # AML AgroTech — Estado
 
-**Actualizado:** 9 nov 2026 (Fase 0). Revisado contra el código de `master` y la base real de Supabase.
+**Actualizado:** 9 nov 2026 (Fase 1, rama `fase/1-seguridad`). Revisado contra el código y la base real de Supabase.
+
+> ⚠️ **La migración `0002_reconciliar_y_seguridad.sql` está PENDIENTE de correr.** Hasta que Aldo la ejecute, la base real sigue con los agujeros descritos en la sesión de la Fase 1.
 
 ## Resumen por pilar
 
 | Pilar | Estado | Qué hay | Qué falta |
 |---|---|---|---|
 | E-commerce | 🟡 Parcial | Catálogo real (33 productos, 5 categorías) con búsqueda, filtro y orden; carrito en memoria | Pedido real en la base (hoy "Confirmar" solo muestra un número aleatorio), `/pedidos` sin conectar, carrito persistente, ficha de producto, imágenes, dashboard real (hoy con cifras inventadas), editar producto |
-| Seguridad | 🟡 Parcial | Supabase Auth (login/registro), roles admin/cliente/distribuidor, RLS en las 5 tablas, middleware que exige sesión | **Crítico:** un usuario puede cambiarse el `rol` a admin (la política `perfil_update` no protege la columna). Middleware no verifica rol. `/admin/usuarios` sin datos. Políticas `FOR ALL` en `pedidos`. Avisos de Supabase (search_path, `handle_new_user` ejecutable) |
+| Seguridad | 🟢 Programada, falta correr la 0002 | Roles protegidos en base (`es_admin`, `proteger_campos_perfil`), RLS reescrita, middleware con rol verificado en servidor, API base (`requerirSesion`/`requerirAdmin`), `/admin/usuarios` real, recuperación de contraseña, `/cuenta`, encabezados de seguridad | Correr la 0002; en Supabase Auth: mínimo de contraseña 8 y Redirect URLs |
 | Pagos | 🔴 No existe | — | Todo |
 | Distribución | 🔴 No existe | — | Todo |
 | Almacenamiento | 🟡 Parcial | `/admin/inventario` muestra stock real con nivel | Kardex, entradas/salidas, descuento automático al vender, alertas |

@@ -72,6 +72,9 @@ export default function LoginPage() {
                 required
                 className="w-full bg-[#162016] border border-[#1a2e1a] focus:border-[#22c55e] text-[#f0fdf4] placeholder-[#86efac] rounded-xl px-4 py-3 outline-none transition-colors"
               />
+              <Link href="/auth/recuperar" className="inline-block mt-2 text-[#22c55e] text-sm hover:underline">
+                ¿Olvidaste tu contraseña?
+              </Link>
             </div>
 
             <button

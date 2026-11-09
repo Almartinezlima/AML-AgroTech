@@ -64,7 +64,7 @@ export default function CatalogoPage() {
 
   const handleAgregar = (producto: Producto) => {
     agregarItem({
-      id: producto.id as unknown as number,
+      id: producto.id,
       nombre: producto.nombre,
       precio: producto.precio,
       categoria: producto.categorias?.nombre || '',

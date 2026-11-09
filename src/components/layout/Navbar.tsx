@@ -50,9 +50,9 @@ export default function Navbar() {
 
             {user ? (
               <div className="flex items-center gap-3">
-                <span className="text-[#86efac] text-sm">
+                <Link href="/cuenta" className="text-[#86efac] hover:text-[#22c55e] transition-colors text-sm">
                   👤 {perfil?.nombre ?? user.email}
-                </span>
+                </Link>
                 <button onClick={handleCerrarSesion}
                   className="border border-[#22c55e] text-[#22c55e] hover:bg-[#162016] font-semibold px-4 py-2 rounded-lg transition-colors text-sm">
                   Salir
@@ -83,6 +83,7 @@ export default function Navbar() {
             <Link href="/carrito" className="text-[#86efac] hover:text-[#22c55e]" onClick={() => setMenuAbierto(false)}>
               🛒 Carrito {totalItems > 0 && `(${totalItems})`}
             </Link>
+            {user && <Link href="/cuenta" className="text-[#86efac] hover:text-[#22c55e]" onClick={() => setMenuAbierto(false)}>Mi cuenta</Link>}
             {user ? (
               <button onClick={handleCerrarSesion} className="text-left text-red-400 hover:text-red-300">Cerrar sesión</button>
             ) : (

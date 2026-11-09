@@ -21,41 +21,34 @@ export default function RegistroPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setCargando(true)
     setError('')
 
-    // 1. Crear usuario en Supabase Auth
-    const { data, error: authError } = await supabase.auth.signUp({
+    if (password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres.')
+      return
+    }
+
+    setCargando(true)
+
+    // El perfil lo crea el trigger handle_new_user a partir de estos datos
+    const { error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { nombre, rol, telefono }
+        data: { nombre, rol, telefono: telefono || null }
       }
     })
 
     if (authError) {
-      setError(authError.message)
+      setError(
+        authError.code === 'weak_password'
+          ? 'La contraseña es muy débil. Usa al menos 8 caracteres.'
+          : authError.code === 'over_email_send_rate_limit'
+            ? 'Se enviaron demasiados correos. Espera unos minutos e intenta de nuevo.'
+            : 'No se pudo crear la cuenta. Revisa tus datos e intenta de nuevo.'
+      )
       setCargando(false)
       return
-    }
-
-    // 2. Insertar perfil en tabla perfiles
-    if (data.user) {
-      const { error: perfilError } = await supabase
-        .from('perfiles')
-        .insert({
-          id: data.user.id,
-          nombre,
-          email,
-          rol,
-          telefono: telefono || null,
-        })
-
-      if (perfilError) {
-        setError('Error al crear el perfil. Intenta de nuevo.')
-        setCargando(false)
-        return
-      }
     }
 
     setCargando(false)
