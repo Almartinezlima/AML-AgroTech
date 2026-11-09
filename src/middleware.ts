@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const RUTAS_CON_SESION = ['/pedidos', '/carrito', '/cuenta']
+const RUTAS_CON_SESION = ['/pedidos', '/carrito', '/cuenta', '/checkout']
 const RUTA_CUENTA_DESACTIVADA = '/cuenta-desactivada'
 
 // Compara por segmentos: '/admin' cubre '/admin/usuarios' pero no '/administrar'
@@ -36,10 +36,11 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   // Al redirigir se conservan las cookies de una sesión recién renovada
-  const redirigir = (destino: string) => {
+  const redirigir = (destino: string, siguiente?: string) => {
     const url = request.nextUrl.clone()
     url.pathname = destino
     url.search = ''
+    if (siguiente) url.searchParams.set('siguiente', siguiente)
     const respuesta = NextResponse.redirect(url)
     supabaseResponse.cookies.getAll().forEach((cookie) => respuesta.cookies.set(cookie))
     return respuesta
@@ -51,7 +52,7 @@ export async function middleware(request: NextRequest) {
   const esAvisoDesactivada = coincide(ruta, RUTA_CUENTA_DESACTIVADA)
 
   if ((esRutaAdmin || esRutaConSesion) && !user) {
-    return redirigir('/auth/login')
+    return redirigir('/auth/login', ruta)
   }
 
   if (user && (esRutaAdmin || esRutaConSesion || esAvisoDesactivada)) {

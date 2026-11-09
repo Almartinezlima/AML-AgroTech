@@ -1,81 +1,56 @@
 'use client'
 import Link from 'next/link'
-
-// Tipo de estado posible para un pedido
-type EstadoPedido = 'Pendiente' | 'Confirmado' | 'Entregado' | 'Cancelado'
-
-interface Pedido {
-  id: string
-  fecha: string
-  productos: string[]
-  total: number
-  estado: EstadoPedido
-}
-
-const pedidos: Pedido[] = [
-  { id: '#P-001', fecha: '11/09/2026', productos: ['Fertilizante NPK 20-20-20 x2', 'Herbicida Glifosato x1'], total: 235.00, estado: 'Pendiente' },
-  { id: '#P-002', fecha: '10/09/2026', productos: ['Kit Riego por Goteo x1'], total: 320.00, estado: 'Confirmado' },
-  { id: '#P-003', fecha: '08/09/2026', productos: ['Semillas Maíz Híbrido x3', 'Azadón Reforzado x1'], total: 530.00, estado: 'Entregado' },
-]
-
-// Colores de badge según el estado del pedido
-const colorEstado: Record<EstadoPedido, string> = {
-  Pendiente: 'bg-yellow-900 text-yellow-400',
-  Confirmado: 'bg-blue-900 text-blue-400',
-  Entregado: 'bg-green-900 text-green-400',
-  Cancelado: 'bg-red-900 text-red-400',
-}
+import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
+import Insignia from '@/components/ui/Insignia'
+import { claseBotonPrimario, clasePagina, claseTarjeta } from '@/components/ui/estilos'
+import { useDatosApi } from '@/lib/api/useDatosApi'
+import { ETIQUETA_METODO, INFO_ESTADO_PAGO, INFO_ESTADO_PEDIDO, fechaHora } from '@/lib/ecommerce/presentacion'
+import { formatoBs } from '@/lib/utils'
+import type { PedidoResumen } from '@/types/comercio'
 
 export default function PedidosPage() {
-  if (pedidos.length === 0) {
-    return (
-      <div className="min-h-screen bg-[#0a0f0a] flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="text-6xl mb-4">📦</div>
-          <h2 className="text-2xl font-bold text-[#f0fdf4] mb-2">Aún no tienes pedidos</h2>
-          <p className="text-[#86efac] mb-8">Explora el catálogo y realiza tu primera compra</p>
-          <Link href="/catalogo" className="bg-[#22c55e] hover:bg-[#16a34a] text-[#0a0f0a] font-bold px-8 py-3 rounded-xl transition-colors">
-            Ver Catálogo
-          </Link>
-        </div>
-      </div>
-    )
-  }
+  const { datos: pedidos, cargando, error, recargar } = useDatosApi<PedidoResumen[]>('/api/pedidos')
 
   return (
-    <div className="min-h-screen bg-[#0a0f0a] py-8 px-4">
+    <div className={clasePagina}>
       <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold text-[#f0fdf4] mb-2">Mis pedidos</h1>
+        <p className="text-[#86efac] mb-8">Revisa el estado, el pago y el envío de tus compras</p>
 
-        <h1 className="text-3xl font-bold text-[#f0fdf4] mb-2">Mis Pedidos</h1>
-        <p className="text-[#86efac] mb-8">{pedidos.length} pedido{pedidos.length !== 1 ? 's' : ''} realizado{pedidos.length !== 1 ? 's' : ''}</p>
-
-        <div className="flex flex-col gap-4">
-          {pedidos.map((pedido) => (
-            <div key={pedido.id} className="bg-[#111811] border border-[#1a2e1a] hover:border-[#22c55e] rounded-xl p-5 transition-colors">
-              <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-[#22c55e] font-mono font-semibold">{pedido.id}</span>
-                  <span className="text-[#86efac] text-sm">{pedido.fecha}</span>
-                </div>
-                <span className={`text-xs px-3 py-1 rounded-full font-medium ${colorEstado[pedido.estado]}`}>
-                  {pedido.estado}
-                </span>
-              </div>
-
-              <ul className="text-[#86efac] text-sm mb-3 list-disc list-inside">
-                {pedido.productos.map((producto) => (
-                  <li key={producto}>{producto}</li>
-                ))}
-              </ul>
-
-              <div className="flex justify-between items-center border-t border-[#1a2e1a] pt-3">
-                <span className="text-[#86efac] text-sm">Total</span>
-                <span className="text-[#22c55e] font-bold text-lg">Bs. {pedido.total.toFixed(2)}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-
+        {cargando ? (
+          <BloqueCarga />
+        ) : error || !pedidos ? (
+          <BloqueError mensaje={error} onReintentar={() => void recargar()} />
+        ) : pedidos.length === 0 ? (
+          <BloqueVacio icono="📦" mensaje="Todavía no tienes pedidos">
+            <Link href="/catalogo" className={claseBotonPrimario}>Ver catálogo</Link>
+          </BloqueVacio>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {pedidos.map((pedido) => (
+              <li key={pedido.id}>
+                <Link href={`/pedidos/${pedido.id}`} className={`${claseTarjeta} block p-4 sm:p-5 hover:border-[#22c55e] transition-colors`}>
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div>
+                      <p className="text-[#22c55e] font-mono font-bold">{pedido.codigo}</p>
+                      <p className="text-[#86efac] text-xs mt-1">{fechaHora(pedido.created_at)}</p>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      <Insignia info={INFO_ESTADO_PEDIDO[pedido.estado]} />
+                      <Insignia info={INFO_ESTADO_PAGO[pedido.estado_pago]} />
+                    </div>
+                  </div>
+                  <div className="flex items-end justify-between gap-3 mt-3">
+                    <p className="text-[#86efac] text-sm min-w-0">
+                      {pedido.zonas_envio?.nombre} · {ETIQUETA_METODO[pedido.metodo_pago]}
+                    </p>
+                    <p className="text-[#f0fdf4] font-bold whitespace-nowrap">{formatoBs(pedido.total)}</p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   )

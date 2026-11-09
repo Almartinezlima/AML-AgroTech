@@ -25,7 +25,9 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/')
+    // Solo rutas internas: un "//sitio.com" llevaría a otro dominio
+    const siguiente = new URLSearchParams(window.location.search).get('siguiente')
+    router.push(siguiente && /^\/[^/\\]/.test(siguiente) ? siguiente : '/')
     router.refresh()
   }
 

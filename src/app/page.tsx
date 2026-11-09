@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ProductosDestacados from './_components/ProductosDestacados'
 
 const categorias = [
   { nombre: 'Agroquímicos', icono: '🧪', descripcion: 'Fertilizantes, pesticidas y herbicidas' },
@@ -6,13 +7,6 @@ const categorias = [
   { nombre: 'Cañerías', icono: '🔧', descripcion: 'Tuberías y accesorios' },
   { nombre: 'Herramientas', icono: '⚒️', descripcion: 'Equipos y herramientas agrícolas' },
   { nombre: 'Semillas', icono: '🌱', descripcion: 'Semillas certificadas de calidad' },
-]
-
-const productosDestacados = [
-  { id: 1, nombre: 'Fertilizante NPK 20-20-20', precio: 85.00, stock: 150, categoria: 'Agroquímicos', icono: '🧪' },
-  { id: 2, nombre: 'Kit Riego por Goteo', precio: 320.00, stock: 45, categoria: 'Riego', icono: '💧' },
-  { id: 3, nombre: 'Herbicida Glifosato 1L', precio: 65.00, stock: 200, categoria: 'Agroquímicos', icono: '🧪' },
-  { id: 4, nombre: 'Semillas Maíz Híbrido', precio: 45.00, stock: 500, categoria: 'Semillas', icono: '🌱' },
 ]
 
 export default function Home() {
@@ -68,32 +62,13 @@ export default function Home() {
           <div className="flex items-center justify-between mb-12">
             <div>
               <h2 className="text-3xl font-bold text-[#f0fdf4]">Productos Destacados</h2>
-              <p className="text-[#86efac] mt-2">Los más vendidos esta semana</p>
+              <p className="text-[#86efac] mt-2">Una selección de nuestro catálogo</p>
             </div>
             <Link href="/catalogo" className="text-[#22c55e] hover:text-[#16a34a] font-semibold transition-colors">
               Ver todos →
             </Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {productosDestacados.map((producto) => (
-              <div key={producto.id} className="bg-[#111811] border border-[#1a2e1a] hover:border-[#22c55e] rounded-xl overflow-hidden transition-all hover:bg-[#162016] group">
-                <div className="bg-[#162016] h-48 flex items-center justify-center text-6xl">
-                  {producto.icono}
-                </div>
-                <div className="p-4">
-                  <span className="text-[#22c55e] text-xs font-medium">{producto.categoria}</span>
-                  <h3 className="text-[#f0fdf4] font-semibold mt-1 mb-2 group-hover:text-[#22c55e] transition-colors">{producto.nombre}</h3>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[#22c55e] font-bold text-lg">Bs. {producto.precio.toFixed(2)}</span>
-                    <span className="text-[#86efac] text-xs">Stock: {producto.stock}</span>
-                  </div>
-                  <button className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-[#0a0f0a] font-semibold py-2 rounded-lg transition-colors text-sm">
-                    Agregar al carrito 🛒
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <ProductosDestacados />
         </div>
       </section>
 
