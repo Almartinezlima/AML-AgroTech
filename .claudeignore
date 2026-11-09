@@ -1,0 +1,49 @@
+# Dependencias (Claude no las necesita)
+node_modules/
+.pnp
+.pnp.js
+
+# Build de Next.js
+.next/
+out/
+build/
+dist/
+
+# Variables de entorno (NUNCA exponerlas)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs y debug
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+
+# Editor / sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Coverage / tests
+coverage/
+.nyc_output/
+
+# TypeScript build cache
+*.tsbuildinfo
+next-env.d.ts
+
+# Backups y archivos temporales
+*.zip
+*.bak
+*.tmp
+*-backup-*
+
+# Archivos grandes que no aportan
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
