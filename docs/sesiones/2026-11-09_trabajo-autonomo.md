@@ -100,7 +100,7 @@ Con `npm run dev`, después de las dos migraciones. Usa dos navegadores: uno cli
 
 **Evidencia**
 
-- tsc y build sin errores; lint con 4 warnings previos de `exhaustive-deps`.
+- tsc y build sin errores; lint con 1 warning previo de `exhaustive-deps` en `AuthContext`.
 - Servidor real sin sesión: 401 en rutas protegidas, 307 a login con vuelta, OpenAPI 200.
 - Copia con sesión simulada: 403 por rol, 201 al crear, 409 por stock con detalle, 422 por datos (incluye precio inyectado y editar stock a mano), CSV descargable.
 - Capturas en 1280 y 360 px de 18 pantallas, sin scroll horizontal.
