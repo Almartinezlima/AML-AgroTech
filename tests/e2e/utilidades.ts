@@ -115,7 +115,8 @@ export async function paginaAdmin(browser: Browser): Promise<Page> {
 export async function agregarAlCarrito(page: Page, nombre: string) {
   if (!page.url().includes('/catalogo')) await page.goto('/catalogo')
   await page.getByLabel('Buscar producto').fill(nombre)
-  const tarjeta = page.locator('div.group', { has: page.getByRole('link', { name: nombre, exact: true }) })
+  // Cada producto es un <article>; se busca por su nombre, no por clases de diseño
+  const tarjeta = page.getByRole('article').filter({ has: page.getByRole('link', { name: nombre, exact: true }) })
   await tarjeta.getByRole('button', { name: /Agregar al carrito/ }).click()
   await expect(tarjeta.getByRole('button', { name: /Agregado/ })).toBeVisible()
 }
