@@ -8,6 +8,7 @@ export default defineConfig({
   testDir: '.',
   testMatch: 'capturas.spec.ts',
   reporter: 'line',
+  outputDir: '../../test-results/capturas-salida',
   webServer: undefined,
   use: { ...base.use, baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000' },
 })
