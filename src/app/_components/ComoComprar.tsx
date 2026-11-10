@@ -2,7 +2,7 @@ import { LuQrCode, LuShoppingBasket, LuTruck } from 'react-icons/lu'
 
 const PASOS = [
   { icono: LuShoppingBasket, titulo: 'Elige', texto: 'Busca en el catálogo y arma tu carrito con precios en bolivianos y stock real.' },
-  { icono: LuQrCode, titulo: 'Paga con QR', texto: 'Escanea el QR desde la app de tu banco y sube el comprobante. También transferencia o contra entrega en Sucre.' },
+  { icono: LuQrCode, titulo: 'Paga con QR', texto: 'Escanea el QR desde la app de tu banco y sube el comprobante. También transferencia o contra entrega en Villa Charcas.' },
   { icono: LuTruck, titulo: 'Recibe en tu pueblo', texto: 'Despachamos por flota o encomienda. Sigue tu pedido con el número de guía.' },
 ]
 

@@ -131,7 +131,7 @@ Tema oscuro agrícola, mobile-first:
 ## Datos y negocio
 
 - Catálogo: 33 productos reales con precios de referencia de Sucre (Observatorio Agroambiental, 2º sem. 2023). Riego y cañerías son estimados.
-- Zonas de envío iniciales: **Recojo en tienda (Sucre)**, **Sucre urbano**, **Villa Charcas**, **Culpina**, **Incahuasi** (provincias por flota/encomienda).
+- La tienda está en **Villa Charcas**. Zonas: **Recojo en tienda (Villa Charcas)** Bs. 0 · **Villa Charcas (entrega en el pueblo)** Bs. 10 · **Culpina** Bs. 10 · **Incahuasi** Bs. 10 · **Sucre (recojo en la terminal de buses)** Bs. 15. Contra entrega solo en Villa Charcas; Culpina, Incahuasi y Sucre van por flota con número de guía.
 - El **QR de pago es de demostración** (repo y Render son públicos): nunca subir un QR o cuenta bancaria real.
 - Cuentas demo para la feria: se crean con el panel de Supabase; las contraseñas **nunca** van al repo.
 

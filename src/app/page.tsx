@@ -54,7 +54,7 @@ export default function Home() {
 
       <section className="border-y border-borde bg-tarjeta/40 px-4 py-16 sm:px-6 md:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <Encabezado titulo="Zonas de envío" texto="Costo y tiempo de entrega desde Sucre hasta las provincias." />
+          <Encabezado titulo="Zonas de envío" texto="Salimos desde Villa Charcas: al pueblo, a los municipios vecinos y a Sucre por flota." />
           <ZonasPortada />
         </div>
       </section>
