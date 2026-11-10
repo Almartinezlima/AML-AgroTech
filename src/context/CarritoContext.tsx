@@ -1,6 +1,7 @@
 'use client'
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react'
 import type { Producto } from '@/types/comercio'
+import { useAuth } from '@/context/AuthContext'
 
 export interface ItemCarrito {
   id: string
@@ -27,7 +28,14 @@ interface CarritoContextType {
 
 const CarritoContext = createContext<CarritoContextType | null>(null)
 
-const CLAVE_CARRITO = 'aml-carrito-v1'
+// Cada cuenta tiene su propio carrito en este navegador: al cambiar de cuenta
+// nunca se ve ni se compra lo que dejó otra persona.
+const PREFIJO_CARRITO = 'aml-carrito-v2:'
+const CLAVE_INVITADO = `${PREFIJO_CARRITO}invitado`
+// Versión vieja, compartida por todas las cuentas: se descarta
+const CLAVE_ANTIGUA = 'aml-carrito-v1'
+
+const claveDe = (userId: string | null) => (userId ? `${PREFIJO_CARRITO}${userId}` : CLAVE_INVITADO)
 
 function esItemValido(valor: unknown): valor is ItemCarrito {
   const item = valor as ItemCarrito
@@ -54,29 +62,80 @@ export function productoParaCarrito(producto: Producto): Omit<ItemCarrito, 'cant
 
 const limitar = (cantidad: number, stock: number) => Math.max(1, Math.min(cantidad, stock))
 
+function leerCarrito(clave: string): ItemCarrito[] {
+  try {
+    const guardado = JSON.parse(localStorage.getItem(clave) ?? '[]') as unknown
+    return Array.isArray(guardado) ? guardado.filter(esItemValido) : []
+  } catch {
+    // Sin almacenamiento disponible, el carrito funciona solo en memoria
+    return []
+  }
+}
+
+function borrarCarrito(clave: string) {
+  try {
+    localStorage.removeItem(clave)
+  } catch {
+    // Sin almacenamiento disponible no hay nada que borrar
+  }
+}
+
+// Suma lo que juntó como invitado al carrito de su cuenta, respetando el stock
+function fusionar(base: ItemCarrito[], extra: ItemCarrito[]): ItemCarrito[] {
+  const resultado = [...base]
+  for (const item of extra) {
+    const i = resultado.findIndex((r) => r.id === item.id)
+    if (i === -1) resultado.push(item)
+    else resultado[i] = { ...item, cantidad: limitar(resultado[i].cantidad + item.cantidad, item.stock) }
+  }
+  return resultado
+}
+
+interface EstadoCarrito {
+  clave: string | null
+  items: ItemCarrito[]
+}
+
 export function CarritoProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<ItemCarrito[]>([])
-  const [cargado, setCargado] = useState(false)
+  const { user, cargando: cargandoAuth } = useAuth()
+  const userId = user?.id ?? null
+  // La clave y los ítems cambian juntos: así nunca se guarda un carrito con la clave de otra cuenta
+  const [estado, setEstado] = useState<EstadoCarrito>({ clave: null, items: [] })
+  const claveAnterior = useRef<string | null>(null)
+  const items = estado.items
 
-  // Se lee después de montar para que el servidor y el navegador coincidan
+  // Se lee después de montar (para que el servidor y el navegador coincidan) y cada vez que cambia la cuenta
   useEffect(() => {
+    if (cargandoAuth) return
+    const clave = claveDe(userId)
+    if (claveAnterior.current === clave) return
+
+    let cargados = leerCarrito(clave)
+    if (userId) {
+      const delInvitado = leerCarrito(CLAVE_INVITADO)
+      if (delInvitado.length > 0) {
+        cargados = fusionar(cargados, delInvitado)
+        borrarCarrito(CLAVE_INVITADO)
+      }
+    }
+    borrarCarrito(CLAVE_ANTIGUA)
+
+    claveAnterior.current = clave
+    setEstado({ clave, items: cargados })
+  }, [userId, cargandoAuth])
+
+  useEffect(() => {
+    if (!estado.clave) return
     try {
-      const guardado = JSON.parse(localStorage.getItem(CLAVE_CARRITO) ?? '[]') as unknown
-      if (Array.isArray(guardado)) setItems(guardado.filter(esItemValido))
+      localStorage.setItem(estado.clave, JSON.stringify(estado.items))
     } catch {
       // Sin almacenamiento disponible, el carrito funciona solo en memoria
     }
-    setCargado(true)
-  }, [])
+  }, [estado])
 
-  useEffect(() => {
-    if (!cargado) return
-    try {
-      localStorage.setItem(CLAVE_CARRITO, JSON.stringify(items))
-    } catch {
-      // Sin almacenamiento disponible, el carrito funciona solo en memoria
-    }
-  }, [items, cargado])
+  const setItems = (cambio: (prev: ItemCarrito[]) => ItemCarrito[]) => {
+    setEstado((prev) => ({ ...prev, items: cambio(prev.items) }))
+  }
 
   const agregarItem = (producto: Omit<ItemCarrito, 'cantidad'>, cantidad = 1) => {
     if (producto.stock < 1) return
@@ -107,7 +166,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
       : prev.map(i => i.id === id ? { ...i, stock: disponible, cantidad: Math.min(i.cantidad, disponible) } : i))
   }
 
-  const limpiarCarrito = () => setItems([])
+  const limpiarCarrito = () => setItems(() => [])
 
   const total = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
   const totalItems = items.reduce((acc, i) => acc + i.cantidad, 0)

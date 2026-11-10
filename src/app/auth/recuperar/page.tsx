@@ -2,8 +2,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import { useAuth } from '@/context/AuthContext'
+import { mensajeErrorAuth } from '@/lib/auth/mensajes'
 
 export default function RecuperarPage() {
+  const { user } = useAuth()
   const [email, setEmail] = useState('')
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
@@ -14,19 +17,21 @@ export default function RecuperarPage() {
     setCargando(true)
     setError('')
 
-    const { error: errorEnvio } = await createClient().auth.resetPasswordForEmail(email, {
+    const supabase = createClient()
+
+    // Con una sesión abierta, el enlace podría terminar cambiando la contraseña equivocada:
+    // se cierra solo en este navegador antes de pedirlo
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) await supabase.auth.signOut({ scope: 'local' })
+
+    const { error: errorEnvio } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/restablecer`,
     })
 
     setCargando(false)
 
-    if (errorEnvio?.code === 'over_email_send_rate_limit') {
-      setError('Se enviaron demasiados correos. Espera unos minutos e intenta de nuevo.')
-      return
-    }
-
     if (errorEnvio) {
-      setError('No se pudo enviar el correo. Intenta de nuevo.')
+      setError(mensajeErrorAuth(errorEnvio))
       return
     }
 
@@ -49,17 +54,24 @@ export default function RecuperarPage() {
               <p className="text-[#f0fdf4] font-semibold mb-2">Revisa tu correo</p>
               <p className="text-[#86efac] text-sm">
                 Si <span className="break-all">{email}</span> tiene una cuenta, recibirás un enlace para crear una nueva contraseña.
+                Ábrelo en este mismo navegador.
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              {user && (
+                <div role="note" className="bg-[#1f1a0a] border border-[#f59e0b] text-[#fcd34d] rounded-xl px-4 py-3 text-sm">
+                  ⚠️ Vas a cerrar la sesión de <span className="font-semibold break-all">{user.email}</span> en este navegador.
+                </div>
+              )}
+
               {error && (
                 <div role="alert" className="bg-red-900 border border-red-700 text-red-300 rounded-xl px-4 py-3 text-sm">⚠️ {error}</div>
               )}
 
               <div>
                 <label htmlFor="email" className="text-[#86efac] text-sm font-medium mb-2 block">Correo electrónico</label>
-                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                <input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@correo.com" required
                   className="w-full bg-[#162016] border border-[#1a2e1a] focus:border-[#22c55e] text-[#f0fdf4] placeholder-[#86efac] rounded-xl px-4 py-3 outline-none transition-colors" />
               </div>

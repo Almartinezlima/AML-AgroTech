@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { rutaInterna } from '@/lib/auth/redireccion'
 
 const RUTAS_CON_SESION = ['/pedidos', '/carrito', '/cuenta', '/checkout']
 const RUTA_CUENTA_DESACTIVADA = '/cuenta-desactivada'
@@ -52,7 +53,7 @@ export async function middleware(request: NextRequest) {
   const esAvisoDesactivada = coincide(ruta, RUTA_CUENTA_DESACTIVADA)
 
   if ((esRutaAdmin || esRutaConSesion) && !user) {
-    return redirigir('/auth/login', ruta)
+    return redirigir('/auth/login', `${ruta}${request.nextUrl.search}`)
   }
 
   if (user && (esRutaAdmin || esRutaConSesion || esAvisoDesactivada)) {
@@ -75,9 +76,12 @@ export async function middleware(request: NextRequest) {
     return redirigir('/')
   }
 
-  // Si ya está logueado y va al login, redirige al inicio
+  // Si ya está logueado y va al login, lo lleva a donde iba (solo rutas internas)
   if (user && coincide(ruta, '/auth/login')) {
-    return redirigir('/')
+    const destino = new URL(rutaInterna(request.nextUrl.searchParams.get('siguiente')), request.url)
+    const respuesta = NextResponse.redirect(destino)
+    supabaseResponse.cookies.getAll().forEach((cookie) => respuesta.cookies.set(cookie))
+    return respuesta
   }
 
   return supabaseResponse
