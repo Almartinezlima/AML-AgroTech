@@ -2,21 +2,21 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { LuMapPin, LuQrCode, LuSearch, LuTruck } from 'react-icons/lu'
 import { CREDITO_FOTO_PORTADA } from '@/lib/portada'
-import fotoValle from '../../../public/portada/valle-andino.webp'
+import fotoValle from '../../../public/portada/villa-charcas.webp'
 
 const VENTAJAS = [
   { icono: LuTruck, texto: 'Envío a Villa Charcas, Culpina e Incahuasi' },
   { icono: LuQrCode, texto: 'Pago con QR, transferencia o contra entrega' },
-  { icono: LuMapPin, texto: 'Precios en bolivianos, desde Sucre' },
+  { icono: LuMapPin, texto: 'Precios en bolivianos, desde Villa Charcas' },
 ]
 
-// Portada: foto de valle andino a pantalla ancha, propuesta de valor y buscador
+// Portada: foto propia de Villa Charcas a pantalla ancha, propuesta de valor y buscador
 export default function Hero() {
   return (
     <section className="relative isolate overflow-hidden">
       <Image
         src={fotoValle}
-        alt="Terrazas de cultivo en un valle andino al mediodía"
+        alt="Campo de papa en flor en Villa Charcas, Chuquisaca, al atardecer"
         priority
         placeholder="blur"
         sizes="100vw"
@@ -29,7 +29,7 @@ export default function Hero() {
       <div className="mx-auto flex min-h-[640px] max-w-7xl flex-col justify-center px-4 py-20 sm:px-6 md:min-h-[720px] lg:px-8">
         <div className="max-w-2xl">
           <p className="animate-entrada inline-flex items-center gap-2 rounded-full border border-trigo/40 bg-fondo/60 px-4 py-1.5 text-sm font-medium text-trigo backdrop-blur">
-            <LuMapPin className="h-4 w-4" aria-hidden="true" /> Sucre · Chuquisaca · Bolivia
+            <LuMapPin className="h-4 w-4" aria-hidden="true" /> Villa Charcas · Chuquisaca · Bolivia
           </p>
 
           <h1 className="animate-entrada mt-6 font-titulo text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl" style={{ animationDelay: '80ms' }}>
@@ -79,7 +79,7 @@ export default function Hero() {
 
       <a href={CREDITO_FOTO_PORTADA.enlace} target="_blank" rel="noopener noreferrer"
         className="absolute bottom-3 right-4 text-[11px] text-white/60 hover:text-white">
-        Foto: {CREDITO_FOTO_PORTADA.autor} / Unsplash
+        Foto: {CREDITO_FOTO_PORTADA.autor} · Villa Charcas
       </a>
     </section>
   )

@@ -60,7 +60,7 @@ Fuente de cada foto de la tienda. **AML AgroTech es por ahora una demo académic
 
 | Archivo | Uso | Fuente | Autor | Licencia | Nota |
 |---|---|---|---|---|---|
-| `portada/valle-andino.webp` | Hero de la portada | [Unsplash](https://unsplash.com/photos/terraced-fields-in-a-mountainous-landscape-under-a-clear-sky-aE5jL7VX2r0) | Arnaud Courtecuisse | Licencia Unsplash | Foto de portada |
+| `portada/villa-charcas.webp` | Hero de la portada | Foto propia | Aldo Martínez Lima | Todos los derechos del autor (marca AML AgroTech) | Campo de papa en Villa Charcas |
 
 ## Íconos de la interfaz
 

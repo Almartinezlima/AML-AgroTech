@@ -47,7 +47,7 @@ export default function Home() {
 
       <section className="px-4 py-16 sm:px-6 md:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <Encabezado titulo="Cómo comprar" texto="Tres pasos y tu pedido sale de Sucre." />
+          <Encabezado titulo="Cómo comprar" texto="Tres pasos y tu pedido sale de Villa Charcas." />
           <ComoComprar />
         </div>
       </section>

@@ -19,7 +19,7 @@ export default function Footer() {
               Insumos agrícolas con precios en bolivianos y envío a las provincias de Chuquisaca.
             </p>
             <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-texto-2">
-              <LuMapPin className="h-4 w-4 text-trigo" aria-hidden="true" /> Sucre, Chuquisaca — Bolivia
+              <LuMapPin className="h-4 w-4 text-trigo" aria-hidden="true" /> Villa Charcas, Chuquisaca — Bolivia
             </p>
           </div>
 
@@ -63,9 +63,9 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-borde pt-6 text-xs text-texto-2/80 md:flex-row md:items-center md:justify-between">
-          <p>© 2026 AML AgroTech · Proyecto académico, precios referenciales de Sucre.</p>
+          <p>© 2026 AML AgroTech · Proyecto académico, precios referenciales de Chuquisaca.</p>
           <p className="md:text-right">
-            Fotos: tiendas agrícolas, Wikimedia Commons y Unsplash —{' '}
+            Fotos: tiendas agrícolas, Wikimedia Commons, Unsplash y propias —{' '}
             <a href={ENLACE_CREDITOS} target="_blank" rel="noopener noreferrer" className="underline decoration-trigo/50 hover:text-trigo">ver créditos</a>
             {' · '}Portada:{' '}
             <a href={CREDITO_FOTO_PORTADA.enlace} target="_blank" rel="noopener noreferrer" className="underline decoration-trigo/50 hover:text-trigo">{CREDITO_FOTO_PORTADA.autor}</a>
