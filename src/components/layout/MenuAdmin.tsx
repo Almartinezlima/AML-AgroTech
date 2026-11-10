@@ -1,36 +1,41 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import type { IconType } from 'react-icons'
+import {
+  LuChartColumn, LuCreditCard, LuMapPin, LuPackage, LuShoppingCart, LuTruck, LuUsers, LuWarehouse,
+} from 'react-icons/lu'
 
-const OPCIONES = [
-  { href: '/admin', texto: 'Panel', icono: '📊' },
-  { href: '/admin/pedidos', texto: 'Pedidos', icono: '🛒' },
-  { href: '/admin/pagos', texto: 'Pagos', icono: '💳' },
-  { href: '/admin/envios', texto: 'Envíos', icono: '🚚' },
-  { href: '/admin/productos', texto: 'Productos', icono: '📦' },
-  { href: '/admin/inventario', texto: 'Inventario', icono: '🏬' },
-  { href: '/admin/zonas', texto: 'Zonas', icono: '📍' },
-  { href: '/admin/usuarios', texto: 'Usuarios', icono: '👥' },
+const OPCIONES: Array<{ href: string; texto: string; icono: IconType }> = [
+  { href: '/admin', texto: 'Panel', icono: LuChartColumn },
+  { href: '/admin/pedidos', texto: 'Pedidos', icono: LuShoppingCart },
+  { href: '/admin/pagos', texto: 'Pagos', icono: LuCreditCard },
+  { href: '/admin/envios', texto: 'Envíos', icono: LuTruck },
+  { href: '/admin/productos', texto: 'Productos', icono: LuPackage },
+  { href: '/admin/inventario', texto: 'Inventario', icono: LuWarehouse },
+  { href: '/admin/zonas', texto: 'Zonas', icono: LuMapPin },
+  { href: '/admin/usuarios', texto: 'Usuarios', icono: LuUsers },
 ]
 
 export default function MenuAdmin() {
   const ruta = usePathname()
 
   return (
-    <nav aria-label="Administración" className="bg-[#111811] border-b lg:border-b-0 lg:border-r border-[#1a2e1a] lg:w-56 lg:shrink-0 p-3">
+    <nav aria-label="Administración" className="bg-tarjeta border-b lg:border-b-0 lg:border-r border-borde lg:w-60 lg:shrink-0 p-3">
+      <p className="hidden lg:block px-3 pt-2 pb-3 text-xs font-semibold text-trigo">Administración</p>
       <ul className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-1 gap-1">
-        {OPCIONES.map((opcion) => {
-          const activo = opcion.href === '/admin' ? ruta === '/admin' : ruta.startsWith(opcion.href)
+        {OPCIONES.map(({ href, texto, icono: Icono }) => {
+          const activo = href === '/admin' ? ruta === '/admin' : ruta.startsWith(href)
           return (
-            <li key={opcion.href}>
+            <li key={href}>
               <Link
-                href={opcion.href}
+                href={href}
                 aria-current={activo ? 'page' : undefined}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                  activo ? 'bg-[#162016] text-[#22c55e] font-semibold' : 'text-[#86efac] hover:bg-[#162016]'
+                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-colors ${
+                  activo ? 'bg-tarjeta-hover text-acento font-semibold ring-1 ring-acento/30' : 'text-texto-2 hover:bg-tarjeta-hover hover:text-texto'
                 }`}
               >
-                <span>{opcion.icono}</span> {opcion.texto}
+                <Icono className="h-4 w-4 shrink-0" aria-hidden="true" /> {texto}
               </Link>
             </li>
           )

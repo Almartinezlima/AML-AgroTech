@@ -14,6 +14,7 @@ import { formatoBs } from '@/lib/utils'
 import type { PedidoDetalle } from '@/types/comercio'
 import BloquePago from './_components/BloquePago'
 import LineaTiempo from './_components/LineaTiempo'
+import { LuMessageCircle } from 'react-icons/lu'
 
 const NUMERO_WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA
 
@@ -104,7 +105,7 @@ export default function PedidoDetallePage() {
                 rel="noopener noreferrer"
                 className="mt-4 block text-center bg-[#162016] border border-[#22c55e] text-[#22c55e] font-semibold py-3 rounded-xl hover:bg-[#1a2e1a] transition-colors"
               >
-                💬 Coordinar por WhatsApp
+                <LuMessageCircle className="inline h-5 w-5 mr-1.5 -mt-0.5" aria-hidden="true" /> Coordinar por WhatsApp
               </a>
             )}
           </section>

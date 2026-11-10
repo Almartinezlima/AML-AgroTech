@@ -7,6 +7,7 @@ import { useDatosApi } from '@/lib/api/useDatosApi'
 import { ETIQUETA_METODO, INFO_ESTADO_PAGO, INFO_ESTADO_PEDIDO, fechaHora } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import type { PedidoResumen } from '@/types/comercio'
+import { LuPackage } from 'react-icons/lu'
 
 export default function PedidosPage() {
   const { datos: pedidos, cargando, error, recargar } = useDatosApi<PedidoResumen[]>('/api/pedidos')
@@ -22,7 +23,7 @@ export default function PedidosPage() {
         ) : error || !pedidos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
         ) : pedidos.length === 0 ? (
-          <BloqueVacio icono="📦" mensaje="Todavía no tienes pedidos">
+          <BloqueVacio icono={LuPackage} mensaje="Todavía no tienes pedidos">
             <Link href="/catalogo" className={claseBotonPrimario}>Ver catálogo</Link>
           </BloqueVacio>
         ) : (

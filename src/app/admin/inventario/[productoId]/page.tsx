@@ -7,6 +7,7 @@ import { claseBotonSecundario, clasePagina, claseTarjeta } from '@/components/ui
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import { INFO_MOVIMIENTO, fechaHora } from '@/lib/ecommerce/presentacion'
 import type { Movimiento, Producto } from '@/types/comercio'
+import { LuNotebookText } from 'react-icons/lu'
 
 export default function KardexPage() {
   const { productoId } = useParams<{ productoId: string }>()
@@ -31,7 +32,7 @@ export default function KardexPage() {
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
         ) : datos.length === 0 ? (
-          <BloqueVacio icono="📒" mensaje="Este producto aún no tiene movimientos" />
+          <BloqueVacio icono={LuNotebookText} mensaje="Este producto aún no tiene movimientos" />
         ) : (
           <ul className="flex flex-col gap-3">
             {datos.map((m) => {

@@ -5,6 +5,7 @@ import { clasePagina } from '@/components/ui/estilos'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import type { EstadoPedido, PedidoResumen } from '@/types/comercio'
 import ListaPedidosAdmin from '../_components/ListaPedidosAdmin'
+import { LuTruck } from 'react-icons/lu'
 
 const GRUPOS: Array<{ estado: EstadoPedido; titulo: string; vacio: string }> = [
   { estado: 'confirmado', titulo: 'Por preparar', vacio: 'No hay pedidos por preparar' },
@@ -43,7 +44,7 @@ export default function AdminEnviosPage() {
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
         ) : delGrupo(activo).length === 0 ? (
-          <BloqueVacio icono="🚚" mensaje={grupo.vacio} />
+          <BloqueVacio icono={LuTruck} mensaje={grupo.vacio} />
         ) : (
           <ListaPedidosAdmin pedidos={delGrupo(activo)} onActualizado={() => void recargar()} />
         )}

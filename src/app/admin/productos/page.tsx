@@ -10,6 +10,7 @@ import { useDatosApi } from '@/lib/api/useDatosApi'
 import { formatoBs } from '@/lib/utils'
 import type { Categoria, Producto } from '@/types/comercio'
 import ModalProducto from './_components/ModalProducto'
+import { LuPackage } from 'react-icons/lu'
 
 export default function AdminProductosPage() {
   const { datos, cargando, error, recargar } = useDatosApi<Producto[]>('/api/productos?alcance=todos')
@@ -59,13 +60,13 @@ export default function AdminProductosPage() {
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
         ) : visibles.length === 0 ? (
-          <BloqueVacio icono="📦" mensaje="No se encontraron productos" />
+          <BloqueVacio icono={LuPackage} mensaje="No se encontraron productos" />
         ) : (
           <ul className="flex flex-col gap-3">
             {visibles.map((p) => (
               <li key={p.id} className={`${claseTarjeta} p-3 sm:p-4 flex gap-3 sm:gap-4`}>
                 <ImagenProducto nombre={p.nombre} imagen={p.imagen_url} icono={p.icono} categoria={p.categorias?.nombre}
-                  className="w-14 h-14 rounded-lg shrink-0" tamanoIcono="text-2xl" sizes="56px" />
+                  className="w-14 h-14 rounded-lg shrink-0" sizes="56px" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 flex-wrap">
                     <p className="text-[#f0fdf4] font-semibold text-sm min-w-0 break-words">{p.nombre}</p>

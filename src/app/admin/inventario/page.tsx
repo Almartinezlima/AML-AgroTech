@@ -10,6 +10,7 @@ import { useDatosApi } from '@/lib/api/useDatosApi'
 import { INFO_NIVEL, nivelStock, type NivelStock } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import type { Producto } from '@/types/comercio'
+import { LuWarehouse } from 'react-icons/lu'
 
 type Filtro = NivelStock | 'todos'
 const FILTROS: Array<{ valor: Filtro; texto: string }> = [
@@ -86,7 +87,7 @@ export default function AdminInventarioPage() {
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
         ) : visibles.length === 0 ? (
-          <BloqueVacio icono="🏬" mensaje="No hay productos en este nivel" />
+          <BloqueVacio icono={LuWarehouse} mensaje="No hay productos en este nivel" />
         ) : (
           <ul className="flex flex-col gap-3">
             {visibles.map((p) => (

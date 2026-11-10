@@ -12,6 +12,7 @@ import type { Cotizacion, MetodoPago, PedidoCreado, ZonaEnvio } from '@/types/co
 import PasoEntrega, { type DatosEntrega } from './_components/PasoEntrega'
 import PasoPago from './_components/PasoPago'
 import PasoResumen from './_components/PasoResumen'
+import { LuShoppingCart } from 'react-icons/lu'
 
 const PASOS = ['Entrega', 'Pago', 'Resumen']
 
@@ -107,7 +108,7 @@ export default function CheckoutPage() {
   if (pedidoCreado.current || !listo) return contenedor(<BloqueCarga filas={2} />)
   if (items.length === 0) {
     return contenedor(
-      <BloqueVacio icono="🛒" mensaje="Tu carrito está vacío">
+      <BloqueVacio icono={LuShoppingCart} mensaje="Tu carrito está vacío">
         <Link href="/catalogo" className={claseBotonPrimario}>Ver catálogo</Link>
       </BloqueVacio>
     )

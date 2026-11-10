@@ -7,6 +7,7 @@ import { ETIQUETA_ROL, ROLES_USUARIO, type CambiosUsuario, type RolUsuario, type
 import ListaUsuarios from './ListaUsuarios'
 import ResumenUsuarios from './ResumenUsuarios'
 import SkeletonUsuarios from './SkeletonUsuarios'
+import { LuTriangleAlert, LuUsers } from 'react-icons/lu'
 
 interface AccionPendiente {
   usuario: UsuarioAdmin
@@ -108,7 +109,7 @@ export default function GestionUsuarios() {
   if (errorCarga) {
     return (
       <div role="alert" className="bg-[#111811] border border-red-700 rounded-xl p-8 text-center">
-        <div className="text-5xl mb-3">⚠️</div>
+        <LuTriangleAlert className="mx-auto mb-3 h-10 w-10 text-red-400" aria-hidden="true" />
         <p className="text-[#f0fdf4] font-semibold mb-1">No se pudieron cargar los usuarios</p>
         <p className="text-[#86efac] text-sm mb-5">{errorCarga}</p>
         <button onClick={() => void cargar()}
@@ -147,7 +148,7 @@ export default function GestionUsuarios() {
 
       {visibles.length === 0 ? (
         <div className="bg-[#111811] border border-[#1a2e1a] rounded-xl text-center py-16 px-4">
-          <span className="text-6xl">👥</span>
+          <LuUsers className="mx-auto h-12 w-12 text-texto-2" aria-hidden="true" />
           <p className="text-[#86efac] mt-4 text-lg">
             {usuarios.length === 0 ? 'Aún no hay usuarios registrados' : 'Ningún usuario coincide con la búsqueda'}
           </p>

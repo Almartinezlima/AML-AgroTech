@@ -7,6 +7,7 @@ import { BloqueCarga, BloqueError } from '@/components/ui/Estados'
 import { claseBotonPrimario, claseBotonSecundario, clasePagina } from '@/components/ui/estilos'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import type { PedidoDetalle } from '@/types/comercio'
+import { LuCircleCheck } from 'react-icons/lu'
 
 function ContenidoExito() {
   const id = useSearchParams().get('id')
@@ -21,8 +22,8 @@ function ContenidoExito() {
   return (
     <div className="bg-[#111811] border border-[#22c55e] rounded-2xl p-6 sm:p-10">
       <div className="text-center mb-6">
-        <div className="text-6xl mb-4">✅</div>
-        <h1 className="text-2xl font-bold text-[#f0fdf4] mb-2">¡Pedido registrado!</h1>
+        <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-acento/10 text-acento ring-1 ring-acento/30"><LuCircleCheck className="h-9 w-9" aria-hidden="true" /></span>
+        <h1 className="font-titulo text-3xl font-bold text-texto mb-2">¡Pedido registrado!</h1>
         <p className="text-[#86efac]">Tu código es <span className="text-[#22c55e] font-mono font-bold">{pedido.codigo}</span></p>
       </div>
 

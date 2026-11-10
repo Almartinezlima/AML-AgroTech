@@ -6,6 +6,7 @@ import { useDatosApi } from '@/lib/api/useDatosApi'
 import { INFO_ESTADO_PEDIDO } from '@/lib/ecommerce/presentacion'
 import { ESTADOS_PEDIDO, type EstadoPedido, type PedidoResumen } from '@/types/comercio'
 import ListaPedidosAdmin from '../_components/ListaPedidosAdmin'
+import { LuShoppingCart } from 'react-icons/lu'
 
 export default function AdminPedidosPage() {
   const [estado, setEstado] = useState<EstadoPedido | ''>('')
@@ -33,7 +34,7 @@ export default function AdminPedidosPage() {
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
         ) : datos.length === 0 ? (
-          <BloqueVacio icono="🛒" mensaje="No hay pedidos con ese estado" />
+          <BloqueVacio icono={LuShoppingCart} mensaje="No hay pedidos con ese estado" />
         ) : (
           <ListaPedidosAdmin pedidos={datos} onActualizado={() => void recargar()} />
         )}

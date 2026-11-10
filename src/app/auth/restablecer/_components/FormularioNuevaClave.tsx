@@ -2,13 +2,13 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { mensajeErrorAuth } from '@/lib/auth/mensajes'
+import { AvisoError } from '@/components/ui/Estados'
+import { claseBotonPrimario, claseEtiqueta, claseInput } from '@/components/ui/estilos'
 
 export interface CuentaRecuperada {
   userId: string
   email: string
 }
-
-const claseInput = 'w-full bg-[#162016] border border-[#1a2e1a] focus:border-[#22c55e] text-[#f0fdf4] placeholder-[#86efac] rounded-xl px-4 py-3 outline-none transition-colors'
 
 interface Props {
   cuenta: CuentaRecuperada
@@ -62,30 +62,27 @@ export default function FormularioNuevaClave({ cuenta, onExito, onSesionInvalida
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <div role="note" className="bg-[#162016] border border-[#1a2e1a] rounded-xl px-4 py-3 text-sm text-[#86efac]">
+      <div role="note" className="bg-tarjeta-hover border border-borde rounded-xl px-4 py-3 text-sm text-texto-2">
         Vas a cambiar la contraseña de{' '}
-        <span data-testid="correo-recuperacion" className="text-[#f0fdf4] font-semibold break-all">{cuenta.email}</span>
+        <span data-testid="correo-recuperacion" className="text-texto font-semibold break-all">{cuenta.email}</span>
       </div>
 
-      {error && (
-        <div role="alert" className="bg-red-900 border border-red-700 text-red-300 rounded-xl px-4 py-3 text-sm">⚠️ {error}</div>
-      )}
+      <AvisoError mensaje={error} />
 
       <div>
-        <label htmlFor="password" className="text-[#86efac] text-sm font-medium mb-2 block">Contraseña nueva</label>
+        <label htmlFor="password" className={claseEtiqueta}>Contraseña nueva</label>
         <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
           placeholder="Mínimo 8 caracteres" required minLength={8} autoComplete="new-password" className={claseInput} />
       </div>
 
       <div>
-        <label htmlFor="confirmacion" className="text-[#86efac] text-sm font-medium mb-2 block">Repite la contraseña</label>
+        <label htmlFor="confirmacion" className={claseEtiqueta}>Repite la contraseña</label>
         <input id="confirmacion" type="password" value={confirmacion} onChange={(e) => setConfirmacion(e.target.value)}
           required minLength={8} autoComplete="new-password" className={claseInput} />
       </div>
 
-      <button type="submit" disabled={guardando}
-        className="w-full bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-60 text-[#0a0f0a] font-bold py-3 rounded-xl transition-colors">
-        {guardando ? 'Guardando...' : 'Guardar contraseña'}
+      <button type="submit" disabled={guardando} className={`${claseBotonPrimario} w-full`}>
+        {guardando ? 'Guardando…' : 'Guardar contraseña'}
       </button>
     </form>
   )

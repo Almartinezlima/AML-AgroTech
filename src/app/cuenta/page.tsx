@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { createClient } from '@/lib/supabase'
+import { Aviso, AvisoError } from '@/components/ui/Estados'
 
 const claseInput = 'w-full bg-[#162016] border border-[#1a2e1a] focus:border-[#22c55e] text-[#f0fdf4] rounded-xl px-4 py-3 outline-none transition-colors'
 
@@ -63,10 +64,10 @@ export default function CuentaPage() {
 
         <form onSubmit={guardar} className="bg-[#111811] border border-[#1a2e1a] rounded-2xl p-6 sm:p-8 flex flex-col gap-5">
           {error && (
-            <div role="alert" className="bg-red-900 border border-red-700 text-red-300 rounded-xl px-4 py-3 text-sm">⚠️ {error}</div>
+            <AvisoError mensaje={error} />
           )}
           {guardado && (
-            <div role="status" className="bg-[#162016] border border-[#22c55e] text-[#86efac] rounded-xl px-4 py-3 text-sm">✅ Cambios guardados</div>
+            <Aviso tipo="ok">Cambios guardados</Aviso>
           )}
 
           <div>

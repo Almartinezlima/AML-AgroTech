@@ -3,6 +3,11 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { mensajeErrorAuth } from '@/lib/auth/mensajes'
+import { LuMailCheck } from 'react-icons/lu'
+import { Aviso } from '@/components/ui/Estados'
+import Resultado from '@/components/ui/Resultado'
+import { claseBotonPrimario, claseBotonSecundario } from '@/components/ui/estilos'
+import MarcoAcceso from '../../_components/MarcoAcceso'
 
 // Pantalla para cuando Supabase pide confirmar el correo antes de entrar
 export default function RevisaCorreo({ nombre, email }: { nombre: string; email: string }) {
@@ -24,30 +29,22 @@ export default function RevisaCorreo({ nombre, email }: { nombre: string; email:
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0f0a] flex items-center justify-center px-4">
-      <div role="status" className="bg-[#111811] border border-[#22c55e] rounded-2xl p-8 sm:p-12 text-center max-w-md w-full">
-        <div className="text-6xl mb-4">📧</div>
-        <h2 className="text-2xl font-bold text-[#f0fdf4] mb-2">Revisa tu correo</h2>
-        <p className="text-[#86efac] mb-2">Bienvenido, <span className="text-[#22c55e] font-semibold">{nombre}</span>.</p>
-        <p className="text-[#86efac] text-sm mb-6">
-          Te enviamos un enlace a <span className="text-[#f0fdf4] break-all">{email}</span> para activar tu cuenta.
+    <MarcoAcceso titulo="Revisa tu correo">
+      <Resultado icono={LuMailCheck} titulo={`Bienvenido, ${nombre}`} tono="exito">
+        <p className="text-texto-2 text-sm mb-6">
+          Te enviamos un enlace a <span className="text-texto break-all">{email}</span> para activar tu cuenta.
           Ábrelo y después inicia sesión. Revisa también la carpeta de spam.
         </p>
+      </Resultado>
 
-        {aviso && (
-          <p className={`text-sm mb-4 ${aviso.tipo === 'error' ? 'text-red-300' : 'text-[#86efac]'}`}>
-            {aviso.tipo === 'error' ? '⚠️' : '✅'} {aviso.texto}
-          </p>
-        )}
+      {aviso && <div className="mb-4"><Aviso tipo={aviso.tipo}>{aviso.texto}</Aviso></div>}
 
-        <button type="button" onClick={reenviar} disabled={reenviando}
-          className="w-full mb-3 border border-[#22c55e] text-[#22c55e] hover:bg-[#162016] disabled:opacity-60 font-semibold py-3 rounded-xl transition-colors">
-          {reenviando ? 'Reenviando...' : 'Reenviar correo'}
+      <div className="flex flex-col gap-3">
+        <button type="button" onClick={reenviar} disabled={reenviando} className={`${claseBotonSecundario} w-full`}>
+          {reenviando ? 'Reenviando…' : 'Reenviar correo'}
         </button>
-        <Link href="/auth/login" className="block w-full bg-[#22c55e] hover:bg-[#16a34a] text-[#0a0f0a] font-bold py-3 rounded-xl transition-colors">
-          Iniciar sesión
-        </Link>
+        <Link href="/auth/login" className={`${claseBotonPrimario} w-full`}>Iniciar sesión</Link>
       </div>
-    </div>
+    </MarcoAcceso>
   )
 }

@@ -11,6 +11,7 @@ import { useDatosApi } from '@/lib/api/useDatosApi'
 import { ETIQUETA_METODO, INFO_ESTADO_PAGO } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import { ESTADOS_PAGO, type EstadoPago, type PagoAdmin } from '@/types/comercio'
+import { LuCreditCard } from 'react-icons/lu'
 
 export default function AdminPagosPage() {
   const [estado, setEstado] = useState<EstadoPago | ''>('en_revision')
@@ -61,7 +62,7 @@ export default function AdminPagosPage() {
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
         ) : datos.length === 0 ? (
-          <BloqueVacio icono="💳" mensaje="No hay pagos con ese estado" />
+          <BloqueVacio icono={LuCreditCard} mensaje="No hay pagos con ese estado" />
         ) : (
           <ul className="flex flex-col gap-3">
             {datos.map((pago) => (

@@ -9,6 +9,7 @@ import { useDatosApi } from '@/lib/api/useDatosApi'
 import { ETIQUETA_TIPO_ZONA, tiempoEntrega } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import { TIPOS_ZONA, type TipoZona, type ZonaEnvio } from '@/types/comercio'
+import { LuMapPin } from 'react-icons/lu'
 
 const VACIO = { nombre: '', tipo: 'provincia' as TipoZona, costo: '0', dias_min: '1', dias_max: '2', permite_contra_entrega: false, orden: '10', activo: true }
 
@@ -68,7 +69,7 @@ export default function AdminZonasPage() {
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
         ) : datos.length === 0 ? (
-          <BloqueVacio icono="📍" mensaje="Aún no hay zonas de envío" />
+          <BloqueVacio icono={LuMapPin} mensaje="Aún no hay zonas de envío" />
         ) : (
           <ul className="flex flex-col gap-3">
             {datos.map((zona) => (
