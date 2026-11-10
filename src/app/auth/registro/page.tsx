@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { mensajeErrorAuth } from '@/lib/auth/mensajes'
 import { rutaInterna } from '@/lib/auth/redireccion'
+import { useConsultaSiguiente } from '@/lib/auth/useSiguiente'
 import RevisaCorreo from './_components/RevisaCorreo'
 import { LuTruck, LuUser } from 'react-icons/lu'
 import { Aviso } from '@/components/ui/Estados'
@@ -18,6 +19,7 @@ const roles = [
 const CORREO_YA_REGISTRADO = 'Ese correo ya está registrado. Inicia sesión o recupera tu contraseña.'
 
 export default function RegistroPage() {
+  const consulta = useConsultaSiguiente()
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [telefono, setTelefono] = useState('')
@@ -85,7 +87,7 @@ export default function RegistroPage() {
     <MarcoAcceso
       titulo="Crear cuenta"
       subtitulo="Compra insumos con precios en Bs. y envío a tu pueblo"
-      pie={<>¿Ya tienes cuenta?{' '}<Link href="/auth/login" className="text-acento font-semibold hover:underline">Iniciar sesión</Link></>}
+      pie={<>¿Ya tienes cuenta?{' '}<Link href={`/auth/login${consulta}`} className="text-acento font-semibold hover:underline">Iniciar sesión</Link></>}
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {error && (

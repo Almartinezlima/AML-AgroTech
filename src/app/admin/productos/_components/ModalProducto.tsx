@@ -108,11 +108,11 @@ export default function ModalProducto({ producto, categorias, onCerrar, onGuarda
             </div>
           )}
           <input id="p-imagen" type="file" accept="image/jpeg,image/png,image/webp" disabled={subiendo} onChange={(e) => void subirImagen(e.target.files?.[0])}
-            className="text-[#86efac] text-sm w-full min-w-0 file:mr-3 file:bg-[#162016] file:border file:border-[#1a2e1a] file:text-[#f0fdf4] file:rounded-lg file:px-3 file:py-2" />
-          {subiendo && <p className="text-[#86efac] text-xs mt-1">Subiendo imagen...</p>}
+            className="text-texto-2 text-sm w-full min-w-0 file:mr-3 file:bg-tarjeta-hover file:border file:border-borde file:text-texto file:rounded-lg file:px-3 file:py-2" />
+          {subiendo && <p className="text-texto-2 text-xs mt-1">Subiendo imagen...</p>}
         </div>
 
-        {!producto && <p className="text-[#86efac] text-xs">El producto se crea con stock 0. Luego registra una entrada en Inventario.</p>}
+        {!producto && <p className="text-texto-2 text-xs">El producto se crea con stock 0. Luego registra una entrada en Inventario.</p>}
 
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
           <button type="button" disabled={guardando} onClick={onCerrar} className={claseBotonSecundario}>Cancelar</button>

@@ -12,13 +12,13 @@ const textoPedidos = (cantidad: number) => `${cantidad} pedido${cantidad === 1 ?
 function Cifra({ titulo, valor, detalle, href }: { titulo: string; valor: string; detalle?: string; href?: string }) {
   const contenido = (
     <>
-      <p className="text-[#86efac] text-sm">{titulo}</p>
-      <p className="text-2xl font-bold text-[#f0fdf4] mt-1 break-words">{valor}</p>
-      {detalle && <p className="text-[#86efac] text-xs mt-1">{detalle}</p>}
+      <p className="text-texto-2 text-sm">{titulo}</p>
+      <p className="text-2xl font-bold text-texto mt-1 break-words">{valor}</p>
+      {detalle && <p className="text-texto-2 text-xs mt-1">{detalle}</p>}
     </>
   )
   return href
-    ? <Link href={href} className={`${claseTarjeta} p-4 hover:border-[#22c55e] transition-colors`}>{contenido}</Link>
+    ? <Link href={href} className={`${claseTarjeta} p-4 hover:border-acento transition-colors`}>{contenido}</Link>
     : <div className={`${claseTarjeta} p-4`}>{contenido}</div>
 }
 
@@ -28,7 +28,7 @@ export default function AdminPage() {
   return (
     <div className={clasePagina}>
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-[#f0fdf4] mb-8">Panel de administración</h1>
+        <h1 className="text-3xl font-bold text-texto mb-8">Panel de administración</h1>
 
         {cargando ? (
           <BloqueCarga filas={4} alto="h-28" />
@@ -40,6 +40,9 @@ export default function AdminPage() {
               <Cifra titulo="Ventas de hoy" valor={formatoBs(d.ventas_hoy.total)} detalle={textoPedidos(d.ventas_hoy.pedidos)} />
               <Cifra titulo="Ventas del mes" valor={formatoBs(d.ventas_mes.total)} detalle={textoPedidos(d.ventas_mes.pedidos)} />
               <Cifra titulo="Pagos en revisión" valor={String(d.pagos_en_revision)} detalle="Ir a verificar" href="/admin/pagos" />
+              {d.reembolsos_pendientes && d.reembolsos_pendientes.pagos > 0 && (
+                <Cifra titulo="Reembolsos pendientes" valor={formatoBs(d.reembolsos_pendientes.total)} detalle={`${d.reembolsos_pendientes.pagos} por devolver · Ver pagos`} href="/admin/pagos" />
+              )}
               <Cifra titulo="Valor del inventario" valor={formatoBs(d.valor_inventario)} />
               <Cifra titulo="Cobrado" valor={formatoBs(d.cobrado)} />
               <Cifra titulo="Por cobrar" valor={formatoBs(d.por_cobrar)} />
@@ -48,26 +51,26 @@ export default function AdminPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <section className={`${claseTarjeta} p-5`}>
-                <h2 className="text-[#f0fdf4] font-bold mb-4">Ventas de los últimos 7 días</h2>
+                <h2 className="text-texto font-bold mb-4">Ventas de los últimos 7 días</h2>
                 <GraficoVentas datos={d.ventas_7_dias} />
               </section>
               <section className={`${claseTarjeta} p-5`}>
-                <h2 className="text-[#f0fdf4] font-bold mb-4">Pedidos por estado</h2>
+                <h2 className="text-texto font-bold mb-4">Pedidos por estado</h2>
                 <GraficoPedidosEstado datos={d.pedidos_por_estado} />
               </section>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <section className={`${claseTarjeta} p-5`}>
-                <h2 className="text-[#f0fdf4] font-bold mb-4">Productos más vendidos</h2>
+                <h2 className="text-texto font-bold mb-4">Productos más vendidos</h2>
                 {d.top_productos.length === 0 ? (
-                  <p className="text-[#86efac] text-sm">Aún no hay ventas registradas.</p>
+                  <p className="text-texto-2 text-sm">Aún no hay ventas registradas.</p>
                 ) : (
                   <ol className="flex flex-col gap-3">
                     {d.top_productos.map((p, i) => (
                       <li key={p.nombre} className="flex justify-between gap-3 text-sm">
-                        <span className="text-[#f0fdf4] min-w-0 break-words">{i + 1}. {p.nombre}</span>
-                        <span className="text-[#86efac] whitespace-nowrap">{p.cantidad} · {formatoBs(p.ingresos)}</span>
+                        <span className="text-texto min-w-0 break-words">{i + 1}. {p.nombre}</span>
+                        <span className="text-texto-2 whitespace-nowrap">{p.cantidad} · {formatoBs(p.ingresos)}</span>
                       </li>
                     ))}
                   </ol>
@@ -75,15 +78,15 @@ export default function AdminPage() {
               </section>
 
               <section className={`${claseTarjeta} p-5`}>
-                <h2 className="text-[#f0fdf4] font-bold mb-4">Alertas de stock</h2>
+                <h2 className="text-texto font-bold mb-4">Alertas de stock</h2>
                 {d.stock_bajo.length === 0 ? (
-                  <p className="text-[#86efac] text-sm">Todo el inventario está sobre su mínimo.</p>
+                  <p className="text-texto-2 text-sm">Todo el inventario está sobre su mínimo.</p>
                 ) : (
                   <ul className="flex flex-col gap-3">
                     {d.stock_bajo.map((p) => (
                       <li key={p.id} className="flex justify-between gap-3 text-sm">
-                        <Link href={`/admin/inventario/${p.id}`} className="text-[#f0fdf4] hover:text-[#22c55e] min-w-0 break-words">{p.icono} {p.nombre}</Link>
-                        <span className="text-[#f59e0b] whitespace-nowrap">{p.stock} / mín. {p.stock_minimo}</span>
+                        <Link href={`/admin/inventario/${p.id}`} className="text-texto hover:text-acento min-w-0 break-words">{p.icono} {p.nombre}</Link>
+                        <span className="text-amber-800 whitespace-nowrap">{p.stock} / mín. {p.stock_minimo}</span>
                       </li>
                     ))}
                   </ul>

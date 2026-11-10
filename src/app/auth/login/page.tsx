@@ -7,10 +7,12 @@ import { claseBotonPrimario, claseEtiqueta, claseInput } from '@/components/ui/e
 import MarcoAcceso from '../_components/MarcoAcceso'
 import { mensajeErrorAuth } from '@/lib/auth/mensajes'
 import { rutaInterna } from '@/lib/auth/redireccion'
+import { useConsultaSiguiente } from '@/lib/auth/useSiguiente'
 
 type Aviso = { tipo: 'error' | 'ok'; texto: string }
 
 export default function LoginPage() {
+  const consulta = useConsultaSiguiente()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [cargando, setCargando] = useState(false)
@@ -66,7 +68,7 @@ export default function LoginPage() {
     <MarcoAcceso
       titulo="Bienvenido de vuelta"
       subtitulo="Ingresa a tu cuenta para continuar"
-      pie={<>¿No tienes cuenta?{' '}<Link href="/auth/registro" className="text-acento font-semibold hover:underline">Regístrate gratis</Link></>}
+      pie={<>¿No tienes cuenta?{' '}<Link href={`/auth/registro${consulta}`} className="text-acento font-semibold hover:underline">Regístrate gratis</Link></>}
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {aviso && (

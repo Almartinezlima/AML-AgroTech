@@ -7,12 +7,15 @@ import type { Categoria, Producto } from '@/types/comercio'
 import TarjetaProducto from './_components/TarjetaProducto'
 import { LuSearch, LuSearchX } from 'react-icons/lu'
 import { estiloCategoria } from '@/lib/categorias'
+import { coincideBusqueda } from '@/lib/ecommerce/busqueda'
 import { claseBotonSecundario, clasePagina, claseTituloPagina } from '@/components/ui/estilos'
 
 const claseFiltro = (activo: boolean) =>
-  `inline-flex items-center gap-2 min-h-10 px-4 py-2 rounded-full text-sm font-medium transition ${
-    activo ? 'bg-acento text-fondo' : 'bg-tarjeta border border-borde text-texto-2 hover:border-acento hover:text-texto'
+  `inline-flex items-center gap-2 min-h-11 px-4 py-2 rounded-full text-sm font-semibold transition ${
+    activo ? 'bg-acento text-white shadow-sm' : 'bg-tarjeta border border-borde text-texto hover:border-acento'
   }`
+
+const ORDENES = ['nombre', 'precio-asc', 'precio-desc']
 
 export default function CatalogoPage() {
   const productos = useDatosApi<Producto[]>('/api/productos')
@@ -23,20 +26,33 @@ export default function CatalogoPage() {
   const [agregados, setAgregados] = useState<string[]>([])
   const { agregarItem } = useCarrito()
 
-  // Los enlaces de categorías de la portada llegan como ?categoria=
+  // Filtro, orden y búsqueda viven en la URL: sobreviven a recargar y se pueden compartir
+  const [urlLeida, setUrlLeida] = useState(false)
   useEffect(() => {
     const parametros = new URLSearchParams(window.location.search)
     const categoria = parametros.get('categoria')
     const termino = parametros.get('q')
+    const orden = parametros.get('orden')
     if (categoria) setCategoriaActiva(categoria)
     if (termino) setBusqueda(termino.slice(0, 80))
+    if (orden && ORDENES.includes(orden)) setOrdenar(orden)
+    setUrlLeida(true)
   }, [])
 
+  useEffect(() => {
+    if (!urlLeida) return
+    const parametros = new URLSearchParams()
+    if (busqueda.trim()) parametros.set('q', busqueda.trim())
+    if (categoriaActiva !== 'Todos') parametros.set('categoria', categoriaActiva)
+    if (ordenar !== 'nombre') parametros.set('orden', ordenar)
+    const consulta = parametros.toString()
+    window.history.replaceState(window.history.state, '', `/catalogo${consulta ? `?${consulta}` : ''}`)
+  }, [urlLeida, busqueda, categoriaActiva, ordenar])
+
   const filtrados = useMemo(() => {
-    const termino = busqueda.toLowerCase()
     return (productos.datos ?? [])
       .filter(p => categoriaActiva === 'Todos' || p.categorias?.nombre === categoriaActiva)
-      .filter(p => p.nombre.toLowerCase().includes(termino))
+      .filter(p => coincideBusqueda(p, busqueda))
       .sort((a, b) => {
         if (ordenar === 'precio-asc') return a.precio - b.precio
         if (ordenar === 'precio-desc') return b.precio - a.precio
@@ -56,7 +72,11 @@ export default function CatalogoPage() {
         <div className="mb-8">
           <h1 className={claseTituloPagina}>Catálogo de productos</h1>
           <p className="text-texto-2 mt-2" aria-live="polite">
-            {productos.cargando ? 'Cargando productos…' : `${filtrados.length} producto${filtrados.length === 1 ? '' : 's'} con precios en bolivianos`}
+            {productos.cargando
+              ? 'Cargando productos…'
+              : productos.error
+                ? 'No pudimos cargar los productos en este momento.'
+                : `${filtrados.length} producto${filtrados.length === 1 ? '' : 's'} con precios en bolivianos`}
           </p>
         </div>
 
@@ -65,7 +85,7 @@ export default function CatalogoPage() {
             <LuSearch className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-texto-2" aria-hidden="true" />
             <input
               type="search"
-              placeholder="Buscar producto…"
+              placeholder="Buscar: urea, papa, aspersor…"
               aria-label="Buscar producto"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}

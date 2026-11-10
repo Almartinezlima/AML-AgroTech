@@ -53,22 +53,23 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
     }
   }
 
-  const siguiente = avanzando ? siguienteEstado(avanzando.estado) : null
+  const siguiente = avanzando ? siguienteEstado(avanzando.estado, avanzando.zonas_envio?.tipo) : null
 
   return (
     <>
       <ul className="flex flex-col gap-3">
         {pedidos.map((pedido) => {
-          const proximo = siguienteEstado(pedido.estado)
+          const proximo = siguienteEstado(pedido.estado, pedido.zonas_envio?.tipo)
           const esperaPago = pedido.metodo_pago !== 'contra_entrega' && pedido.estado_pago !== 'verificado'
           return (
             <li key={pedido.id} className={`${claseTarjeta} p-4`}>
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="min-w-0">
-                  <Link href={`/pedidos/${pedido.id}`} className="text-[#22c55e] font-mono font-bold hover:underline">{pedido.codigo}</Link>
-                  <p className="text-[#f0fdf4] text-sm break-words">{pedido.cliente?.nombre ?? 'Cliente'} · {pedido.telefono_contacto}</p>
-                  <p className="text-[#86efac] text-xs">{fechaHora(pedido.created_at)} · {pedido.zonas_envio?.nombre} · {ETIQUETA_METODO[pedido.metodo_pago]}</p>
-                  {pedido.envios?.transportista && <p className="text-[#86efac] text-xs">Flota: {pedido.envios.transportista} · Guía: {pedido.envios.numero_guia}</p>}
+                  <Link href={`/pedidos/${pedido.id}`} className="text-acento font-mono font-bold hover:underline">{pedido.codigo}</Link>
+                  <p className="text-texto text-sm break-words">{pedido.cliente?.nombre ?? 'Cliente'} · {pedido.telefono_contacto}</p>
+                  <p className="text-texto-2 text-xs">{fechaHora(pedido.created_at)} · {pedido.zonas_envio?.nombre} · {ETIQUETA_METODO[pedido.metodo_pago]}</p>
+                  {pedido.recoge_nombre && <p className="text-texto-2 text-sm">Recoge: <span className="text-texto font-medium">{pedido.recoge_nombre}</span> · CI {pedido.recoge_ci}</p>}
+                  {pedido.envios?.transportista && <p className="text-texto-2 text-sm">Flota: {pedido.envios.transportista} · Guía: {pedido.envios.numero_guia}</p>}
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <Insignia info={INFO_ESTADO_PEDIDO[pedido.estado]} />
@@ -77,13 +78,13 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
               </div>
 
               <div className="flex items-center justify-between gap-3 flex-wrap mt-3">
-                <span className="text-[#f0fdf4] font-bold">{formatoBs(pedido.total)}</span>
+                <span className="text-texto font-bold">{formatoBs(pedido.total)}</span>
                 <div className="flex gap-2 flex-wrap">
                   {(pedido.estado === 'pendiente' || pedido.estado === 'confirmado') && (
                     <button onClick={() => { setError(''); setCancelando(pedido) }} className={`${claseBotonPeligro} !px-3 !py-2 text-sm`}>Cancelar</button>
                   )}
                   {proximo && (esperaPago && proximo !== 'entregado' ? (
-                    <span className="text-[#f59e0b] text-sm self-center">Esperando pago</span>
+                    <span className="text-amber-800 text-sm self-center">Esperando pago</span>
                   ) : (
                     <button onClick={() => abrirAvance(pedido)} className={`${claseBotonPrimario} !px-3 !py-2 text-sm`}>
                       Pasar a {INFO_ESTADO_PEDIDO[proximo].etiqueta}

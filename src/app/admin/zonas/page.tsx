@@ -60,7 +60,7 @@ export default function AdminZonasPage() {
     <div className={clasePagina}>
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
-          <h1 className="text-3xl font-bold text-[#f0fdf4]">Zonas de envío</h1>
+          <h1 className="text-3xl font-bold text-texto">Zonas de envío</h1>
           <button onClick={() => abrir('nueva')} className={claseBotonPrimario}>+ Nueva zona</button>
         </div>
 
@@ -75,13 +75,13 @@ export default function AdminZonasPage() {
             {datos.map((zona) => (
               <li key={zona.id} className={`${claseTarjeta} p-4 flex items-center justify-between gap-3 flex-wrap`}>
                 <div className="min-w-0">
-                  <p className="text-[#f0fdf4] font-semibold break-words">{zona.nombre}</p>
-                  <p className="text-[#86efac] text-xs">
+                  <p className="text-texto font-semibold break-words">{zona.nombre}</p>
+                  <p className="text-texto-2 text-xs">
                     {ETIQUETA_TIPO_ZONA[zona.tipo]} · {tiempoEntrega(zona)} · {zona.permite_contra_entrega ? 'Con contra entrega' : 'Sin contra entrega'}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
-                  <span className="text-[#22c55e] font-bold">{formatoBs(zona.costo)}</span>
+                  <span className="text-acento font-bold">{formatoBs(zona.costo)}</span>
                   <Insignia info={zona.activo ? { etiqueta: 'Activa', color: '#22c55e' } : { etiqueta: 'Inactiva', color: '#ef4444' }} />
                   <button onClick={() => abrir(zona)} className={`${claseBotonSecundario} !px-3 !py-2 text-sm`}>Editar</button>
                 </div>
@@ -107,9 +107,9 @@ export default function AdminZonasPage() {
               <div><label htmlFor="z-min" className={claseEtiqueta}>Días mínimos</label><input id="z-min" required type="number" min="0" value={form.dias_min} onChange={(e) => cambiar({ dias_min: e.target.value })} className={claseInput} /></div>
               <div><label htmlFor="z-max" className={claseEtiqueta}>Días máximos</label><input id="z-max" required type="number" min="0" value={form.dias_max} onChange={(e) => cambiar({ dias_max: e.target.value })} className={claseInput} /></div>
             </div>
-            <label className="flex items-center gap-2 text-[#f0fdf4] text-sm"><input type="checkbox" className="accent-[#22c55e]" checked={form.permite_contra_entrega} onChange={(e) => cambiar({ permite_contra_entrega: e.target.checked })} /> Permite contra entrega</label>
+            <label className="flex items-center gap-2 text-texto text-sm"><input type="checkbox" className="accent-acento" checked={form.permite_contra_entrega} onChange={(e) => cambiar({ permite_contra_entrega: e.target.checked })} /> Permite contra entrega</label>
             {editando !== 'nueva' && (
-              <label className="flex items-center gap-2 text-[#f0fdf4] text-sm"><input type="checkbox" className="accent-[#22c55e]" checked={form.activo} onChange={(e) => cambiar({ activo: e.target.checked })} /> Zona activa</label>
+              <label className="flex items-center gap-2 text-texto text-sm"><input type="checkbox" className="accent-acento" checked={form.activo} onChange={(e) => cambiar({ activo: e.target.checked })} /> Zona activa</label>
             )}
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
               <button type="button" disabled={guardando} onClick={cerrar} className={claseBotonSecundario}>Cancelar</button>

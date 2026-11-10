@@ -2,12 +2,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { LuArrowLeft, LuCheck, LuMinus, LuPlus, LuShieldCheck, LuShoppingCart, LuTruck } from 'react-icons/lu'
+import { LuArrowLeft, LuCheck, LuMinus, LuPackageX, LuPlus, LuShieldCheck, LuShoppingCart, LuTruck } from 'react-icons/lu'
 import EtiquetaCategoria from '@/components/EtiquetaCategoria'
 import ImagenProducto from '@/components/ImagenProducto'
-import { BloqueError } from '@/components/ui/Estados'
+import { BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import Insignia from '@/components/ui/Insignia'
 import { claseBotonPrimario, clasePagina } from '@/components/ui/estilos'
+import OtrosProductos from './_components/OtrosProductos'
 import { productoParaCarrito, useCarrito } from '@/context/CarritoContext'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import { estiloCategoria } from '@/lib/categorias'
@@ -19,7 +20,7 @@ const claseCantidad = 'grid h-11 w-11 place-items-center rounded-xl border borde
 
 export default function ProductoPage() {
   const { id } = useParams<{ id: string }>()
-  const { datos: producto, cargando, error, recargar } = useDatosApi<Producto>(`/api/productos/${id}`)
+  const { datos: producto, cargando, error, estadoError, recargar } = useDatosApi<Producto>(`/api/productos/${id}`)
   const { agregarItem } = useCarrito()
   const [cantidad, setCantidad] = useState(1)
   const [agregado, setAgregado] = useState(false)
@@ -39,6 +40,14 @@ export default function ProductoPage() {
           <div className="esqueleto h-24 rounded-xl" />
         </div>
       </div>
+    )
+  }
+  // Id inválido o producto inexistente: no tiene sentido "Reintentar"
+  if (estadoError !== null && [400, 404, 422].includes(estadoError)) {
+    return envoltura(
+      <BloqueVacio icono={LuPackageX} mensaje="No encontramos este producto. Puede que ya no esté a la venta.">
+        <Link href="/catalogo" className={claseBotonPrimario}>Ver catálogo</Link>
+      </BloqueVacio>
     )
   }
   if (error || !producto) {
@@ -63,7 +72,7 @@ export default function ProductoPage() {
       </Link>
 
       <div className="mt-5 grid gap-8 md:grid-cols-2 lg:gap-12">
-        <div className="relative overflow-hidden rounded-3xl border border-borde shadow-2xl shadow-black/40">
+        <div className="relative overflow-hidden rounded-3xl border border-borde shadow-2xl shadow-black/10">
           <ImagenProducto
             nombre={producto.nombre}
             imagen={producto.imagen_url}
@@ -127,6 +136,7 @@ export default function ProductoPage() {
           </ul>
         </div>
       </div>
+      <OtrosProductos productoId={producto.id} categoria={categoria} />
     </>
   )
 }

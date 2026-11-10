@@ -20,18 +20,18 @@ function ContenidoExito() {
   const contraEntrega = pedido.metodo_pago === 'contra_entrega'
 
   return (
-    <div className="bg-[#111811] border border-[#22c55e] rounded-2xl p-6 sm:p-10">
+    <div className="bg-tarjeta border border-acento rounded-2xl p-6 sm:p-10">
       <div className="text-center mb-6">
         <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-acento/10 text-acento ring-1 ring-acento/30"><LuCircleCheck className="h-9 w-9" aria-hidden="true" /></span>
         <h1 className="font-titulo text-3xl font-bold text-texto mb-2">¡Pedido registrado!</h1>
-        <p className="text-[#86efac]">Tu código es <span className="text-[#22c55e] font-mono font-bold">{pedido.codigo}</span></p>
+        <p className="text-texto-2">Tu código es <span className="text-acento font-mono font-bold">{pedido.codigo}</span></p>
       </div>
 
-      <div className="bg-[#162016] border border-[#1a2e1a] rounded-xl p-4 mb-6">
-        <p className="text-[#f0fdf4] font-semibold mb-3">Siguiente paso</p>
+      <div className="bg-tarjeta-hover border border-borde rounded-xl p-4 mb-6">
+        <p className="text-texto font-semibold mb-3">Siguiente paso</p>
         <InstruccionesPago metodo={pedido.metodo_pago} monto={pedido.total} codigo={pedido.codigo} />
         {!contraEntrega && (
-          <p className="text-[#86efac] text-sm mt-3">Cuando pagues, sube tu comprobante en el detalle del pedido.</p>
+          <p className="text-texto-2 text-sm mt-3">Cuando pagues, sube tu comprobante en el detalle del pedido.</p>
         )}
       </div>
 

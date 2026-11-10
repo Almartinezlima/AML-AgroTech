@@ -23,7 +23,7 @@ export default function MarcoAcceso({ titulo, subtitulo, children, pie }: MarcoA
           {subtitulo && <p className="text-texto-2 mt-2">{subtitulo}</p>}
         </div>
 
-        <div className="bg-tarjeta border border-borde rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/30">
+        <div className="bg-tarjeta border border-borde rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/[0.07]">
           {children}
           {pie && <div className="mt-6 pt-6 border-t border-borde text-center text-sm text-texto-2">{pie}</div>}
         </div>

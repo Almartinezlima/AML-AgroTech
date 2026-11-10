@@ -2,7 +2,8 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { rutaInterna } from '@/lib/auth/redireccion'
 
-const RUTAS_CON_SESION = ['/pedidos', '/carrito', '/cuenta', '/checkout']
+// El carrito es público (el visitante ve lo que juntó); la sesión se pide al ir al checkout
+const RUTAS_CON_SESION = ['/pedidos', '/cuenta', '/checkout']
 const RUTA_CUENTA_DESACTIVADA = '/cuenta-desactivada'
 
 // Compara por segmentos: '/admin' cubre '/admin/usuarios' pero no '/administrar'

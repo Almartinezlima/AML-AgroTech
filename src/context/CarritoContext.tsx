@@ -126,6 +126,19 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     setEstado({ clave, items: cargados })
   }, [userId, cargandoAuth])
 
+  // Otra pestaña cambió el carrito de esta cuenta: se relee para no pisar lo que agregó.
+  // (Guardar el mismo valor no vuelve a disparar el evento, así que no hay ida y vuelta.)
+  useEffect(() => {
+    if (!estado.clave) return
+    const clave = estado.clave
+    const alCambiar = (evento: StorageEvent) => {
+      if (evento.key !== clave) return
+      setEstado({ clave, items: leerCarrito(clave) })
+    }
+    window.addEventListener('storage', alCambiar)
+    return () => window.removeEventListener('storage', alCambiar)
+  }, [estado.clave])
+
   useEffect(() => {
     if (!estado.clave) return
     try {

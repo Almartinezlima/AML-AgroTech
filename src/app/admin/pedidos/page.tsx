@@ -17,12 +17,12 @@ export default function AdminPedidosPage() {
     <div className={clasePagina}>
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
-          <h1 className="text-3xl font-bold text-[#f0fdf4]">Pedidos</h1>
+          <h1 className="text-3xl font-bold text-texto">Pedidos</h1>
           <select
             value={estado}
             aria-label="Filtrar por estado"
             onChange={(e) => setEstado(e.target.value as EstadoPedido | '')}
-            className="bg-[#111811] border border-[#1a2e1a] text-[#f0fdf4] rounded-xl px-4 py-3 outline-none focus:border-[#22c55e]"
+            className="bg-tarjeta border border-borde text-texto rounded-xl px-4 py-3 outline-none focus:border-acento"
           >
             <option value="">Todos los estados</option>
             {ESTADOS_PEDIDO.map((e) => <option key={e} value={e}>{INFO_ESTADO_PEDIDO[e].etiqueta}</option>)}

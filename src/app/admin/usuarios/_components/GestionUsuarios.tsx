@@ -108,12 +108,12 @@ export default function GestionUsuarios() {
 
   if (errorCarga) {
     return (
-      <div role="alert" className="bg-[#111811] border border-red-700 rounded-xl p-8 text-center">
-        <LuTriangleAlert className="mx-auto mb-3 h-10 w-10 text-red-400" aria-hidden="true" />
-        <p className="text-[#f0fdf4] font-semibold mb-1">No se pudieron cargar los usuarios</p>
-        <p className="text-[#86efac] text-sm mb-5">{errorCarga}</p>
+      <div role="alert" className="bg-tarjeta border border-red-300 rounded-xl p-8 text-center">
+        <LuTriangleAlert className="mx-auto mb-3 h-10 w-10 text-red-700" aria-hidden="true" />
+        <p className="text-texto font-semibold mb-1">No se pudieron cargar los usuarios</p>
+        <p className="text-texto-2 text-sm mb-5">{errorCarga}</p>
         <button onClick={() => void cargar()}
-          className="bg-[#22c55e] hover:bg-[#16a34a] text-[#0a0f0a] font-bold px-6 py-2.5 rounded-xl transition-colors">
+          className="bg-acento hover:bg-acento-hover text-white font-bold px-6 py-2.5 rounded-xl transition-colors">
           Reintentar
         </button>
       </div>
@@ -131,13 +131,13 @@ export default function GestionUsuarios() {
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar por nombre, correo o teléfono"
           aria-label="Buscar usuarios"
-          className="flex-1 min-w-0 bg-[#111811] border border-[#1a2e1a] focus:border-[#22c55e] text-[#f0fdf4] placeholder-[#86efac] rounded-xl px-4 py-3 outline-none transition-colors"
+          className="flex-1 min-w-0 bg-tarjeta border border-borde focus:border-acento text-texto rounded-xl px-4 py-3 outline-none transition-colors"
         />
         <select
           value={filtroRol}
           onChange={(e) => setFiltroRol(e.target.value as RolUsuario | 'todos')}
           aria-label="Filtrar por rol"
-          className="bg-[#111811] border border-[#1a2e1a] focus:border-[#22c55e] text-[#f0fdf4] rounded-xl px-4 py-3 outline-none transition-colors"
+          className="bg-tarjeta border border-borde focus:border-acento text-texto rounded-xl px-4 py-3 outline-none transition-colors"
         >
           <option value="todos">Todos los roles</option>
           {ROLES_USUARIO.map((rol) => (
@@ -147,9 +147,9 @@ export default function GestionUsuarios() {
       </div>
 
       {visibles.length === 0 ? (
-        <div className="bg-[#111811] border border-[#1a2e1a] rounded-xl text-center py-16 px-4">
+        <div className="bg-tarjeta border border-borde rounded-xl text-center py-16 px-4">
           <LuUsers className="mx-auto h-12 w-12 text-texto-2" aria-hidden="true" />
-          <p className="text-[#86efac] mt-4 text-lg">
+          <p className="text-texto-2 mt-4 text-lg">
             {usuarios.length === 0 ? 'Aún no hay usuarios registrados' : 'Ningún usuario coincide con la búsqueda'}
           </p>
         </div>
