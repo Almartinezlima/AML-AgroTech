@@ -67,7 +67,14 @@ const camposProducto = {
   unidad: z.string({ error: 'La unidad es obligatoria.' }).trim().min(1, { error: 'La unidad es obligatoria.' }).max(30, { error: 'Máximo 30 caracteres.' }),
   categoria_id: z.uuid({ error: 'Elige una categoría.' }),
   icono: z.string({ error: 'El icono no es válido.' }).trim().max(8, { error: 'El icono no es válido.' }).optional(),
-  imagen_url: z.url({ error: 'La imagen no es válida.' }).nullable().optional(),
+  // URL https (Storage de Supabase) o foto incluida en la app: /productos/<sku>.webp
+  imagen_url: z
+    .union([
+      z.url({ protocol: /^https$/, error: 'La imagen no es válida.' }),
+      z.string().regex(/^\/productos\/[A-Za-z0-9_-]+\.webp$/, { error: 'La imagen no es válida.' }),
+    ], { error: 'La imagen no es válida.' })
+    .nullable()
+    .optional(),
 }
 
 // El stock no está aquí a propósito: solo cambia con movimientos de inventario
