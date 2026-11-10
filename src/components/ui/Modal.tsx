@@ -27,7 +27,7 @@ export default function Modal({ titulo, bloqueado = false, onCerrar, children }:
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto overscroll-contain bg-tarjeta border border-borde rounded-2xl p-6 shadow-2xl shadow-black/50 animate-entrada"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto overscroll-contain bg-tarjeta border border-borde rounded-2xl p-6 shadow-2xl shadow-black/10 animate-entrada"
         onClick={(evento) => evento.stopPropagation()}
       >
         <h2 className="font-titulo text-xl font-bold text-texto mb-4">{titulo}</h2>

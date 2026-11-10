@@ -41,8 +41,8 @@ export default function ProductosDestacados() {
 
   if (cargando) {
     return (
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4" role="status" aria-label="Cargando">
-        {Array.from({ length: 4 }, (_, i) => <div key={i} className="esqueleto h-[30rem] rounded-2xl border border-borde" />)}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4" role="status" aria-label="Cargando">
+        {Array.from({ length: 4 }, (_, i) => <div key={i} className="esqueleto h-80 rounded-2xl border border-borde lg:h-[26rem]" />)}
       </div>
     )
   }
@@ -54,9 +54,13 @@ export default function ProductosDestacados() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    // En celular, carrusel horizontal (se desliza con el dedo); desde tablet, grilla
+    <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4"
+      role="list" aria-label="Productos destacados">
       {destacados.map((producto) => (
-        <TarjetaProducto key={producto.id} producto={producto} agregado={agregados.includes(producto.id)} onAgregar={agregar} />
+        <div key={producto.id} role="listitem" className="w-[72%] shrink-0 snap-start sm:w-auto">
+          <TarjetaProducto producto={producto} agregado={agregados.includes(producto.id)} onAgregar={agregar} compacta />
+        </div>
       ))}
     </div>
   )

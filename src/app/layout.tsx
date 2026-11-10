@@ -24,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="es-BO" className={`${fuenteTitulo.variable} ${fuenteTexto.variable}`}>
       <body className="font-sans bg-fondo text-texto min-h-screen flex flex-col">
-        <a href="#contenido" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-xl focus:bg-acento focus:px-4 focus:py-2 focus:font-semibold focus:text-fondo">
+        <a href="#contenido" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-xl focus:bg-acento focus:px-4 focus:py-2 focus:font-semibold focus:text-white">
           Saltar al contenido
         </a>
         <AuthProvider>

@@ -62,7 +62,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-3 border-t border-borde pt-6 text-xs text-texto-2/80 md:flex-row md:items-center md:justify-between">
+        <div className="mt-10 flex flex-col gap-3 border-t border-borde pt-6 text-xs text-texto-2 md:flex-row md:items-center md:justify-between">
           <p>© 2026 AML AgroTech · Proyecto académico, precios referenciales de Chuquisaca.</p>
           <p className="md:text-right">
             Fotos: tiendas agrícolas, Wikimedia Commons, Unsplash y propias —{' '}

@@ -29,8 +29,8 @@ export function BloqueVacio({ icono: Icono = LuInbox, mensaje, children }: { ico
 
 export function BloqueError({ mensaje, onReintentar }: { mensaje: string; onReintentar?: () => void }) {
   return (
-    <div role="alert" className="bg-tarjeta border border-red-700 rounded-2xl p-8 text-center">
-      <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-red-950 text-red-400">
+    <div role="alert" className="bg-tarjeta border border-red-300 rounded-2xl p-8 text-center">
+      <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-red-50 text-red-700">
         <LuTriangleAlert className="h-7 w-7" aria-hidden="true" />
       </span>
       <p className="text-texto font-semibold mt-4 mb-1">No se pudo cargar</p>
@@ -52,9 +52,9 @@ export function AvisoError({ mensaje }: { mensaje: string }) {
 // Aviso en línea con ícono (errores de formularios, confirmaciones, advertencias)
 export function Aviso({ tipo, children }: { tipo: 'error' | 'ok' | 'advertencia'; children: ReactNode }) {
   const estilos = {
-    error: 'bg-red-950 border-red-700 text-red-300',
+    error: 'bg-red-50 border-red-300 text-red-800',
     ok: 'bg-tarjeta-hover border-acento text-texto-2',
-    advertencia: 'bg-[#1f1a0a] border-[#f59e0b] text-[#fcd34d]',
+    advertencia: 'bg-amber-50 border-[#f59e0b] text-amber-900',
   }[tipo]
   return (
     <div role={tipo === 'error' ? 'alert' : 'status'} className={`flex items-start gap-2 rounded-xl border px-4 py-3 text-sm ${estilos}`}>

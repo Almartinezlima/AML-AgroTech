@@ -8,7 +8,7 @@ import { useCarrito } from '@/context/CarritoContext'
 import { useAuth } from '@/context/AuthContext'
 
 const claseEnlace = (activo: boolean) =>
-  `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${activo ? 'text-texto bg-tarjeta-hover' : 'text-texto-2 hover:text-texto hover:bg-tarjeta-hover'}`
+  `inline-flex min-h-11 items-center rounded-lg px-3 py-2 text-base font-medium transition-colors ${activo ? 'text-texto bg-tarjeta-hover' : 'text-texto-2 hover:text-texto hover:bg-tarjeta-hover'}`
 
 export default function Navbar() {
   const [menuAbierto, setMenuAbierto] = useState(false)
@@ -56,7 +56,7 @@ export default function Navbar() {
               className="relative grid h-10 w-10 place-items-center rounded-xl text-texto-2 hover:text-texto hover:bg-tarjeta-hover transition-colors">
               <LuShoppingCart className="h-5 w-5" aria-hidden="true" />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-acento text-fondo text-xs font-bold grid place-items-center tabular-nums">
+                <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-acento text-white text-xs font-bold grid place-items-center tabular-nums">
                   {totalItems}
                 </span>
               )}
@@ -64,17 +64,17 @@ export default function Navbar() {
 
             {user ? (
               <div className="flex items-center gap-2">
-                <Link href="/cuenta" className="inline-flex max-w-48 items-center gap-2 rounded-xl px-3 py-2 text-sm text-texto-2 hover:text-texto hover:bg-tarjeta-hover transition-colors">
+                <Link href="/cuenta" className="inline-flex max-w-48 items-center gap-2 rounded-xl px-3 py-2 text-base text-texto-2 hover:text-texto hover:bg-tarjeta-hover transition-colors">
                   <LuUser className="h-4 w-4 shrink-0" aria-hidden="true" />
                   <span className="truncate">{perfil?.nombre ?? user.email}</span>
                 </Link>
                 <button onClick={handleCerrarSesion}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-borde px-3 py-2 text-sm font-semibold text-texto-2 hover:border-acento hover:text-texto transition-colors">
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-borde px-3 py-2 text-base font-semibold text-texto-2 hover:border-acento hover:text-texto transition-colors">
                   <LuLogOut className="h-4 w-4" aria-hidden="true" /> Salir
                 </button>
               </div>
             ) : (
-              <Link href="/auth/login" className="rounded-xl bg-acento px-4 py-2 text-sm font-semibold text-fondo hover:bg-acento-hover transition-colors">
+              <Link href="/auth/login" className="inline-flex min-h-11 items-center rounded-xl bg-acento px-5 py-2 text-base font-semibold text-white hover:bg-acento-hover transition-colors">
                 Ingresar
               </Link>
             )}
@@ -85,7 +85,7 @@ export default function Navbar() {
               className="relative grid h-11 w-11 place-items-center rounded-xl text-texto-2 hover:text-texto">
               <LuShoppingCart className="h-5 w-5" aria-hidden="true" />
               {totalItems > 0 && (
-                <span className="absolute top-0.5 right-0.5 min-w-5 h-5 px-1 rounded-full bg-acento text-fondo text-xs font-bold grid place-items-center tabular-nums">{totalItems}</span>
+                <span className="absolute top-0.5 right-0.5 min-w-5 h-5 px-1 rounded-full bg-acento text-white text-xs font-bold grid place-items-center tabular-nums">{totalItems}</span>
               )}
             </Link>
             <button onClick={() => setMenuAbierto(!menuAbierto)} aria-expanded={menuAbierto} aria-controls="menu-movil"
@@ -107,11 +107,11 @@ export default function Navbar() {
             </Link>
             {user && <Link href="/cuenta" className={claseEnlace(activo('/cuenta'))} onClick={cerrarMenu}>Mi cuenta</Link>}
             {user ? (
-              <button onClick={handleCerrarSesion} className="mt-1 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-400 hover:bg-tarjeta-hover">
+              <button onClick={handleCerrarSesion} className="mt-1 inline-flex min-h-11 items-center gap-2 rounded-lg px-3 py-2 text-left text-base text-red-700 hover:bg-tarjeta-hover">
                 <LuLogOut className="h-4 w-4" aria-hidden="true" /> Cerrar sesión
               </button>
             ) : (
-              <Link href="/auth/login" className="mt-1 rounded-xl bg-acento px-4 py-2.5 text-center font-semibold text-fondo" onClick={cerrarMenu}>Ingresar</Link>
+              <Link href="/auth/login" className="mt-1 rounded-xl bg-acento px-4 py-2.5 text-center font-semibold text-white" onClick={cerrarMenu}>Ingresar</Link>
             )}
           </div>
         )}

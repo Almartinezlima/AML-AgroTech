@@ -6,7 +6,7 @@ type Tono = 'exito' | 'aviso' | 'error' | 'neutro'
 const TONOS: Record<Tono, string> = {
   exito: 'bg-acento/10 text-acento ring-acento/30',
   aviso: 'bg-trigo/10 text-trigo ring-trigo/30',
-  error: 'bg-red-950 text-red-400 ring-red-800',
+  error: 'bg-red-50 text-red-700 ring-red-300',
   neutro: 'bg-tarjeta-hover text-texto-2 ring-borde',
 }
 

@@ -12,7 +12,7 @@ export default function CategoriasPortada() {
         <Link
           key={c.nombre}
           href={`/catalogo?categoria=${encodeURIComponent(c.nombre)}`}
-          className={`group relative isolate flex min-h-56 flex-col justify-end overflow-hidden rounded-2xl border border-borde p-4 shadow-lg shadow-black/30 transition duration-300 hover:-translate-y-1 hover:shadow-2xl ${i === 0 ? 'col-span-2 md:col-span-1' : ''}`}
+          className={`group relative isolate flex min-h-56 flex-col justify-end overflow-hidden rounded-2xl border border-borde p-4 shadow-lg shadow-black/[0.07] transition duration-300 hover:-translate-y-1 hover:shadow-2xl ${i === 0 ? 'col-span-2 md:col-span-1' : ''}`}
         >
           <Image src={c.foto} alt="" fill sizes="(max-width: 768px) 50vw, 20vw" className="-z-20 object-cover transition-transform duration-500 group-hover:scale-110" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/40 to-black/5" aria-hidden="true" />
