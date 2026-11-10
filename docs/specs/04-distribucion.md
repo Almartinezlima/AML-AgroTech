@@ -1,18 +1,18 @@
 # 04 — Distribución
 
-Fase: `fase/5-distribucion`. Realista para Chuquisaca: entrega propia en Sucre y envío a provincias por flota o encomienda.
+Rama real: `fase/2-comercio`. ✅ Programado. Depende de correr la migración `0003` (pendiente) y de la prueba con sesión real.
 
 ## Historias de usuario
 
 | ID | Historia | Prioridad |
 |---|---|---|
-| HU-D01 | Como **cliente** quiero elegir dónde recibir mi pedido (recojo en tienda, Sucre urbano o mi pueblo) y ver el costo y el tiempo estimado | Alta |
-| HU-D02 | Como **cliente** quiero seguir mi pedido en una línea de tiempo (pendiente, confirmado, preparando, despachado, entregado) | Alta |
-| HU-D03 | Como **cliente** de provincia quiero ver la empresa de flota y el número de guía para recoger mi encomienda | Alta |
-| HU-D04 | Como **administrador** quiero un panel de despachos con los pedidos por preparar y por entregar | Alta |
-| HU-D05 | Como **administrador** quiero registrar la flota y el número de guía al despachar a provincia | Alta |
-| HU-D06 | Como **administrador** quiero crear y editar zonas de envío con su costo y tiempo | Media |
-| HU-D07 | Como **cliente** quiero un botón de WhatsApp para coordinar la entrega con la tienda | Media |
+| ✅ HU-D01 | Como **cliente** quiero elegir dónde recibir mi pedido (recojo en tienda, Sucre urbano o mi pueblo) y ver el costo y el tiempo estimado | Alta |
+| ✅ HU-D02 | Como **cliente** quiero seguir mi pedido en una línea de tiempo (pendiente, confirmado, preparando, despachado, entregado) | Alta |
+| ✅ HU-D03 | Como **cliente** de provincia quiero ver la empresa de flota y el número de guía para recoger mi encomienda | Alta |
+| ✅ HU-D04 | Como **administrador** quiero un panel de despachos con los pedidos por preparar y por entregar | Alta |
+| ✅ HU-D05 | Como **administrador** quiero registrar la flota y el número de guía al despachar a provincia | Alta |
+| ✅ HU-D06 | Como **administrador** quiero crear y editar zonas de envío con su costo y tiempo | Media |
+| ✅ HU-D07 | Como **cliente** quiero un botón de WhatsApp para coordinar la entrega con la tienda | Media |
 
 ## Criterios de aceptación
 

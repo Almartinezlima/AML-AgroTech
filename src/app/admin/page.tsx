@@ -1,149 +1,97 @@
 'use client'
 import Link from 'next/link'
+import { BloqueCarga, BloqueError } from '@/components/ui/Estados'
+import { clasePagina, claseTarjeta } from '@/components/ui/estilos'
+import { useDatosApi } from '@/lib/api/useDatosApi'
+import { formatoBs } from '@/lib/utils'
+import type { Dashboard } from '@/types/comercio'
+import { GraficoPedidosEstado, GraficoVentas } from './_components/Graficos'
 
-const stats = [
-  { titulo: 'Productos activos', valor: '48', icono: '📦', color: 'border-[#22c55e]', sub: '+3 esta semana' },
-  { titulo: 'Pedidos hoy', valor: '12', icono: '🛒', color: 'border-blue-500', sub: 'Bs. 4,320 en ventas' },
-  { titulo: 'Stock bajo', valor: '5', icono: '⚠️', color: 'border-yellow-500', sub: 'Requieren reposición' },
-  { titulo: 'Usuarios registrados', valor: '87', icono: '👥', color: 'border-purple-500', sub: '+6 este mes' },
-]
+const textoPedidos = (cantidad: number) => `${cantidad} pedido${cantidad === 1 ? '' : 's'}`
 
-const ultimosPedidos = [
-  { id: '#P-001', cliente: 'Juan Mamani', productos: 'Fertilizante NPK, Herbicida', total: 150.00, estado: 'Pendiente', fecha: '11/09/2026' },
-  { id: '#P-002', cliente: 'Rosa Flores', productos: 'Kit Riego por Goteo', total: 320.00, estado: 'Confirmado', fecha: '11/09/2026' },
-  { id: '#P-003', cliente: 'Carlos Quispe', productos: 'Semillas Maíz Híbrido x2', total: 290.00, estado: 'Entregado', fecha: '10/09/2026' },
-  { id: '#P-004', cliente: 'María Condori', productos: 'Bomba Mochila 20L', total: 220.00, estado: 'Pendiente', fecha: '10/09/2026' },
-  { id: '#P-005', cliente: 'Pedro Vargas', productos: 'Azadón Reforzado x3', total: 285.00, estado: 'Cancelado', fecha: '09/09/2026' },
-]
-
-const colorEstado: Record<string, string> = {
-  'Pendiente': 'bg-yellow-900 text-yellow-400',
-  'Confirmado': 'bg-blue-900 text-blue-400',
-  'Entregado': 'bg-green-900 text-green-400',
-  'Cancelado': 'bg-red-900 text-red-400',
+function Cifra({ titulo, valor, detalle, href }: { titulo: string; valor: string; detalle?: string; href?: string }) {
+  const contenido = (
+    <>
+      <p className="text-[#86efac] text-sm">{titulo}</p>
+      <p className="text-2xl font-bold text-[#f0fdf4] mt-1 break-words">{valor}</p>
+      {detalle && <p className="text-[#86efac] text-xs mt-1">{detalle}</p>}
+    </>
+  )
+  return href
+    ? <Link href={href} className={`${claseTarjeta} p-4 hover:border-[#22c55e] transition-colors`}>{contenido}</Link>
+    : <div className={`${claseTarjeta} p-4`}>{contenido}</div>
 }
 
-const stockBajo = [
-  { nombre: 'Bomba de Mochila 20L', stock: 35, minimo: 50, categoria: 'Herramientas' },
-  { nombre: 'Kit Riego por Goteo', stock: 45, minimo: 50, categoria: 'Riego' },
-  { nombre: 'Fungicida Mancozeb', stock: 18, minimo: 30, categoria: 'Agroquímicos' },
-  { nombre: 'Aspersor Rotativo', stock: 22, minimo: 40, categoria: 'Riego' },
-  { nombre: 'Semillas Papa Waycha', stock: 12, minimo: 30, categoria: 'Semillas' },
-]
-
 export default function AdminPage() {
+  const { datos: d, cargando, error, recargar } = useDatosApi<Dashboard>('/api/dashboard')
+
   return (
-    <div className="min-h-screen bg-[#0a0f0a] py-8 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className={clasePagina}>
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold text-[#f0fdf4] mb-8">Panel de administración</h1>
 
-        {/* Encabezado */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-[#f0fdf4]">Panel de Administración</h1>
-            <p className="text-[#86efac] mt-1">AML AgroTech — Sucre, Bolivia</p>
-          </div>
-          <div className="flex items-center gap-2 bg-[#111811] border border-[#1a2e1a] rounded-xl px-4 py-2">
-            <span className="text-[#22c55e]">👤</span>
-            <span className="text-[#86efac] text-sm">Administrador</span>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {stats.map((stat) => (
-            <div key={stat.titulo} className={`bg-[#111811] border-l-4 ${stat.color} border-t border-r border-b border-[#1a2e1a] rounded-xl p-5`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[#86efac] text-sm">{stat.titulo}</span>
-                <span className="text-2xl">{stat.icono}</span>
-              </div>
-              <div className="text-3xl font-bold text-[#f0fdf4] mb-1">{stat.valor}</div>
-              <div className="text-[#86efac] text-xs">{stat.sub}</div>
+        {cargando ? (
+          <BloqueCarga filas={4} alto="h-28" />
+        ) : error || !d ? (
+          <BloqueError mensaje={error} onReintentar={() => void recargar()} />
+        ) : (
+          <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Cifra titulo="Ventas de hoy" valor={formatoBs(d.ventas_hoy.total)} detalle={textoPedidos(d.ventas_hoy.pedidos)} />
+              <Cifra titulo="Ventas del mes" valor={formatoBs(d.ventas_mes.total)} detalle={textoPedidos(d.ventas_mes.pedidos)} />
+              <Cifra titulo="Pagos en revisión" valor={String(d.pagos_en_revision)} detalle="Ir a verificar" href="/admin/pagos" />
+              <Cifra titulo="Valor del inventario" valor={formatoBs(d.valor_inventario)} />
+              <Cifra titulo="Cobrado" valor={formatoBs(d.cobrado)} />
+              <Cifra titulo="Por cobrar" valor={formatoBs(d.por_cobrar)} />
+              <Cifra titulo="Stock bajo" valor={String(d.total_stock_bajo)} detalle="Ver inventario" href="/admin/inventario" />
             </div>
-          ))}
-        </div>
 
-        {/* Accesos rápidos */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { href: '/admin/productos', icono: '📦', label: 'Gestionar Productos' },
-            { href: '/admin/inventario', icono: '📊', label: 'Inventario' },
-            { href: '/admin/usuarios', icono: '👥', label: 'Usuarios' },
-            { href: '/pedidos', icono: '🛒', label: 'Pedidos' },
-          ].map((acceso) => (
-            <Link key={acceso.href} href={acceso.href}
-              className="bg-[#111811] border border-[#1a2e1a] hover:border-[#22c55e] rounded-xl p-4 text-center transition-all hover:bg-[#162016] group">
-              <div className="text-3xl mb-2">{acceso.icono}</div>
-              <div className="text-[#86efac] text-sm group-hover:text-[#22c55e] transition-colors font-medium">{acceso.label}</div>
-            </Link>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          {/* Últimos pedidos */}
-          <div className="lg:col-span-2 bg-[#111811] border border-[#1a2e1a] rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-[#1a2e1a]">
-              <h2 className="text-[#f0fdf4] font-semibold">Últimos Pedidos</h2>
-              <Link href="/pedidos" className="text-[#22c55e] text-sm hover:underline">Ver todos →</Link>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <section className={`${claseTarjeta} p-5`}>
+                <h2 className="text-[#f0fdf4] font-bold mb-4">Ventas de los últimos 7 días</h2>
+                <GraficoVentas datos={d.ventas_7_dias} />
+              </section>
+              <section className={`${claseTarjeta} p-5`}>
+                <h2 className="text-[#f0fdf4] font-bold mb-4">Pedidos por estado</h2>
+                <GraficoPedidosEstado datos={d.pedidos_por_estado} />
+              </section>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[#1a2e1a]">
-                    <th className="text-left text-[#86efac] text-xs px-5 py-3">ID</th>
-                    <th className="text-left text-[#86efac] text-xs px-5 py-3">Cliente</th>
-                    <th className="text-left text-[#86efac] text-xs px-5 py-3 hidden md:table-cell">Total</th>
-                    <th className="text-left text-[#86efac] text-xs px-5 py-3">Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ultimosPedidos.map((pedido) => (
-                    <tr key={pedido.id} className="border-b border-[#1a2e1a] hover:bg-[#162016] transition-colors">
-                      <td className="px-5 py-3 text-[#22c55e] text-sm font-mono">{pedido.id}</td>
-                      <td className="px-5 py-3">
-                        <div className="text-[#f0fdf4] text-sm">{pedido.cliente}</div>
-                        <div className="text-[#86efac] text-xs hidden sm:block">{pedido.fecha}</div>
-                      </td>
-                      <td className="px-5 py-3 text-[#f0fdf4] text-sm hidden md:table-cell">Bs. {pedido.total.toFixed(2)}</td>
-                      <td className="px-5 py-3">
-                        <span className={`text-xs px-2 py-1 rounded-full ${colorEstado[pedido.estado]}`}>
-                          {pedido.estado}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <section className={`${claseTarjeta} p-5`}>
+                <h2 className="text-[#f0fdf4] font-bold mb-4">Productos más vendidos</h2>
+                {d.top_productos.length === 0 ? (
+                  <p className="text-[#86efac] text-sm">Aún no hay ventas registradas.</p>
+                ) : (
+                  <ol className="flex flex-col gap-3">
+                    {d.top_productos.map((p, i) => (
+                      <li key={p.nombre} className="flex justify-between gap-3 text-sm">
+                        <span className="text-[#f0fdf4] min-w-0 break-words">{i + 1}. {p.nombre}</span>
+                        <span className="text-[#86efac] whitespace-nowrap">{p.cantidad} · {formatoBs(p.ingresos)}</span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </section>
+
+              <section className={`${claseTarjeta} p-5`}>
+                <h2 className="text-[#f0fdf4] font-bold mb-4">Alertas de stock</h2>
+                {d.stock_bajo.length === 0 ? (
+                  <p className="text-[#86efac] text-sm">Todo el inventario está sobre su mínimo.</p>
+                ) : (
+                  <ul className="flex flex-col gap-3">
+                    {d.stock_bajo.map((p) => (
+                      <li key={p.id} className="flex justify-between gap-3 text-sm">
+                        <Link href={`/admin/inventario/${p.id}`} className="text-[#f0fdf4] hover:text-[#22c55e] min-w-0 break-words">{p.icono} {p.nombre}</Link>
+                        <span className="text-[#f59e0b] whitespace-nowrap">{p.stock} / mín. {p.stock_minimo}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
             </div>
           </div>
-
-          {/* Stock bajo */}
-          <div className="bg-[#111811] border border-[#1a2e1a] rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-[#1a2e1a]">
-              <h2 className="text-[#f0fdf4] font-semibold">⚠️ Stock Bajo</h2>
-              <Link href="/admin/inventario" className="text-[#22c55e] text-sm hover:underline">Ver →</Link>
-            </div>
-            <div className="p-4 flex flex-col gap-3">
-              {stockBajo.map((item) => (
-                <div key={item.nombre} className="bg-[#162016] border border-[#1a2e1a] rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[#f0fdf4] text-sm font-medium">{item.nombre}</span>
-                    <span className="text-yellow-400 text-xs font-bold">{item.stock} u.</span>
-                  </div>
-                  <div className="text-[#86efac] text-xs mb-2">{item.categoria}</div>
-                  <div className="w-full bg-[#0a0f0a] rounded-full h-1.5">
-                    <div
-                      className="bg-yellow-500 h-1.5 rounded-full"
-                      style={{ width: `${Math.min((item.stock / item.minimo) * 100, 100)}%` }}
-                    />
-                  </div>
-                  <div className="text-[#86efac] text-xs mt-1">Mínimo: {item.minimo} u.</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
+        )}
       </div>
     </div>
   )

@@ -1,0 +1,415 @@
+openapi: 3.0.3
+info:
+  title: AML AgroTech API
+  version: 1.0.0
+  description: |
+    API REST de AML AgroTech. Las respuestas correctas son `{ data }` y los errores `{ error: { codigo, mensaje } }`.
+    La sesión viaja en las cookies de Supabase Auth: inicia sesión en la web antes de probar las rutas protegidas.
+servers:
+  - url: /api
+tags:
+  - name: Salud
+  - name: Usuarios
+  - name: Catálogo
+  - name: Pedidos
+  - name: Pagos
+  - name: Inventario
+  - name: Panel
+components:
+  securitySchemes:
+    sesion:
+      type: apiKey
+      in: cookie
+      name: sb-auth-token
+  responses:
+    Error:
+      description: Error con el formato de la API
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            codigo: { type: string, example: NO_AUTENTICADO }
+            mensaje: { type: string, example: Debes iniciar sesión. }
+            detalle: { type: object }
+    Rol: { type: string, enum: [admin, cliente, distribuidor] }
+    EstadoPedido: { type: string, enum: [pendiente, confirmado, preparando, despachado, entregado, cancelado] }
+    MetodoPago: { type: string, enum: [qr, transferencia, contra_entrega] }
+    ProductoEntrada:
+      type: object
+      required: [nombre, precio, stock_minimo, unidad, categoria_id]
+      properties:
+        sku: { type: string, nullable: true }
+        nombre: { type: string }
+        descripcion: { type: string, nullable: true }
+        precio: { type: number, minimum: 0.01 }
+        stock_minimo: { type: integer, minimum: 0 }
+        unidad: { type: string, example: bolsa }
+        categoria_id: { type: string, format: uuid }
+        icono: { type: string }
+        imagen_url: { type: string, format: uri, nullable: true }
+    ZonaEntrada:
+      type: object
+      required: [nombre, tipo, costo, dias_min, dias_max, permite_contra_entrega]
+      properties:
+        nombre: { type: string }
+        tipo: { type: string, enum: [recojo, urbano, provincia] }
+        costo: { type: number, minimum: 0 }
+        dias_min: { type: integer, minimum: 0 }
+        dias_max: { type: integer, minimum: 0 }
+        permite_contra_entrega: { type: boolean }
+        orden: { type: integer }
+    ItemPedido:
+      type: object
+      required: [producto_id, cantidad]
+      properties:
+        producto_id: { type: string, format: uuid }
+        cantidad: { type: integer, minimum: 1 }
+    PedidoEntrada:
+      type: object
+      required: [items, zona_id, telefono, metodo_pago]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/ItemPedido' } }
+        zona_id: { type: string, format: uuid }
+        direccion: { type: string, nullable: true, description: Obligatoria salvo recojo en tienda }
+        telefono: { type: string, example: '70000000' }
+        metodo_pago: { $ref: '#/components/schemas/MetodoPago' }
+        notas: { type: string, nullable: true }
+security: []
+paths:
+  /salud:
+    get:
+      tags: [Salud]
+      summary: Estado de la aplicación y la base
+      responses:
+        '200': { description: Todo responde }
+        '503': { $ref: '#/components/responses/Error' }
+  /usuarios:
+    get:
+      tags: [Usuarios]
+      summary: Listar usuarios (admin)
+      security: [{ sesion: [] }]
+      responses:
+        '200': { description: Lista de usuarios }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /usuarios/{id}:
+    patch:
+      tags: [Usuarios]
+      summary: Cambiar rol o estado (admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rol: { $ref: '#/components/schemas/Rol' }
+                activo: { type: boolean }
+      responses:
+        '200': { description: Usuario actualizado }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /productos:
+    get:
+      tags: [Catálogo]
+      summary: Listar productos
+      parameters:
+        - { name: alcance, in: query, schema: { type: string, enum: [activos, todos] }, description: "`todos` requiere admin" }
+      responses:
+        '200': { description: Lista de productos }
+    post:
+      tags: [Inventario]
+      summary: Crear producto (admin). Nace con stock 0
+      security: [{ sesion: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductoEntrada' }
+      responses:
+        '201': { description: Producto creado }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /productos/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      tags: [Catálogo]
+      summary: Detalle de un producto
+      responses:
+        '200': { description: Producto }
+        '404': { $ref: '#/components/responses/Error' }
+    patch:
+      tags: [Inventario]
+      summary: Editar producto (admin). No permite cambiar el stock
+      security: [{ sesion: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductoEntrada' }
+      responses:
+        '200': { description: Producto actualizado }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /productos/imagen:
+    post:
+      tags: [Inventario]
+      summary: Subir imagen de producto (admin, jpg/png/webp, máx. 2 MB)
+      security: [{ sesion: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                archivo: { type: string, format: binary }
+      responses:
+        '201': { description: URL pública de la imagen }
+        '403': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /categorias:
+    get:
+      tags: [Catálogo]
+      summary: Listar categorías
+      responses:
+        '200': { description: Lista de categorías }
+  /zonas-envio:
+    get:
+      tags: [Catálogo]
+      summary: Listar zonas de envío
+      parameters:
+        - { name: alcance, in: query, schema: { type: string, enum: [activas, todas] }, description: "`todas` requiere admin" }
+      responses:
+        '200': { description: Lista de zonas }
+    post:
+      tags: [Catálogo]
+      summary: Crear zona (admin)
+      security: [{ sesion: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ZonaEntrada' }
+      responses:
+        '201': { description: Zona creada }
+        '403': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /zonas-envio/{id}:
+    patch:
+      tags: [Catálogo]
+      summary: Editar zona (admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ZonaEntrada' }
+      responses:
+        '200': { description: Zona actualizada }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /pedidos:
+    get:
+      tags: [Pedidos]
+      summary: Listar pedidos
+      security: [{ sesion: [] }]
+      parameters:
+        - { name: alcance, in: query, schema: { type: string, enum: [propios, todos] }, description: "`todos` requiere admin" }
+        - { name: estado, in: query, schema: { $ref: '#/components/schemas/EstadoPedido' } }
+      responses:
+        '200': { description: Lista de pedidos }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+    post:
+      tags: [Pedidos]
+      summary: Crear pedido. Precios y total los calcula la base
+      security: [{ sesion: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PedidoEntrada' }
+      responses:
+        '201': { description: Pedido creado con su código }
+        '401': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /pedidos/cotizar:
+    post:
+      tags: [Pedidos]
+      summary: Calcular el total con precios reales, sin crear nada
+      security: [{ sesion: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items, zona_id]
+              properties:
+                items: { type: array, items: { $ref: '#/components/schemas/ItemPedido' } }
+                zona_id: { type: string, format: uuid }
+      responses:
+        '200': { description: Cotización }
+        '409': { $ref: '#/components/responses/Error' }
+  /pedidos/{id}:
+    get:
+      tags: [Pedidos]
+      summary: Detalle con items, pago, envío y seguimiento (dueño o admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Pedido }
+        '401': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /pedidos/{id}/cancelar:
+    post:
+      tags: [Pedidos]
+      summary: Cancelar pedido y devolver el stock
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                motivo: { type: string, nullable: true }
+      responses:
+        '200': { description: Pedido cancelado }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+  /pedidos/{id}/estado:
+    patch:
+      tags: [Pedidos]
+      summary: Avanzar el estado del pedido (admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estado]
+              properties:
+                estado: { $ref: '#/components/schemas/EstadoPedido' }
+                nota: { type: string, nullable: true }
+                transportista: { type: string, nullable: true }
+                numero_guia: { type: string, nullable: true }
+      responses:
+        '200': { description: Estado actualizado }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /pagos:
+    get:
+      tags: [Pagos]
+      summary: Listar pagos con comprobante firmado (admin)
+      security: [{ sesion: [] }]
+      parameters:
+        - { name: estado, in: query, schema: { type: string, enum: [pendiente, en_revision, verificado, rechazado] } }
+      responses:
+        '200': { description: Lista de pagos }
+        '403': { $ref: '#/components/responses/Error' }
+  /pagos/{id}/comprobante:
+    post:
+      tags: [Pagos]
+      summary: Subir comprobante. El id es el del pedido (dueño, jpg/png/webp/pdf, máx. 3 MB)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                archivo: { type: string, format: binary }
+      responses:
+        '201': { description: Pago en revisión }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /pagos/{id}/verificar:
+    patch:
+      tags: [Pagos]
+      summary: Aprobar o rechazar un pago (admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [aprobado]
+              properties:
+                aprobado: { type: boolean }
+                motivo: { type: string, nullable: true, description: Obligatorio al rechazar }
+      responses:
+        '200': { description: Pago revisado }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /inventario/movimientos:
+    get:
+      tags: [Inventario]
+      summary: Kardex (admin)
+      security: [{ sesion: [] }]
+      parameters:
+        - { name: producto, in: query, schema: { type: string, format: uuid } }
+        - { name: formato, in: query, schema: { type: string, enum: [json, csv] } }
+      responses:
+        '200': { description: Movimientos en JSON o CSV }
+        '403': { $ref: '#/components/responses/Error' }
+    post:
+      tags: [Inventario]
+      summary: Registrar entrada o ajuste (admin)
+      security: [{ sesion: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [producto_id, tipo, cantidad, motivo]
+              properties:
+                producto_id: { type: string, format: uuid }
+                tipo: { type: string, enum: [entrada, ajuste] }
+                cantidad: { type: integer, description: En un ajuste, negativa resta }
+                motivo: { type: string }
+      responses:
+        '201': { description: Movimiento registrado }
+        '403': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /dashboard:
+    get:
+      tags: [Panel]
+      summary: Resumen del negocio (admin)
+      security: [{ sesion: [] }]
+      responses:
+        '200': { description: Ventas, pedidos, stock bajo, pagos e inventario }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }

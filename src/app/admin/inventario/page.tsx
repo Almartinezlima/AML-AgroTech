@@ -1,151 +1,143 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase'
+import { useCallback, useState } from 'react'
+import Link from 'next/link'
+import { AvisoError, BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
+import Insignia from '@/components/ui/Insignia'
+import Modal from '@/components/ui/Modal'
+import { claseBotonPrimario, claseBotonSecundario, claseEtiqueta, claseInput, clasePagina, claseTarjeta } from '@/components/ui/estilos'
+import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
+import { useDatosApi } from '@/lib/api/useDatosApi'
+import { INFO_NIVEL, nivelStock, type NivelStock } from '@/lib/ecommerce/presentacion'
+import { formatoBs } from '@/lib/utils'
+import type { Producto } from '@/types/comercio'
 
-interface Producto {
-  id: string
-  nombre: string
-  stock: number
-  stock_minimo: number
-  icono: string
-  categorias: { nombre: string }
-}
+type Filtro = NivelStock | 'todos'
+const FILTROS: Array<{ valor: Filtro; texto: string }> = [
+  { valor: 'todos', texto: 'Todos' },
+  { valor: 'normal', texto: 'Normal' },
+  { valor: 'bajo', texto: 'Bajo' },
+  { valor: 'agotado', texto: 'Agotado' },
+]
 
 export default function AdminInventarioPage() {
-  const [productos, setProductos] = useState<Producto[]>([])
-  const [filtro, setFiltro] = useState('todos')
-  const [cargando, setCargando] = useState(true)
-  const supabase = createClient()
+  const { datos, cargando, error, recargar } = useDatosApi<Producto[]>('/api/productos?alcance=todos')
+  const [filtro, setFiltro] = useState<Filtro>('todos')
+  const [producto, setProducto] = useState<Producto | null>(null)
+  const [tipo, setTipo] = useState<'entrada' | 'ajuste'>('entrada')
+  const [cantidad, setCantidad] = useState('')
+  const [motivo, setMotivo] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [errorForm, setErrorForm] = useState('')
 
-  useEffect(() => {
-    const cargar = async () => {
-      const { data } = await supabase
-        .from('productos')
-        .select('id, nombre, stock, stock_minimo, icono, categorias(nombre)')
-        .eq('activo', true)
-        .order('stock', { ascending: true })
-      if (data) setProductos(data as unknown as Producto[])
-      setCargando(false)
+  const cerrar = useCallback(() => setProducto(null), [])
+
+  const activos = (datos ?? []).filter((p) => p.activo)
+  const visibles = activos
+    .filter((p) => filtro === 'todos' || nivelStock(p.stock, p.stock_minimo) === filtro)
+    .sort((a, b) => a.stock - b.stock)
+  const valor = activos.reduce((suma, p) => suma + p.stock * p.precio, 0)
+
+  const abrir = (p: Producto) => {
+    setProducto(p)
+    setTipo('entrada')
+    setCantidad('')
+    setMotivo('')
+    setErrorForm('')
+  }
+
+  const guardar = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!producto) return
+    setGuardando(true)
+    setErrorForm('')
+    try {
+      await enviarJson('/api/inventario/movimientos', 'POST', {
+        producto_id: producto.id,
+        tipo,
+        cantidad: Number(cantidad),
+        motivo: motivo.trim(),
+      })
+      setProducto(null)
+      await recargar()
+    } catch (causa) {
+      setErrorForm(mensajeDeError(causa))
+    } finally {
+      setGuardando(false)
     }
-    cargar()
-  }, [])
-
-  const productosFiltrados = productos.filter(p => {
-    if (filtro === 'ok') return p.stock > p.stock_minimo
-    if (filtro === 'bajo') return p.stock > 0 && p.stock <= p.stock_minimo
-    if (filtro === 'sin') return p.stock === 0
-    return true
-  })
-
-  const stockBajo = productos.filter(p => p.stock <= p.stock_minimo && p.stock > 0).length
-  const sinStock = productos.filter(p => p.stock === 0).length
+  }
 
   return (
-    <div className="min-h-screen bg-[#0a0f0a] py-8 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className={clasePagina}>
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-3xl font-bold text-[#f0fdf4]">Inventario</h1>
+        <p className="text-[#86efac] mt-1 mb-6">{activos.length} productos · Valor: {formatoBs(valor)}</p>
 
-        <h1 className="text-3xl font-bold text-[#f0fdf4] mb-2">Inventario</h1>
-        <p className="text-[#86efac] mb-8">{productos.length} productos registrados</p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div className="bg-[#111811] border-l-4 border-[#22c55e] border-t border-r border-b border-[#1a2e1a] rounded-xl p-5">
-            <p className="text-[#86efac] text-sm">Total productos</p>
-            <p className="text-3xl font-bold text-[#f0fdf4] mt-1">{productos.length}</p>
-          </div>
-          <div className="bg-[#111811] border-l-4 border-yellow-500 border-t border-r border-b border-[#1a2e1a] rounded-xl p-5">
-            <p className="text-[#86efac] text-sm">Stock bajo</p>
-            <p className="text-3xl font-bold text-[#f0fdf4] mt-1">{stockBajo}</p>
-            <p className="text-yellow-400 text-xs mt-1">Requieren reposición</p>
-          </div>
-          <div className="bg-[#111811] border-l-4 border-red-500 border-t border-r border-b border-[#1a2e1a] rounded-xl p-5">
-            <p className="text-[#86efac] text-sm">Sin stock</p>
-            <p className="text-3xl font-bold text-[#f0fdf4] mt-1">{sinStock}</p>
-            <p className="text-red-400 text-xs mt-1">Agotados</p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-3 mb-6">
-          {[
-            { val: 'todos', label: 'Todos' },
-            { val: 'ok', label: '✅ Stock OK' },
-            { val: 'bajo', label: '⚠️ Stock Bajo' },
-            { val: 'sin', label: '🔴 Sin Stock' },
-          ].map(f => (
-            <button key={f.val} onClick={() => setFiltro(f.val)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                filtro === f.val ? 'bg-[#22c55e] text-[#0a0f0a]' : 'bg-[#111811] border border-[#1a2e1a] text-[#86efac] hover:border-[#22c55e]'
-              }`}>
-              {f.label}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {FILTROS.map((f) => (
+            <button key={f.valor} onClick={() => setFiltro(f.valor)} aria-pressed={filtro === f.valor}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filtro === f.valor ? 'bg-[#22c55e] text-[#0a0f0a]' : 'bg-[#111811] border border-[#1a2e1a] text-[#86efac] hover:border-[#22c55e]'}`}>
+              {f.texto}
             </button>
           ))}
         </div>
 
         {cargando ? (
-          <div className="text-center py-20 text-[#86efac]">Cargando inventario...</div>
+          <BloqueCarga />
+        ) : error || !datos ? (
+          <BloqueError mensaje={error} onReintentar={() => void recargar()} />
+        ) : visibles.length === 0 ? (
+          <BloqueVacio icono="🏬" mensaje="No hay productos en este nivel" />
         ) : (
-          <div className="bg-[#111811] border border-[#1a2e1a] rounded-xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[#1a2e1a]">
-                    <th className="text-left text-[#86efac] text-xs px-5 py-4">Producto</th>
-                    <th className="text-left text-[#86efac] text-xs px-5 py-4 hidden md:table-cell">Categoría</th>
-                    <th className="text-left text-[#86efac] text-xs px-5 py-4">Stock actual</th>
-                    <th className="text-left text-[#86efac] text-xs px-5 py-4 hidden sm:table-cell">Mínimo</th>
-                    <th className="text-left text-[#86efac] text-xs px-5 py-4">Nivel</th>
-                    <th className="text-left text-[#86efac] text-xs px-5 py-4">Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {productosFiltrados.map((p) => {
-                    const porcentaje = Math.min((p.stock / Math.max(p.stock_minimo * 2, 1)) * 100, 100)
-                    const estado = p.stock === 0 ? 'sin' : p.stock <= p.stock_minimo ? 'bajo' : 'ok'
-                    return (
-                      <tr key={p.id} className="border-b border-[#1a2e1a] hover:bg-[#162016] transition-colors">
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <span className="text-xl">{p.icono}</span>
-                            <span className="text-[#f0fdf4] text-sm">{p.nombre}</span>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 hidden md:table-cell">
-                          <span className="text-[#86efac] text-sm">{p.categorias?.nombre}</span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className="text-[#f0fdf4] font-bold">{p.stock}</span>
-                        </td>
-                        <td className="px-5 py-4 hidden sm:table-cell">
-                          <span className="text-[#86efac] text-sm">{p.stock_minimo}</span>
-                        </td>
-                        <td className="px-5 py-4 w-32">
-                          <div className="w-full bg-[#0a0f0a] rounded-full h-2">
-                            <div
-                              className={`h-2 rounded-full transition-all ${
-                                estado === 'ok' ? 'bg-[#22c55e]' :
-                                estado === 'bajo' ? 'bg-yellow-500' : 'bg-red-500'
-                              }`}
-                              style={{ width: `${porcentaje}%` }}
-                            />
-                          </div>
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            estado === 'ok' ? 'bg-green-900 text-green-400' :
-                            estado === 'bajo' ? 'bg-yellow-900 text-yellow-400' :
-                            'bg-red-900 text-red-400'
-                          }`}>
-                            {estado === 'ok' ? 'OK' : estado === 'bajo' ? 'Bajo' : 'Agotado'}
-                          </span>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <ul className="flex flex-col gap-3">
+            {visibles.map((p) => (
+              <li key={p.id} className={`${claseTarjeta} p-4`}>
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <p className="text-[#f0fdf4] font-semibold text-sm break-words">{p.icono} {p.nombre}</p>
+                    <p className="text-[#86efac] text-xs">{p.sku ?? 'Sin SKU'} · {p.categorias?.nombre}</p>
+                  </div>
+                  <Insignia info={INFO_NIVEL[nivelStock(p.stock, p.stock_minimo)]} />
+                </div>
+                <div className="flex items-center justify-between gap-3 flex-wrap mt-3">
+                  <p className="text-[#f0fdf4] text-sm"><span className="font-bold text-lg">{p.stock}</span> <span className="text-[#86efac]">{p.unidad} · mín. {p.stock_minimo}</span></p>
+                  <div className="flex gap-2">
+                    <Link href={`/admin/inventario/${p.id}`} className={`${claseBotonSecundario} !px-3 !py-2 text-sm`}>Kardex</Link>
+                    <button onClick={() => abrir(p)} className={`${claseBotonPrimario} !px-3 !py-2 text-sm`}>Movimiento</button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
+
+      {producto && (
+        <Modal titulo={`Movimiento: ${producto.nombre}`} bloqueado={guardando} onCerrar={cerrar}>
+          <form onSubmit={guardar} className="flex flex-col gap-4">
+            <AvisoError mensaje={errorForm} />
+            <p className="text-[#86efac] text-sm">Stock actual: {producto.stock} {producto.unidad}</p>
+            <div>
+              <label htmlFor="m-tipo" className={claseEtiqueta}>Tipo</label>
+              <select id="m-tipo" value={tipo} onChange={(e) => setTipo(e.target.value as 'entrada' | 'ajuste')} className={claseInput}>
+                <option value="entrada">Entrada (compra a proveedor)</option>
+                <option value="ajuste">Ajuste (pérdida, vencimiento, conteo)</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="m-cantidad" className={claseEtiqueta}>{tipo === 'ajuste' ? 'Cantidad (negativa para restar)' : 'Cantidad'}</label>
+              <input id="m-cantidad" required type="number" step="1" min={tipo === 'entrada' ? 1 : undefined} value={cantidad} onChange={(e) => setCantidad(e.target.value)} className={claseInput} />
+            </div>
+            <div>
+              <label htmlFor="m-motivo" className={claseEtiqueta}>Motivo</label>
+              <input id="m-motivo" required minLength={3} maxLength={300} value={motivo} onChange={(e) => setMotivo(e.target.value)} className={claseInput} />
+            </div>
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+              <button type="button" disabled={guardando} onClick={cerrar} className={claseBotonSecundario}>Cancelar</button>
+              <button type="submit" disabled={guardando} className={claseBotonPrimario}>{guardando ? 'Guardando...' : 'Registrar'}</button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   )
 }

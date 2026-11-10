@@ -8,6 +8,7 @@
 2. [`ESTADO.md`](ESTADO.md) — dónde estamos hoy y qué sigue.
 3. [`ARQUITECTURA.md`](ARQUITECTURA.md) — arquitectura, modelo de datos y API REST.
 4. La especificación del pilar que se va a trabajar, en [`specs/`](specs/).
+5. [`PRUEBAS.md`](PRUEBAS.md) — cómo correr las pruebas E2E (Playwright).
 
 ## Especificación (SDD: especificar → planificar → tareas → implementar)
 

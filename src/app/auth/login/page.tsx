@@ -1,32 +1,62 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { mensajeErrorAuth } from '@/lib/auth/mensajes'
+import { rutaInterna } from '@/lib/auth/redireccion'
+
+type Aviso = { tipo: 'error' | 'ok'; texto: string }
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [cargando, setCargando] = useState(false)
-  const [error, setError] = useState('')
-  const router = useRouter()
+  const [aviso, setAviso] = useState<Aviso | null>(null)
+  // Correo que falta confirmar: habilita el botón "Reenviar correo"
+  const [sinConfirmar, setSinConfirmar] = useState<string | null>(null)
+  const [reenviando, setReenviando] = useState(false)
   const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setCargando(true)
-    setError('')
+    setAviso(null)
+    setSinConfirmar(null)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError('Correo o contraseña incorrectos')
+      setAviso({ tipo: 'error', texto: mensajeErrorAuth(error) })
+      if (error.code === 'email_not_confirmed') setSinConfirmar(email)
       setCargando(false)
       return
     }
 
-    router.push('/')
-    router.refresh()
+    // Una cuenta desactivada entra solo para ver el aviso
+    const { data: perfil } = await supabase
+      .from('perfiles')
+      .select('activo')
+      .eq('id', data.user.id)
+      .maybeSingle()
+
+    const siguiente = new URLSearchParams(window.location.search).get('siguiente')
+    // Navegación completa: el router de Next guarda precargas hechas SIN sesión
+    // (p. ej. /carrito → login) y las reusaría; así se parte de cero con la cuenta nueva
+    window.location.assign(perfil?.activo === false ? '/cuenta-desactivada' : rutaInterna(siguiente))
+  }
+
+  const reenviar = async () => {
+    if (!sinConfirmar) return
+    setReenviando(true)
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: sinConfirmar,
+      options: { emailRedirectTo: `${window.location.origin}/auth/login` },
+    })
+    setReenviando(false)
+    setAviso(error
+      ? { tipo: 'error', texto: mensajeErrorAuth(error) }
+      : { tipo: 'ok', texto: `Te reenviamos el enlace a ${sinConfirmar}. Revisa también la carpeta de spam.` })
   }
 
   return (
@@ -44,16 +74,27 @@ export default function LoginPage() {
         <div className="bg-[#111811] border border-[#1a2e1a] rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
-            {error && (
-              <div className="bg-red-900 border border-red-700 text-red-300 rounded-xl px-4 py-3 text-sm">
-                ⚠️ {error}
+            {aviso && (
+              <div role={aviso.tipo === 'error' ? 'alert' : 'status'}
+                className={`rounded-xl px-4 py-3 text-sm border ${aviso.tipo === 'error'
+                  ? 'bg-red-900 border-red-700 text-red-300'
+                  : 'bg-[#162016] border-[#22c55e] text-[#86efac]'}`}>
+                {aviso.tipo === 'error' ? '⚠️' : '📧'} {aviso.texto}
+                {sinConfirmar && (
+                  <button type="button" onClick={reenviar} disabled={reenviando}
+                    className="block mt-2 font-semibold underline disabled:opacity-60">
+                    {reenviando ? 'Reenviando...' : 'Reenviar correo'}
+                  </button>
+                )}
               </div>
             )}
 
             <div>
-              <label className="text-[#86efac] text-sm font-medium mb-2 block">Correo electrónico</label>
+              <label htmlFor="email" className="text-[#86efac] text-sm font-medium mb-2 block">Correo electrónico</label>
               <input
+                id="email"
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@correo.com"
@@ -63,15 +104,20 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="text-[#86efac] text-sm font-medium mb-2 block">Contraseña</label>
+              <label htmlFor="password" className="text-[#86efac] text-sm font-medium mb-2 block">Contraseña</label>
               <input
+                id="password"
                 type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
                 className="w-full bg-[#162016] border border-[#1a2e1a] focus:border-[#22c55e] text-[#f0fdf4] placeholder-[#86efac] rounded-xl px-4 py-3 outline-none transition-colors"
               />
+              <Link href="/auth/recuperar" className="inline-block mt-2 text-[#22c55e] text-sm hover:underline">
+                ¿Olvidaste tu contraseña?
+              </Link>
             </div>
 
             <button

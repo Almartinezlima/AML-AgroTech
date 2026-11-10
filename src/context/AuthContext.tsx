@@ -1,5 +1,5 @@
 'use client'
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase'
 
@@ -8,7 +8,8 @@ interface PerfilUsuario {
   nombre: string
   email: string
   rol: 'admin' | 'cliente' | 'distribuidor'
-  telefono?: string
+  telefono?: string | null
+  activo: boolean
 }
 
 interface AuthContextType {
@@ -17,6 +18,7 @@ interface AuthContextType {
   perfil: PerfilUsuario | null
   cargando: boolean
   cerrarSesion: () => Promise<void>
+  recargarPerfil: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -27,52 +29,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [perfil, setPerfil] = useState<PerfilUsuario | null>(null)
   const [cargando, setCargando] = useState(true)
   const supabase = createClient()
+  // Usuario vigente: una respuesta lenta de otra cuenta no debe pisar el perfil actual
+  const usuarioActual = useRef<string | null>(null)
 
-  const cargarPerfil = async (userId: string) => {
+  const cargarPerfil = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from('perfiles')
-      .select('id, nombre, email, rol, telefono')
+      .select('id, nombre, email, rol, telefono, activo')
       .eq('id', userId)
-      .single()
-    if (data) setPerfil(data)
-  }
+      .maybeSingle()
+    if (usuarioActual.current === userId) setPerfil(data ?? null)
+  }, [supabase])
 
   useEffect(() => {
-    const inicializar = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setSession(session)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await cargarPerfil(session.user.id)
-      }
-      setCargando(false)
-    }
+    // INITIAL_SESSION llega siempre al suscribirse, así que no hace falta leer la sesión aparte
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_evento, nuevaSesion) => {
+      const nuevoId = nuevaSesion?.user.id ?? null
+      const cambioDeCuenta = usuarioActual.current !== nuevoId
+      usuarioActual.current = nuevoId
 
-    inicializar()
+      setSession(nuevaSesion)
+      setUser(nuevaSesion?.user ?? null)
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          await cargarPerfil(session.user.id)
-        } else {
-          setPerfil(null)
-        }
+      if (!nuevoId) {
+        setPerfil(null)
         setCargando(false)
+        return
       }
-    )
+
+      // Si entró otra cuenta, el perfil anterior se borra de inmediato (nunca se muestra el rol de otro)
+      if (cambioDeCuenta) {
+        setPerfil(null)
+        setCargando(true)
+      }
+      // Se difiere: llamar a Supabase dentro de este callback puede trabar
+      // otras operaciones de Auth, como updateUser al restablecer la contraseña
+      setTimeout(() => {
+        void cargarPerfil(nuevoId).finally(() => {
+          if (usuarioActual.current === nuevoId) setCargando(false)
+        })
+      }, 0)
+    })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [supabase, cargarPerfil])
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut()
+    usuarioActual.current = null
     setPerfil(null)
   }
 
+  const recargarPerfil = async () => {
+    if (user) await cargarPerfil(user.id)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, session, perfil, cargando, cerrarSesion }}>
+    <AuthContext.Provider value={{ user, session, perfil, cargando, cerrarSesion, recargarPerfil }}>
       {children}
     </AuthContext.Provider>
   )

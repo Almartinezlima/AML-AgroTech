@@ -1,17 +1,17 @@
 # 03 — Pagos
 
-Fase: `fase/4-pagos`. Realista para Bolivia: QR interbancario, transferencia y contra entrega. **Sin pasarela real**: el QR es de demostración.
+Rama real: `fase/2-comercio`. ✅ Programado. Depende de correr la migración `0003` (pendiente) y de la prueba con sesión real.
 
 ## Historias de usuario
 
 | ID | Historia | Prioridad |
 |---|---|---|
-| HU-P01 | Como **cliente** quiero elegir cómo pagar: QR, transferencia o contra entrega | Alta |
-| HU-P02 | Como **cliente** quiero ver el QR (o los datos de la cuenta) con el monto exacto y el código del pedido como referencia | Alta |
-| HU-P03 | Como **cliente** quiero subir la foto de mi comprobante para que la tienda verifique mi pago | Alta |
-| HU-P04 | Como **administrador** quiero ver los pagos en revisión con su comprobante y aprobarlos o rechazarlos con motivo | Alta |
-| HU-P05 | Como **cliente** quiero saber si mi pago fue verificado o rechazado (y por qué) y poder subir otro comprobante | Alta |
-| HU-P06 | Como **administrador** quiero ver el total cobrado y por cobrar | Media |
+| ✅ HU-P01 | Como **cliente** quiero elegir cómo pagar: QR, transferencia o contra entrega | Alta |
+| ✅ HU-P02 | Como **cliente** quiero ver el QR (o los datos de la cuenta) con el monto exacto y el código del pedido como referencia | Alta |
+| ✅ HU-P03 | Como **cliente** quiero subir la foto de mi comprobante para que la tienda verifique mi pago | Alta |
+| ✅ HU-P04 | Como **administrador** quiero ver los pagos en revisión con su comprobante y aprobarlos o rechazarlos con motivo | Alta |
+| ✅ HU-P05 | Como **cliente** quiero saber si mi pago fue verificado o rechazado (y por qué) y poder subir otro comprobante | Alta |
+| ✅ HU-P06 | Como **administrador** quiero ver el total cobrado y por cobrar | Media |
 
 ## Criterios de aceptación
 

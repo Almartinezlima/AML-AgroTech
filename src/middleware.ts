@@ -1,5 +1,14 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { rutaInterna } from '@/lib/auth/redireccion'
+
+const RUTAS_CON_SESION = ['/pedidos', '/carrito', '/cuenta', '/checkout']
+const RUTA_CUENTA_DESACTIVADA = '/cuenta-desactivada'
+
+// Compara por segmentos: '/admin' cubre '/admin/usuarios' pero no '/administrar'
+function coincide(ruta: string, base: string) {
+  return ruta === base || ruta.startsWith(`${base}/`)
+}
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -27,23 +36,52 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Rutas protegidas — redirige al login si no hay sesión
-  const rutasProtegidas = ['/admin', '/pedidos', '/carrito']
-  const estaEnRutaProtegida = rutasProtegidas.some(ruta =>
-    request.nextUrl.pathname.startsWith(ruta)
-  )
-
-  if (estaEnRutaProtegida && !user) {
+  // Al redirigir se conservan las cookies de una sesión recién renovada
+  const redirigir = (destino: string, siguiente?: string) => {
     const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    return NextResponse.redirect(url)
+    url.pathname = destino
+    url.search = ''
+    if (siguiente) url.searchParams.set('siguiente', siguiente)
+    const respuesta = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach((cookie) => respuesta.cookies.set(cookie))
+    return respuesta
   }
 
-  // Si ya está logueado y va al login, redirige al inicio
-  if (user && request.nextUrl.pathname.startsWith('/auth/login')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/'
-    return NextResponse.redirect(url)
+  const ruta = request.nextUrl.pathname
+  const esRutaAdmin = coincide(ruta, '/admin')
+  const esRutaConSesion = RUTAS_CON_SESION.some((base) => coincide(ruta, base))
+  const esAvisoDesactivada = coincide(ruta, RUTA_CUENTA_DESACTIVADA)
+
+  if ((esRutaAdmin || esRutaConSesion) && !user) {
+    return redirigir('/auth/login', `${ruta}${request.nextUrl.search}`)
+  }
+
+  if (user && (esRutaAdmin || esRutaConSesion || esAvisoDesactivada)) {
+    // El rol se lee de la base en cada petición, nunca de la pantalla
+    const { data: perfil } = await supabase
+      .from('perfiles')
+      .select('rol, activo')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const desactivada = perfil?.activo === false
+
+    if (esAvisoDesactivada && !desactivada) return redirigir('/')
+    if (!esAvisoDesactivada && desactivada) return redirigir(RUTA_CUENTA_DESACTIVADA)
+    // Sin perfil o con error de lectura, tampoco entra al panel
+    if (esRutaAdmin && perfil?.rol !== 'admin') return redirigir('/')
+  }
+
+  if (!user && esAvisoDesactivada) {
+    return redirigir('/')
+  }
+
+  // Si ya está logueado y va al login, lo lleva a donde iba (solo rutas internas)
+  if (user && coincide(ruta, '/auth/login')) {
+    const destino = new URL(rutaInterna(request.nextUrl.searchParams.get('siguiente')), request.url)
+    const respuesta = NextResponse.redirect(destino)
+    supabaseResponse.cookies.getAll().forEach((cookie) => respuesta.cookies.set(cookie))
+    return respuesta
   }
 
   return supabaseResponse
