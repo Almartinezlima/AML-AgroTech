@@ -4,7 +4,7 @@ Sexto documento de la especificación. Manda sobre cualquier decisión visual; s
 
 ## 1. Para quién y qué tiene que transmitir
 
-- **Quién compra:** agricultores y distribuidores de Sucre y las provincias de Chuquisaca (Villa Charcas, Culpina, Incahuasi). Muchos entran desde el celular, con datos móviles y pantallas de 360 px.
+- **Quién compra:** agricultores y distribuidores de Villa Charcas, Culpina, Incahuasi y Sucre (Chuquisaca). La tienda está en Villa Charcas. Muchos entran desde el celular, con datos móviles y pantallas de 360 px.
 - **Qué tiene que sentir:** una tienda **seria, local y confiable**, no una plantilla. "Esto lo atiende gente de acá y me llega al pueblo".
 - **Trabajo principal de cada pantalla:** encontrar el insumo, saber el precio en Bs. y cuánto cuesta llevarlo, pagar sin miedo.
 
@@ -14,25 +14,26 @@ Principios:
 3. **Nada roto, nada vacío sin explicación.** Toda pantalla tiene carga (skeleton), vacío y error.
 4. **Movimiento con motivo.** Solo responde a lo que hace la persona, más una entrada orquestada en la portada.
 
-## 2. Color
+## 2. Color (tema claro, fase 6B)
 
-Tema oscuro verde (CLAUDE.md). Tokens en `tailwind.config.ts` (`bg-fondo`, `text-acento`, etc.); el código anterior usa los mismos valores en hex.
+Fondo crema, tarjetas blancas con sombra suave, verde de la marca, dorado trigo para detalles y textos oscuros. Tokens en `tailwind.config.ts` (`bg-fondo`, `text-acento`, etc.).
 
-| Token | Valor | Uso |
-|---|---|---|
-| `fondo` | `#0a0f0a` | Fondo de página |
-| `tarjeta` | `#111811` | Tarjetas, menú, footer |
-| `tarjeta-hover` | `#162016` | Hover, campos de texto |
-| `borde` | `#1a2e1a` | Bordes y divisores |
-| `acento` | `#22c55e` | Acción principal, precios, foco |
-| `acento-hover` | `#16a34a` | Hover de la acción principal |
-| `texto` | `#f0fdf4` | Texto principal |
-| `texto-2` | `#86efac` | Texto secundario, etiquetas |
-| `trigo` | `#d4b26a` | **Solo detalles**: números de pasos, sellos, zonas de provincia, créditos |
+| Token | Valor | Uso | Contraste |
+|---|---|---|---|
+| `fondo` | `#f6f4ee` | Fondo de página (crema) | — |
+| `tarjeta` | `#ffffff` | Tarjetas, menú, footer | — |
+| `tarjeta-hover` | `#eef3ea` | Hover, campos de texto, avisos suaves | — |
+| `borde` | `#dfe5d8` | Bordes y divisores | — |
+| `acento` | `#15753a` | Botones, precios, enlaces, foco | 5,3:1 sobre crema; blanco encima 5,8:1 |
+| `acento-hover` | `#166534` | Hover de la acción principal | — |
+| `texto` | `#17251b` | Texto principal | 15:1 |
+| `texto-2` | `#4a5a4e` | Texto secundario, etiquetas | 7:1 |
+| `trigo` | `#836219` | Detalles con texto (zonas por flota, "Paso 1") | 5,1:1 |
+| `trigo-suave` | `#d4b26a` | Solo decorativo (números grandes, rellenos) | — |
 
-Estados (nunca solo color: siempre con texto): pendiente `#f59e0b` · verificado/entregado `#22c55e` · en camino `#3b82f6` · cancelado/rechazado `#ef4444`. **El trigo no es un estado** y no debe confundirse con el ámbar.
+Estados (nunca solo color: siempre con texto): pendiente `#f59e0b` · verificado/entregado `#22c55e` · en camino `#3b82f6` · cancelado/rechazado `#ef4444`. El punto de la insignia usa ese color; **el texto usa su tono oscuro** (`#92400e`, `#166534`, `#1d4ed8`, `#b91c1c`) para pasar AA sobre blanco. El trigo **no es un estado**.
 
-Contraste: texto `#f0fdf4` y `#86efac` sobre `#0a0f0a`/`#111811` superan AA. El trigo se usa en tamaños ≥ 14 px semibold o en elementos decorativos.
+Sobre fotos (hero, categorías) el texto es blanco con velo oscuro debajo.
 
 ## 3. Tipografía
 
@@ -42,7 +43,7 @@ Contraste: texto `#f0fdf4` y `#86efac` sobre `#0a0f0a`/`#111811` superan AA. El 
 | Texto, botones, formularios | **Figtree** | 400, 500, 600, 700 | `font-sans` (por defecto) |
 
 - Cargadas con `next/font/google`: se sirven desde nuestro propio dominio, sin pedidos a Google en el navegador.
-- **Escala** (móvil → escritorio): hero `text-4xl → text-6xl` · título de página `text-3xl` · sección `text-2xl → text-3xl` · tarjeta `text-base` semibold · cuerpo `text-base` · ayuda `text-sm` · meta `text-xs`.
+- **Escala** (móvil → escritorio): hero `text-4xl → text-7xl` · título de página `text-3xl → text-4xl` · sección `text-3xl → text-4xl` · tarjeta `text-base` (16 px) semibold · cuerpo 16 px · ayuda `text-sm` (15 px) · lo más chico `text-xs` (**14 px**). En `tailwind.config.ts` la escala `xs` vale 14 px y `sm` 15 px: ningún texto de contenido baja de 14 px. Menú en 16 px.
 - Títulos con `tracking-tight` y `text-balance`; párrafos con `max-w-prose` (menos de 80 caracteres por línea).
 - **Precios y cantidades** con `tabular-nums` para que las cifras no bailen.
 - Sin MAYÚSCULAS sostenidas en etiquetas, sin acentuar una sola palabra del título con otro color.
@@ -75,7 +76,7 @@ La tienda se ve **con fotos reales**, no con ilustraciones ni íconos.
 - **Tarjeta**: foto de borde a borde (`aspect-square`, `object-cover`), franja inferior con el color de la categoría, zoom suave al pasar y la tarjeta se levanta con sombra.
 - **Producto nuevo sin foto**: se muestra la foto de su categoría. Nunca una imagen rota ni un ícono.
 - **Categorías**: una foto por categoría en `public/categorias/`.
-- **Portada**: terrazas de cultivo en un valle andino (Unsplash), en `public/portada/`, con `next/image` (`priority`, `placeholder="blur"`) y velo oscuro para que el texto se lea. Crédito en el hero y en el footer.
+- **Portada**: foto propia de un campo de papa en Villa Charcas (Aldo Martínez Lima), en `public/portada/villa-charcas.webp`, con `next/image` (`priority`, `placeholder="blur"`) y un velo oscuro suave solo del lado del texto, para que la foto se vea. Crédito en el hero y en el footer.
 - **Créditos**: fuente, autor y licencia de cada foto en `docs/CREDITOS_IMAGENES.md`. Las de tienda son de uso referencial académico: reemplazarlas antes de comercializar.
 - **Íconos**: Lucide (`react-icons/lu`, ISC) solo para la interfaz, `aria-hidden` si son decorativos. Sin emojis.
 
@@ -83,12 +84,12 @@ La tienda se ve **con fotos reales**, no con ilustraciones ni íconos.
 
 | Componente | Reglas |
 |---|---|
-| Botón primario | Fondo `acento`, texto `fondo`, `font-bold`, `rounded-xl`, alto mínimo 44 px. Uno por pantalla/paso |
+| Botón primario | Fondo `acento`, texto blanco, `font-bold`, `rounded-xl`, alto mínimo 44 px. Uno por pantalla/paso |
 | Botón secundario | Borde `borde` → `acento` al pasar |
 | Botón peligro | Borde rojo; la acción real va en un modal de confirmación propio |
 | Campo | Fondo `tarjeta-hover`, etiqueta visible arriba (nunca solo placeholder), placeholder más tenue que la etiqueta |
 | Tarjeta de producto | Foto cuadrada de borde a borde, etiqueta de categoría con color, nombre (2 líneas máx.), precio grande + unidad, disponibilidad con texto, botón ancho |
-| Insignia de estado | Texto + color del estado, `rounded-full`, fondo del color al 13 % |
+| Insignia de estado | Punto del color del estado + texto en su tono oscuro, `rounded-full`, fondo del color al 10 % |
 | Modal | `role="dialog"`, cierra con Esc, foco inicial en "Cancelar" |
 | Skeleton | Bloques con la forma del contenido final y brillo suave (`animate-pulse`) |
 | Vacío | Ícono Lucide en un recuadro, frase clara y una acción ("Ver catálogo") |
@@ -107,11 +108,11 @@ La tienda se ve **con fotos reales**, no con ilustraciones ni íconos.
 
 | Pantalla | Estructura |
 |---|---|
-| **Portada** | Hero a pantalla ancha con foto de valle andino, título, buscador y "Ver catálogo" · categorías con foto y color · productos destacados reales · "Cómo comprar" en 3 pasos (elige → paga con QR → recibe en tu pueblo) · zonas de envío con costo y tiempo (de la base) · llamada a distribuidores · footer |
+| **Portada** | Hero a pantalla ancha con la foto de Villa Charcas, título, buscador y "Ver catálogo" · categorías con foto y color · productos destacados reales (carrusel horizontal en celular) · "Cómo comprar" en 3 pasos (elige → paga con QR → recibe en tu pueblo) · zonas de envío con costo y tiempo (de la base) · llamada a distribuidores · footer |
 | **Catálogo** | Título y conteo, buscador + orden, filtros de categoría con ícono, grilla 1/2/3/4 columnas, vacío con "Limpiar filtros" |
-| **Ficha** | Foto grande a la izquierda; categoría, nombre, precio por unidad, disponibilidad, selector de cantidad y botón a la derecha; bloque de envío ("Llega a Sucre en 1 día, provincias 2–4 días") |
-| **Carrito** | Lista de ítems con cantidad, resumen fijo a la derecha en escritorio, abajo en celular |
-| **Checkout** | 3 pasos numerados (Entrega → Pago → Resumen), tarjetas seleccionables con ícono, resumen con subtotal + envío = total |
+| **Ficha** | Foto grande a la izquierda; categoría, nombre, precio por unidad, disponibilidad, selector de cantidad y botón a la derecha; bloque de envío desde Villa Charcas (pueblo, Culpina, Incahuasi y Sucre) y "Otros productos de la categoría" |
+| **Carrito** | Visible sin cuenta · ítems con − / + de 44 px y "Quitar" con Deshacer · resumen con envío estimado · sin sesión: "Iniciar sesión y comprar" · sincronizado entre pestañas |
+| **Checkout** | 3 pasos (Entrega → Pago → Resumen), los ya hechos son clicables para volver · resumen fijo a la derecha en escritorio y plegable arriba en celular, desde el paso 1 · recojo: aviso de la tienda; en el pueblo: dirección; por flota: nombre y CI de quien recoge |
 | **Pedidos** | Lista con código en `font-titulo`, estado y pago con insignias, total alineado a la derecha; detalle con línea de tiempo |
 | **Panel admin** | Menú lateral con íconos Lucide (arriba en celular), cifras en tarjetas con ícono, gráficos y alertas de stock |
 | **Footer** | Marca y frase, navegación, contacto, equipo (Grupo 20: Aldo Martínez Lima y Miguel Alejandro Nava Mamani · USFX · SIS324), créditos de fotos e íconos |

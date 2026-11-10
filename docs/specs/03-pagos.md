@@ -15,7 +15,8 @@ Rama real: `fase/2-comercio`. ✅ Programado. Depende de correr la migración `0
 
 ## Criterios de aceptación
 
-- Contra entrega solo aparece si la zona lo permite (`permite_contra_entrega`). Recojo en tienda y Sucre urbano: sí. Provincias: no.
+- Contra entrega solo aparece si la zona lo permite (`permite_contra_entrega`). Recojo en tienda (Villa Charcas) y entrega en el pueblo de Villa Charcas: sí. Culpina, Incahuasi y Sucre (por flota): no.
+- **Cancelación y reembolsos (migración 0006):** el cliente solo cancela si el pedido y el pago siguen pendientes (sin comprobante). Si la tienda cancela un pedido con el pago verificado o en revisión, el pago pasa a **Reembolso pendiente**, y a **Reembolsado** cuando el admin lo marca en `/admin/pagos`. El cliente ve el aviso en su pedido.
 - El QR se muestra con la leyenda **"QR de demostración — no realizar pagos reales"**. Imagen en `public/pagos/qr-demo.png`.
 - Comprobante: jpg/png/webp/pdf, máx. 3 MB, al bucket **privado** `comprobantes/<usuario_id>/<pedido_id>/…`. Solo el dueño y el admin pueden verlo (URL firmada de corta duración).
 - Al subir comprobante: pago `pendiente` → `en_revision` y se registra en el seguimiento.

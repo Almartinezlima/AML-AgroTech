@@ -29,7 +29,11 @@ Rama real: `fase/2-comercio`. ✅ Programado. Depende de correr la migración `0
   *Tienda en Villa Charcas. Costos definidos por Aldo el 9 nov 2026; actualizados en la base.*
 
   *Costos de referencia, a confirmar por Aldo.*
-- Entrega en el pueblo y provincias exigen dirección/referencia y teléfono; recojo solo teléfono.
+- Entrega en el pueblo: dirección y teléfono. **Por flota** (Culpina, Incahuasi, Sucre terminal): **nombre y CI de quien recoge** la encomienda y teléfono (migración 0007). Recojo en tienda: solo teléfono.
+- Estados del pedido:
+  - Recojo en tienda: pendiente → confirmado → preparando → **listo para recoger** → entregado (sin "despachado").
+  - Pueblo y flota: pendiente → confirmado → preparando → despachado (por flota: empresa y número de guía obligatorios) → entregado.
+- El admin ve quién recoge en `/admin/pedidos` y en el detalle; `/admin/envios` tiene la pestaña "Para recoger en tienda".
 - Transiciones válidas (`cambiar_estado_pedido` las valida): pendiente→confirmado→preparando→despachado→entregado; cancelado solo desde pendiente o confirmado.
 - Pasar a `despachado` en provincia exige transportista y número de guía.
 - Cada cambio queda en `seguimiento_pedido` con fecha, hora y quién lo hizo; el cliente lo ve como línea de tiempo con colores de estado.

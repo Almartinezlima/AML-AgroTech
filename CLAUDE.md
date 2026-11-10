@@ -103,27 +103,32 @@ Navegador (React) ──fetch──▶ API REST propia  src/app/api/**  (valida 
 
 ## Diseño (no cambiar sin pedido de Aldo)
 
-Tema oscuro agrícola, mobile-first:
+Tema **claro** agrícola (desde la fase 6B), mobile-first. Tokens en `tailwind.config.ts`:
 
-| Uso | Color |
-|---|---|
-| Fondo | `#0a0f0a` |
-| Cards | `#111811` |
-| Hover cards | `#162016` |
-| Verde acento | `#22c55e` |
-| Verde hover | `#16a34a` |
-| Texto principal | `#f0fdf4` |
-| Texto secundario | `#86efac` |
-| Bordes | `#1a2e1a` |
-| Trigo (detalles) | `#d4b26a` |
+| Uso | Token | Color |
+|---|---|---|
+| Fondo (crema) | `fondo` | `#f6f4ee` |
+| Tarjetas | `tarjeta` | `#ffffff` |
+| Hover / campos | `tarjeta-hover` | `#eef3ea` |
+| Bordes | `borde` | `#dfe5d8` |
+| Verde de la marca (botones, precios, enlaces) | `acento` | `#15753a` |
+| Verde hover | `acento-hover` | `#166534` |
+| Texto principal | `texto` | `#17251b` |
+| Texto secundario | `texto-2` | `#4a5a4e` |
+| Trigo para texto y detalles | `trigo` | `#836219` |
+| Trigo decorativo (rellenos, números grandes) | `trigo-suave` | `#d4b26a` |
 
-- **Trigo `#d4b26a`**: solo para detalles (pasos de "Cómo comprar", sellos, créditos, separadores). Nunca para estados: el ámbar `#f59e0b` sigue siendo "pendiente".
+Contrastes medidos (WCAG AA): texto 15:1, texto-2 7:1, acento 5,3:1, trigo 5,1:1; blanco sobre `acento` 5,8:1.
+
+- **Trigo**: solo para detalles (pasos de "Cómo comprar", sellos, zonas por flota, créditos). Nunca para estados: el ámbar `#f59e0b` sigue siendo "pendiente".
+- **Letra**: ningún texto de contenido por debajo de 14 px (la escala `text-xs` de Tailwind vale 14 px y `text-sm` 15 px); el menú en 16 px. Botones táctiles de 44 px como mínimo.
+- **Portada**: la foto propia de Villa Charcas a pantalla completa, con un velo oscuro suave solo del lado del texto.
 - **Tipografía**: Bricolage Grotesque (títulos) + Figtree (texto), con `next/font`.
 - **Imágenes**: fotos reales siempre (productos en `public/productos/<sku>.webp`, categorías en `public/categorias/`, portada en `public/portada/`). Fuente de cada una en `docs/CREDITOS_IMAGENES.md`. Nunca íconos como imagen de producto.
 - **Color por categoría** (`src/lib/categorias.ts`): Semillas verde, Riego azul, Agroquímicos naranja, Herramientas tierra, Cañerías gris azulado. Solo en etiquetas y detalles.
 - **Íconos**: Lucide (`react-icons/lu`) solo para la interfaz (carrito, usuario, camión…). Sin emojis en la interfaz. Detalle completo en `docs/DISENO.md`.
 
-- Colores de estado: pendiente ámbar `#f59e0b`, verificado/entregado verde `#22c55e`, en camino azul `#3b82f6`, cancelado/rechazado rojo `#ef4444`.
+- Colores de estado: pendiente ámbar `#f59e0b`, verificado/entregado verde `#22c55e`, en camino azul `#3b82f6`, cancelado/rechazado rojo `#ef4444`. Sobre fondo claro el **texto** del estado va en su tono oscuro (`colorTextoEstado` en `Insignia.tsx`): `#92400e`, `#166534`, `#1d4ed8`, `#b91c1c`.
 - Escritorio (≥ 1280 px) y celular (360, 412 px) **sin scroll horizontal**.
 - Toda pantalla tiene estados de **carga** (skeleton), **vacío** y **error**.
 - Comentarios del código en español.

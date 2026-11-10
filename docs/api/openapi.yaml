@@ -45,7 +45,7 @@ components:
             mensaje: { type: string, example: Debes iniciar sesión. }
             detalle: { type: object }
     Rol: { type: string, enum: [admin, cliente, distribuidor] }
-    EstadoPedido: { type: string, enum: [pendiente, confirmado, preparando, despachado, entregado, cancelado] }
+    EstadoPedido: { type: string, enum: [pendiente, confirmado, preparando, listo_para_recoger, despachado, entregado, cancelado], description: 'Recojo en tienda usa listo_para_recoger en vez de despachado (migración 0007)' }
     MetodoPago: { type: string, enum: [qr, transferencia, contra_entrega] }
     ProductoEntrada:
       type: object
@@ -83,7 +83,9 @@ components:
       properties:
         items: { type: array, items: { $ref: '#/components/schemas/ItemPedido' } }
         zona_id: { type: string, format: uuid }
-        direccion: { type: string, nullable: true, description: Obligatoria salvo recojo en tienda }
+        direccion: { type: string, nullable: true, description: Obligatoria para la entrega en el pueblo }
+        recoge_nombre: { type: string, nullable: true, description: 'Zonas por flota: nombre de quien recoge la encomienda (3 a 100 caracteres)' }
+        recoge_ci: { type: string, nullable: true, example: '1234567', description: 'Zonas por flota: CI de quien recoge (5 a 10 dígitos, complemento opcional)' }
         telefono: { type: string, example: '70000000' }
         metodo_pago: { $ref: '#/components/schemas/MetodoPago' }
         notas: { type: string, nullable: true }
@@ -286,6 +288,7 @@ paths:
     post:
       tags: [Pedidos]
       summary: Cancelar pedido y devolver el stock
+      description: 'Cliente: solo si el pedido y el pago siguen pendientes (sin comprobante). Admin: pedidos pendientes o confirmados; si el pago estaba verificado o en revisión pasa a reembolso_pendiente (migración 0006).'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -329,7 +332,7 @@ paths:
       summary: Listar pagos con comprobante firmado (admin)
       security: [{ sesion: [] }]
       parameters:
-        - { name: estado, in: query, schema: { type: string, enum: [pendiente, en_revision, verificado, rechazado] } }
+        - { name: estado, in: query, schema: { type: string, enum: [pendiente, en_revision, verificado, rechazado, reembolso_pendiente, reembolsado] } }
       responses:
         '200': { description: Lista de pagos }
         '403': { $ref: '#/components/responses/Error' }
@@ -352,6 +355,25 @@ paths:
         '404': { $ref: '#/components/responses/Error' }
         '409': { $ref: '#/components/responses/Error' }
         '422': { $ref: '#/components/responses/Error' }
+  /pagos/{id}/reembolso:
+    post:
+      tags: [Pagos]
+      summary: Marcar como devuelto un pago en reembolso pendiente (admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nota: { type: string, nullable: true, maxLength: 300 }
+      responses:
+        '200': { description: Pago reembolsado }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
   /pagos/{id}/verificar:
     patch:
       tags: [Pagos]
