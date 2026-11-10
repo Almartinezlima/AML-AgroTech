@@ -1,3 +1,4 @@
+import { colorTextoEstado } from '@/components/ui/Insignia'
 import { INFO_ESTADO_PEDIDO, fechaHora } from '@/lib/ecommerce/presentacion'
 import type { EventoSeguimiento } from '@/types/comercio'
 
@@ -13,7 +14,7 @@ export default function LineaTiempo({ eventos }: { eventos: EventoSeguimiento[] 
               {i < eventos.length - 1 && <span className="w-0.5 flex-1 bg-borde" />}
             </div>
             <div className="pb-5 min-w-0">
-              <p className="font-semibold text-sm" style={{ color: info.color }}>{info.etiqueta}</p>
+              <p className="font-semibold text-sm" style={{ color: colorTextoEstado(info.color) }}>{info.etiqueta}</p>
               {evento.nota && <p className="text-texto text-sm break-words">{evento.nota}</p>}
               <p className="text-texto-2 text-xs mt-0.5">{fechaHora(evento.created_at)}</p>
             </div>
