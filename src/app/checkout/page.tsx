@@ -18,7 +18,7 @@ const PASOS = ['Entrega', 'Pago', 'Resumen']
 export default function CheckoutPage() {
   const router = useRouter()
   const { perfil } = useAuth()
-  const { items, ajustarStock, limpiarCarrito } = useCarrito()
+  const { items, ajustarStock, limpiarCarrito, listo } = useCarrito()
   const zonas = useDatosApi<ZonaEnvio[]>('/api/zonas-envio')
   const [paso, setPaso] = useState(0)
   const [entrega, setEntrega] = useState<DatosEntrega>({ zonaId: '', direccion: '', telefono: '', notas: '' })
@@ -104,7 +104,7 @@ export default function CheckoutPage() {
     <div className={clasePagina}><div className="max-w-2xl mx-auto">{contenido}</div></div>
   )
 
-  if (pedidoCreado.current) return contenedor(<BloqueCarga filas={2} />)
+  if (pedidoCreado.current || !listo) return contenedor(<BloqueCarga filas={2} />)
   if (items.length === 0) {
     return contenedor(
       <BloqueVacio icono="🛒" mensaje="Tu carrito está vacío">

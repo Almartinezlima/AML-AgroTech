@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { mensajeErrorAuth } from '@/lib/auth/mensajes'
 import { rutaInterna } from '@/lib/auth/redireccion'
@@ -16,7 +15,6 @@ export default function LoginPage() {
   // Correo que falta confirmar: habilita el botón "Reenviar correo"
   const [sinConfirmar, setSinConfirmar] = useState<string | null>(null)
   const [reenviando, setReenviando] = useState(false)
-  const router = useRouter()
   const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,8 +40,9 @@ export default function LoginPage() {
       .maybeSingle()
 
     const siguiente = new URLSearchParams(window.location.search).get('siguiente')
-    router.push(perfil?.activo === false ? '/cuenta-desactivada' : rutaInterna(siguiente))
-    router.refresh()
+    // Navegación completa: el router de Next guarda precargas hechas SIN sesión
+    // (p. ej. /carrito → login) y las reusaría; así se parte de cero con la cuenta nueva
+    window.location.assign(perfil?.activo === false ? '/cuenta-desactivada' : rutaInterna(siguiente))
   }
 
   const reenviar = async () => {

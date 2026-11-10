@@ -24,6 +24,8 @@ interface CarritoContextType {
   total: number
   totalItems: number
   limpiarCarrito: () => void
+  // false mientras se lee el carrito guardado de la cuenta
+  listo: boolean
 }
 
 const CarritoContext = createContext<CarritoContextType | null>(null)
@@ -172,7 +174,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
   const totalItems = items.reduce((acc, i) => acc + i.cantidad, 0)
 
   return (
-    <CarritoContext.Provider value={{ items, agregarItem, actualizarCantidad, eliminarItem, ajustarStock, total, totalItems, limpiarCarrito }}>
+    <CarritoContext.Provider value={{ items, agregarItem, actualizarCantidad, eliminarItem, ajustarStock, total, totalItems, limpiarCarrito, listo: estado.clave !== null }}>
       {children}
     </CarritoContext.Provider>
   )

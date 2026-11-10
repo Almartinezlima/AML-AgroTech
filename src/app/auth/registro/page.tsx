@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { mensajeErrorAuth } from '@/lib/auth/mensajes'
 import { rutaInterna } from '@/lib/auth/redireccion'
@@ -25,7 +24,6 @@ export default function RegistroPage() {
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
   const [revisarCorreo, setRevisarCorreo] = useState(false)
-  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -69,8 +67,9 @@ export default function RegistroPage() {
     // Con "Confirm email" apagado, Supabase ya devuelve la sesión: entra directo
     if (data.session) {
       const siguiente = new URLSearchParams(window.location.search).get('siguiente')
-      router.push(rutaInterna(siguiente, '/catalogo'))
-      router.refresh()
+      // Navegación completa: el router de Next guarda precargas hechas SIN sesión
+      // (p. ej. /carrito → login) y las reusaría; así se parte de cero con la cuenta nueva
+      window.location.assign(rutaInterna(siguiente, '/catalogo'))
       return
     }
 

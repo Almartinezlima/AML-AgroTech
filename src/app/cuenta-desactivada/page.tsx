@@ -1,15 +1,13 @@
 'use client'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 
 export default function CuentaDesactivadaPage() {
   const { cerrarSesion } = useAuth()
-  const router = useRouter()
 
   const salir = async () => {
     await cerrarSesion()
-    router.push('/')
-    router.refresh()
+    // Navegación completa: no queda en memoria nada de la cuenta que salió
+    window.location.assign('/')
   }
 
   return (

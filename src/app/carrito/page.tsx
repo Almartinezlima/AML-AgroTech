@@ -1,11 +1,20 @@
 'use client'
 import Link from 'next/link'
 import ImagenProducto from '@/components/ImagenProducto'
+import { BloqueCarga } from '@/components/ui/Estados'
 import { useCarrito } from '@/context/CarritoContext'
 import { formatoBs } from '@/lib/utils'
 
 export default function CarritoPage() {
-  const { items, actualizarCantidad, eliminarItem, total } = useCarrito()
+  const { items, actualizarCantidad, eliminarItem, total, listo } = useCarrito()
+
+  if (!listo) {
+    return (
+      <div className="min-h-screen bg-[#0a0f0a] py-8 px-4">
+        <div className="max-w-6xl mx-auto"><BloqueCarga filas={3} /></div>
+      </div>
+    )
+  }
 
   if (items.length === 0) {
     return (

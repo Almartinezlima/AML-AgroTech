@@ -3,18 +3,16 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useCarrito } from '@/context/CarritoContext'
 import { useAuth } from '@/context/AuthContext'
-import { useRouter } from 'next/navigation'
 
 export default function Navbar() {
   const [menuAbierto, setMenuAbierto] = useState(false)
   const { totalItems } = useCarrito()
   const { user, perfil, cerrarSesion } = useAuth()
-  const router = useRouter()
 
   const handleCerrarSesion = async () => {
     await cerrarSesion()
-    router.push('/')
-    router.refresh()
+    // Navegación completa: no queda en memoria nada de la cuenta que salió
+    window.location.assign('/')
   }
 
   return (
