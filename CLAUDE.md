@@ -115,6 +115,13 @@ Tema oscuro agrícola, mobile-first:
 | Texto principal | `#f0fdf4` |
 | Texto secundario | `#86efac` |
 | Bordes | `#1a2e1a` |
+| Trigo (detalles) | `#d4b26a` |
+
+- **Trigo `#d4b26a`**: solo para detalles (pasos de "Cómo comprar", sellos, créditos, separadores). Nunca para estados: el ámbar `#f59e0b` sigue siendo "pendiente".
+- **Tipografía**: Bricolage Grotesque (títulos) + Figtree (texto), con `next/font`.
+- **Imágenes**: fotos reales siempre (productos en `public/productos/<sku>.webp`, categorías en `public/categorias/`, portada en `public/portada/`). Fuente de cada una en `docs/CREDITOS_IMAGENES.md`. Nunca íconos como imagen de producto.
+- **Color por categoría** (`src/lib/categorias.ts`): Semillas verde, Riego azul, Agroquímicos naranja, Herramientas tierra, Cañerías gris azulado. Solo en etiquetas y detalles.
+- **Íconos**: Lucide (`react-icons/lu`) solo para la interfaz (carrito, usuario, camión…). Sin emojis en la interfaz. Detalle completo en `docs/DISENO.md`.
 
 - Colores de estado: pendiente ámbar `#f59e0b`, verificado/entregado verde `#22c55e`, en camino azul `#3b82f6`, cancelado/rechazado rojo `#ef4444`.
 - Escritorio (≥ 1280 px) y celular (360, 412 px) **sin scroll horizontal**.

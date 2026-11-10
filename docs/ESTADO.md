@@ -1,8 +1,12 @@
 # AML AgroTech — Estado
 
-**Actualizado:** 9 nov 2026 (rama `fase/2b-calidad`). Revisado contra el código y la base real de Supabase.
+**Actualizado:** 9 nov 2026 (rama `fase/6-diseno`). Revisado contra el código y la base real de Supabase.
 
-> ✅ Las migraciones `0002` y `0003` ya están corridas en la base real. La tienda se probó de punta a punta con **23 pruebas E2E en verde** (`npm run test:e2e:prod`, ver [`PRUEBAS.md`](PRUEBAS.md)).
+> ✅ Las migraciones `0002` y `0003` ya están corridas en la base real. La tienda se probó de punta a punta con Playwright (ver [`PRUEBAS.md`](PRUEBAS.md)).
+>
+> ⏳ **Pendiente de correr: `0004_imagenes_productos.sql`** (pone la foto real a los 33 productos). Hasta entonces cada producto muestra la foto de su categoría.
+
+**Diseño de feria (fase 6):** fotos reales de los 33 productos, de las 5 categorías y de la portada (fuentes en [`CREDITOS_IMAGENES.md`](CREDITOS_IMAGENES.md)), color por categoría, Bricolage Grotesque + Figtree, portada de feria y sin emojis. Brief en [`DISENO.md`](DISENO.md).
 
 ## Resumen por pilar
 
@@ -31,6 +35,7 @@
 | 1 | `fase/1-seguridad` | Seguridad + base de la API ✅ programada |
 | 2 | `fase/2-comercio` | E-commerce, API REST, Swagger, inventario, pagos y distribución ✅ programada (reemplaza a las fases 2 a 5) |
 | 2B | `fase/2b-calidad` | Arreglos de autenticación + pruebas E2E con Playwright ✅ |
+| 6 | `fase/6-diseno` | Diseño de feria: fotos reales, color por categoría, tipografía y portada ✅ (falta correr la 0004) |
 | 6 | `fase/6-pulido` | Cuentas demo, README, celular |
 | 7 | — | Deploy en Render + Lab 10 |
 | 8 | — | UML en StarUML + documento |
