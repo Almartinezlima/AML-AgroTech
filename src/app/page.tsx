@@ -1,88 +1,76 @@
 import Link from 'next/link'
+import { LuArrowRight, LuStore } from 'react-icons/lu'
+import CategoriasPortada from './_components/CategoriasPortada'
+import ComoComprar from './_components/ComoComprar'
+import Hero from './_components/Hero'
 import ProductosDestacados from './_components/ProductosDestacados'
+import ZonasPortada from './_components/ZonasPortada'
 
-const categorias = [
-  { nombre: 'Agroquímicos', icono: '🧪', descripcion: 'Fertilizantes, pesticidas y herbicidas' },
-  { nombre: 'Riego', icono: '💧', descripcion: 'Sistemas de riego tecnificado' },
-  { nombre: 'Cañerías', icono: '🔧', descripcion: 'Tuberías y accesorios' },
-  { nombre: 'Herramientas', icono: '⚒️', descripcion: 'Equipos y herramientas agrícolas' },
-  { nombre: 'Semillas', icono: '🌱', descripcion: 'Semillas certificadas de calidad' },
-]
+function Encabezado({ titulo, texto, enlace }: { titulo: string; texto: string; enlace?: { href: string; texto: string } }) {
+  return (
+    <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="max-w-2xl">
+        <h2 className="font-titulo text-3xl font-bold tracking-tight text-texto sm:text-4xl">{titulo}</h2>
+        <p className="mt-3 text-lg text-texto-2">{texto}</p>
+      </div>
+      {enlace && (
+        <Link href={enlace.href} className="group inline-flex items-center gap-1.5 font-semibold text-acento hover:text-acento-hover">
+          {enlace.texto} <LuArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+        </Link>
+      )}
+    </div>
+  )
+}
 
 export default function Home() {
   return (
     <div className="min-h-screen">
+      <Hero />
 
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-[#0a0f0a] via-[#0d1a0d] to-[#0a0f0a] py-20 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-[#111811] border border-[#22c55e] rounded-full px-4 py-2 mb-6">
-            <span className="text-[#22c55e] text-sm font-medium">🌿 Plataforma agrícola boliviana</span>
-          </div>
-          <h1 className="text-4xl md:text-6xl font-bold text-[#f0fdf4] mb-6">
-            Insumos agrícolas<br />
-            <span className="text-[#22c55e]">al alcance de tu mano</span>
-          </h1>
-          <p className="text-[#86efac] text-lg md:text-xl mb-10 max-w-2xl mx-auto">
-            Encuentra agroquímicos, sistemas de riego, herramientas y semillas de calidad.
-            Compra en línea desde cualquier lugar de Bolivia.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/catalogo" className="bg-[#22c55e] hover:bg-[#16a34a] text-[#0a0f0a] font-bold px-8 py-4 rounded-xl text-lg transition-colors">
-              Ver Catálogo →
-            </Link>
-            <Link href="/auth/registro" className="border border-[#22c55e] text-[#22c55e] hover:bg-[#111811] font-semibold px-8 py-4 rounded-xl text-lg transition-colors">
-              Registrarse
-            </Link>
-          </div>
+      <section className="px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <Encabezado titulo="Categorías" texto="Lo que necesitas para sembrar, regar y cuidar tu cultivo." />
+          <CategoriasPortada />
         </div>
       </section>
 
-      {/* Categorías */}
-      <section className="py-16 px-4 bg-[#0a0f0a]">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-[#f0fdf4] text-center mb-4">Nuestras Categorías</h2>
-          <p className="text-[#86efac] text-center mb-12">Todo lo que necesitas para tu campo en un solo lugar</p>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {categorias.map((cat) => (
-              <Link key={cat.nombre} href={`/catalogo?categoria=${cat.nombre}`}
-                className="bg-[#111811] border border-[#1a2e1a] hover:border-[#22c55e] rounded-xl p-6 text-center transition-all hover:bg-[#162016] group">
-                <div className="text-4xl mb-3">{cat.icono}</div>
-                <h3 className="font-semibold text-[#f0fdf4] group-hover:text-[#22c55e] transition-colors mb-1">{cat.nombre}</h3>
-                <p className="text-[#86efac] text-xs">{cat.descripcion}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Productos destacados */}
-      <section className="py-16 px-4 bg-[#0d1a0d]">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-12">
-            <div>
-              <h2 className="text-3xl font-bold text-[#f0fdf4]">Productos Destacados</h2>
-              <p className="text-[#86efac] mt-2">Una selección de nuestro catálogo</p>
-            </div>
-            <Link href="/catalogo" className="text-[#22c55e] hover:text-[#16a34a] font-semibold transition-colors">
-              Ver todos →
-            </Link>
-          </div>
+      <section className="bg-gradient-to-b from-[#0d160d] to-fondo px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <Encabezado
+            titulo="Productos destacados"
+            texto="Lo que más se lleva para la campaña, con stock disponible."
+            enlace={{ href: '/catalogo', texto: 'Ver todo el catálogo' }}
+          />
           <ProductosDestacados />
         </div>
       </section>
 
-      {/* Banner CTA */}
-      <section className="py-16 px-4 bg-[#0a0f0a]">
-        <div className="max-w-4xl mx-auto bg-[#111811] border border-[#22c55e] rounded-2xl p-10 text-center">
-          <h2 className="text-3xl font-bold text-[#f0fdf4] mb-4">¿Eres distribuidor?</h2>
-          <p className="text-[#86efac] mb-8 text-lg">Registra tu negocio y llega a más agricultores en toda Bolivia</p>
-          <Link href="/auth/registro" className="bg-[#22c55e] hover:bg-[#16a34a] text-[#0a0f0a] font-bold px-8 py-4 rounded-xl text-lg transition-colors">
-            Unirse como distribuidor
-          </Link>
+      <section className="px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <Encabezado titulo="Cómo comprar" texto="Tres pasos y tu pedido sale de Sucre." />
+          <ComoComprar />
         </div>
       </section>
 
+      <section className="border-y border-borde bg-tarjeta/40 px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <Encabezado titulo="Zonas de envío" texto="Costo y tiempo de entrega desde Sucre hasta las provincias." />
+          <ZonasPortada />
+        </div>
+      </section>
+
+      <section className="px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+        <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl border border-acento/30 bg-gradient-to-br from-[#123018] via-tarjeta to-[#1a170d] p-8 text-center shadow-2xl shadow-black/40 sm:p-12">
+          <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-acento/20 blur-3xl" aria-hidden="true" />
+          <div className="pointer-events-none absolute -bottom-24 -right-16 h-64 w-64 rounded-full bg-trigo/15 blur-3xl" aria-hidden="true" />
+          <LuStore className="relative mx-auto h-10 w-10 text-trigo" aria-hidden="true" />
+          <h2 className="relative mt-4 font-titulo text-3xl font-bold tracking-tight text-texto sm:text-4xl">¿Tienes un negocio agropecuario?</h2>
+          <p className="relative mx-auto mt-3 max-w-xl text-lg text-texto-2">Regístrate como distribuidor y compra para tu tienda en Villa Charcas, Culpina o Incahuasi.</p>
+          <Link href="/auth/registro" className="relative mt-8 inline-flex h-12 items-center rounded-2xl bg-acento px-7 font-bold text-fondo shadow-lg shadow-acento/30 transition hover:bg-acento-hover">
+            Crear cuenta de distribuidor
+          </Link>
+        </div>
+      </section>
     </div>
   )
 }
