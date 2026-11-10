@@ -41,3 +41,5 @@ next-env.d.ts
 /blob-report/
 /playwright/.cache/
 /.next-e2e/
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
