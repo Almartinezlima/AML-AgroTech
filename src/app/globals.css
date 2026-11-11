@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fuentes de docs/DISENO.md (Fontsource, servidas desde la app) */
+:root {
+  --fuente-titulo: "Bricolage Grotesque Variable";
+  --fuente-texto: "Figtree Variable";
+}
+
 :root {
   --bg-primary: #f6f4ee;
   --bg-card: #ffffff;
