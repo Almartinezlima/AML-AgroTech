@@ -178,6 +178,47 @@ Capturas: `16-mi-cuenta-*.png` · `17-menu-celular-375.png`
 | 💡 | Alta | Avisos en el panel: "3 pagos por revisar" en la barra del admin y un sonido o insignia cuando entra un pedido nuevo | — |
 | 💡 | Media | Imprimir la guía de despacho y la etiqueta del bulto (nombre, CI, zona y guía) para la flota | — |
 
+### 3B. Recorrido real del admin (10 nov 2026, después de las migraciones 0005, 0006 y 0007)
+
+Con la cuenta admin de `.env.test.local`, contra el build de producción (`.next-e2e`, puerto 3210), nunca contra `npm run dev`. Los hallazgos de zonas y de recojo de arriba ya quedaron resueltos en la fase 6B.
+
+**Pruebas automáticas:** `npm run test:e2e:prod` → **29 pasaron · 0 fallaron · 0 omitidas** (incluidas las 4 del admin).
+
+**Recorrido completo (todo ✅ en la corrida final):**
+
+| Área | Qué se probó | Resultado |
+|---|---|---|
+| Pagos | Aprobar (QR y transferencia) → pedido confirmado; rechazar sin motivo → "Indica el motivo del rechazo."; rechazar con motivo → el cliente lo ve en su pedido | ✅ |
+| Pedidos (flota) | Confirmado → preparando → despachado → entregado; despachar sin empresa ni guía → "Para despachar por flota indica la empresa de flota y el número de guía."; la lista muestra quién recoge (nombre y CI) | ✅ |
+| Pedidos (recojo) | En preparación ofrece "Pasar a Listo para recoger" (sin "Despachado"); al entregar: pago "verificado", envío "entregado" | ✅ |
+| Reembolso | El admin cancela un pedido con pago verificado → "reembolso pendiente"; aparece en el dashboard; "Marcar como reembolsado" → "reembolsado"; el cliente ve "La tienda ya te devolvió…" | ✅ |
+| Seguridad | Un cliente intenta cancelar por la API un pedido pagado → **409** | ✅ |
+| Envíos | La pestaña "Para recoger en tienda" muestra el pedido de recojo | ✅ |
+| Productos | Crear con foto subida, editar el precio, guardar un producto real sin cambios, desactivar (sin borrar) | ✅ |
+| Inventario | Entrada +10, ajuste −3, ajuste −500 → "El stock no puede quedar negativo. Disponible: 7."; kardex; CSV → 200 `text/csv` | ✅ |
+| Zonas | Días mínimos 5 > máximos 1 → "Los días máximos no pueden ser menores a los mínimos." | ✅ |
+| Usuarios | Desactivar y reactivar una cuenta E2E; el botón para desactivar la propia cuenta admin está deshabilitado | ✅ |
+
+**Errores reales de la app encontrados y corregidos (no se tocaron las pruebas):**
+
+| Error | Causa | Arreglo |
+|---|---|---|
+| En `/admin/pagos`, al cambiar el filtro a "Reembolso pendiente" seguía la lista de "En revisión" | Carrera en `useDatosApi`: la respuesta vieja llegaba después de la nueva y la pisaba | Cada carga lleva un número y se descartan las respuestas viejas (`src/lib/api/useDatosApi.ts`) |
+| El selector de categoría del modal de producto, el inventario y las alertas del panel mostraban los emojis guardados en la base | Se pintaba `icono` + `nombre` | Solo el nombre (regla: sin emojis en la interfaz) |
+| Los gráficos del dashboard quedaban vacíos un momento al girar el celular o cambiar el tamaño de la ventana | recharts repite la animación de las barras en cada cambio de tamaño | Gráficos sin animación (`Graficos.tsx`) |
+
+**Detalles menores (no corregidos, para la fase siguiente):**
+- `/admin/pedidos` lista todos los pedidos sin paginar (a 1280 px la página ya mide unos 8.800 px con 49 pedidos). Conviene paginar o cargar de a 20.
+- Los códigos de pedido (`AML-000049`) como enlace miden 19 px de alto a 375 px: área táctil chica.
+- El botón "Desactivar" deshabilitado tiene contraste 2,07:1 (WCAG lo exime por estar deshabilitado).
+- Siguen mezclados los datos E2E con los reales (ver arriba).
+
+**Capturas** (excluidas de git):
+- Las 8 pantallas del admin en tema claro, 1280 y 375 px: `.auditoria/admin-capturas/` (`01-dashboard`, `02-pagos`, `03-pedidos`, `04-envios`, `05-productos`, `06-inventario`, `07-zonas`, `08-usuarios`).
+- El recorrido paso a paso (reembolso pendiente, kardex): `.auditoria/9-admin-recorrido/`; lo que ve el cliente: `.auditoria/9-admin-cliente/`.
+
+**Datos E2E creados:** pedidos AML-000034 a AML-000049, cuentas "Cliente admin E2E" (`e2e+aud…@amlagrotech.test`) y productos `E2E-ADM-62618` y `E2E-ADM-99368`, desactivados (no se borran).
+
 ---
 
 ## 4. Escenarios raros (simulados en el navegador)
@@ -226,5 +267,5 @@ Capturas: `.auditoria/4-raros/01-catalogo-producto-agotado-375.png` · `02-catal
 
 ## 8. Pendiente para completar la auditoría
 
-1. Aldo completa `E2E_ADMIN_EMAIL` y `E2E_ADMIN_PASSWORD` en `.env.test.local`.
-2. Se corre el recorrido del admin (script listo) y se agrega aquí la sección 3 con capturas.
+~~1. Aldo completa `E2E_ADMIN_EMAIL` y `E2E_ADMIN_PASSWORD` en `.env.test.local`.~~
+~~2. Se corre el recorrido del admin y se agrega la sección 3 con capturas.~~ Hecho el 10 nov 2026: ver **3B**.
