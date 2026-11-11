@@ -28,10 +28,10 @@ test.describe('Pagos y distribución', () => {
     // Cliente: compra a provincia con QR y sube su comprobante
     await registrarCliente(page)
     await agregarAlCarrito(page, PRODUCTO_A)
-    const pedido = await finalizarCompra(page, { zona: 'Villa Charcas', metodo: 'QR' })
+    const pedido = await finalizarCompra(page, { zona: 'Culpina', metodo: 'QR' })
 
     await page.goto(`/pedidos/${pedido.id}`)
-    await page.getByLabel(/Comprobante/).setInputFiles({ name: 'comprobante-e2e.png', mimeType: 'image/png', buffer: imagenComprobante() })
+    await page.getByLabel('Subir foto del comprobante').setInputFiles({ name: 'comprobante-e2e.png', mimeType: 'image/png', buffer: imagenComprobante() })
     await page.getByRole('button', { name: 'Enviar comprobante' }).click()
     await expect(page.getByText('En revisión')).toBeVisible()
     await expect(page.getByRole('link', { name: /Ver comprobante subido/ })).toBeVisible()

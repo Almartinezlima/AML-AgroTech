@@ -10,6 +10,7 @@ import { useDatosApi } from '@/lib/api/useDatosApi'
 import { formatoBs } from '@/lib/utils'
 import type { Categoria, Producto } from '@/types/comercio'
 import ModalProducto from './_components/ModalProducto'
+import { LuPackage } from 'react-icons/lu'
 
 export default function AdminProductosPage() {
   const { datos, cargando, error, recargar } = useDatosApi<Producto[]>('/api/productos?alcance=todos')
@@ -46,8 +47,8 @@ export default function AdminProductosPage() {
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-[#f0fdf4]">Productos</h1>
-            <p className="text-[#86efac] mt-1">{datos?.length ?? 0} registrados</p>
+            <h1 className="text-3xl font-bold text-texto">Productos</h1>
+            <p className="text-texto-2 mt-1">{datos?.length ?? 0} registrados</p>
           </div>
           <button onClick={() => setEditando('nuevo')} className={claseBotonPrimario}>+ Nuevo producto</button>
         </div>
@@ -59,21 +60,21 @@ export default function AdminProductosPage() {
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
         ) : visibles.length === 0 ? (
-          <BloqueVacio icono="📦" mensaje="No se encontraron productos" />
+          <BloqueVacio icono={LuPackage} mensaje="No se encontraron productos" />
         ) : (
           <ul className="flex flex-col gap-3">
             {visibles.map((p) => (
               <li key={p.id} className={`${claseTarjeta} p-3 sm:p-4 flex gap-3 sm:gap-4`}>
                 <ImagenProducto nombre={p.nombre} imagen={p.imagen_url} icono={p.icono} categoria={p.categorias?.nombre}
-                  className="w-14 h-14 rounded-lg shrink-0" tamanoIcono="text-2xl" sizes="56px" />
+                  className="w-14 h-14 rounded-lg shrink-0" sizes="56px" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 flex-wrap">
-                    <p className="text-[#f0fdf4] font-semibold text-sm min-w-0 break-words">{p.nombre}</p>
+                    <p className="text-texto font-semibold text-sm min-w-0 break-words">{p.nombre}</p>
                     <Insignia info={p.activo ? { etiqueta: 'Activo', color: '#22c55e' } : { etiqueta: 'Inactivo', color: '#ef4444' }} />
                   </div>
-                  <p className="text-[#86efac] text-xs">{p.sku ?? 'Sin SKU'} · {p.categorias?.nombre} · Stock: {p.stock} · {p.unidad}</p>
+                  <p className="text-texto-2 text-xs">{p.sku ?? 'Sin SKU'} · {p.categorias?.nombre} · Stock: {p.stock} · {p.unidad}</p>
                   <div className="flex items-center justify-between gap-2 flex-wrap mt-2">
-                    <span className="text-[#22c55e] font-bold">{formatoBs(p.precio)}</span>
+                    <span className="text-acento font-bold">{formatoBs(p.precio)}</span>
                     <div className="flex gap-2">
                       <button onClick={() => { setErrorEstado(''); setCambiandoEstado(p) }} className={`${claseBotonSecundario} !px-3 !py-2 text-sm`}>{p.activo ? 'Desactivar' : 'Activar'}</button>
                       <button onClick={() => setEditando(p)} className={`${claseBotonSecundario} !px-3 !py-2 text-sm`}>Editar</button>

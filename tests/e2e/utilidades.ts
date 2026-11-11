@@ -115,7 +115,8 @@ export async function paginaAdmin(browser: Browser): Promise<Page> {
 export async function agregarAlCarrito(page: Page, nombre: string) {
   if (!page.url().includes('/catalogo')) await page.goto('/catalogo')
   await page.getByLabel('Buscar producto').fill(nombre)
-  const tarjeta = page.locator('div.group', { has: page.getByRole('link', { name: nombre, exact: true }) })
+  // Cada producto es un <article>; se busca por su nombre, no por clases de diseño
+  const tarjeta = page.getByRole('article').filter({ has: page.getByRole('link', { name: nombre, exact: true }) })
   await tarjeta.getByRole('button', { name: /Agregar al carrito/ }).click()
   await expect(tarjeta.getByRole('button', { name: /Agregado/ })).toBeVisible()
 }
@@ -124,6 +125,9 @@ export interface OpcionesCompra {
   zona: string
   metodo: 'QR' | 'Transferencia' | 'Contra entrega'
   direccion?: string
+  // Zonas por flota: quién recoge la encomienda
+  recogeNombre?: string
+  recogeCi?: string
 }
 
 export interface PedidoHecho {
@@ -140,6 +144,11 @@ export async function finalizarCompra(page: Page, opciones: OpcionesCompra): Pro
   await page.getByRole('radio', { name: new RegExp(opciones.zona) }).check()
   const direccion = page.getByLabel(/Dirección/)
   if (await direccion.isVisible()) await direccion.fill(opciones.direccion ?? 'E2E — Calle Bolívar 123')
+  const recoge = page.getByLabel('Nombre de quien recoge')
+  if (await recoge.isVisible()) {
+    await recoge.fill(opciones.recogeNombre ?? 'Recoge E2E')
+    await page.getByLabel('CI de quien recoge').fill(opciones.recogeCi ?? '1234567')
+  }
   await page.getByLabel('Teléfono / WhatsApp').fill('70012345')
   await page.getByLabel('Notas (opcional)').fill('E2E: pedido de prueba automática')
   await page.getByRole('button', { name: 'Continuar' }).click()
@@ -147,7 +156,9 @@ export async function finalizarCompra(page: Page, opciones: OpcionesCompra): Pro
   await page.getByRole('radio', { name: new RegExp(opciones.metodo) }).check()
   await page.getByRole('button', { name: 'Continuar' }).click()
 
-  const fila = (etiqueta: string) => page.locator('div.flex.justify-between', { has: page.getByText(etiqueta, { exact: true }) }).last()
+  // Se lee el resumen del paso 3 (el lateral repite los montos)
+  const resumen = page.getByRole('region', { name: 'Resumen del pedido' })
+  const fila = (etiqueta: string) => resumen.locator('div.flex.justify-between', { has: page.getByText(etiqueta, { exact: true }) }).last()
   await expect(fila('Total')).toBeVisible()
   const subtotal = leerBs(await fila('Subtotal').locator('span').last().innerText())
   const envio = leerBs(await fila('Envío').locator('span').last().innerText())

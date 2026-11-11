@@ -6,7 +6,7 @@ Rama real: `fase/2-comercio`. ✅ Programado. Depende de correr la migración `0
 
 | ID | Historia | Prioridad |
 |---|---|---|
-| ✅ HU-D01 | Como **cliente** quiero elegir dónde recibir mi pedido (recojo en tienda, Sucre urbano o mi pueblo) y ver el costo y el tiempo estimado | Alta |
+| ✅ HU-D01 | Como **cliente** quiero elegir dónde recibir mi pedido (recojo en tienda, mi pueblo o Sucre) y ver el costo y el tiempo estimado | Alta |
 | ✅ HU-D02 | Como **cliente** quiero seguir mi pedido en una línea de tiempo (pendiente, confirmado, preparando, despachado, entregado) | Alta |
 | ✅ HU-D03 | Como **cliente** de provincia quiero ver la empresa de flota y el número de guía para recoger mi encomienda | Alta |
 | ✅ HU-D04 | Como **administrador** quiero un panel de despachos con los pedidos por preparar y por entregar | Alta |
@@ -20,14 +20,20 @@ Rama real: `fase/2-comercio`. ✅ Programado. Depende de correr la migración `0
 
   | Zona | Tipo | Costo ref. | Tiempo | Contra entrega |
   |---|---|---|---|---|
-  | Recojo en tienda (Sucre) | recojo | Bs. 0 | mismo día | Sí |
-  | Sucre urbano | urbano | Bs. 15 | 1 día | Sí |
-  | Villa Charcas | provincia | Bs. 35 | 2–3 días | No |
-  | Culpina | provincia | Bs. 35 | 2–3 días | No |
-  | Incahuasi | provincia | Bs. 40 | 2–4 días | No |
+  | Recojo en tienda (Villa Charcas) | recojo | Bs. 0 | mismo día | Sí |
+  | Villa Charcas (entrega en el pueblo) | urbano | Bs. 10 | 0–1 día | Sí |
+  | Culpina | provincia | Bs. 10 | 1–2 días | No |
+  | Incahuasi | provincia | Bs. 10 | 1–2 días | No |
+  | Sucre (recojo en la terminal de buses) | provincia | Bs. 15 | 1–2 días | No |
+
+  *Tienda en Villa Charcas. Costos definidos por Aldo el 9 nov 2026; actualizados en la base.*
 
   *Costos de referencia, a confirmar por Aldo.*
-- Provincia y Sucre urbano exigen dirección/referencia y teléfono; recojo solo teléfono.
+- Entrega en el pueblo: dirección y teléfono. **Por flota** (Culpina, Incahuasi, Sucre terminal): **nombre y CI de quien recoge** la encomienda y teléfono (migración 0007). Recojo en tienda: solo teléfono.
+- Estados del pedido:
+  - Recojo en tienda: pendiente → confirmado → preparando → **listo para recoger** → entregado (sin "despachado").
+  - Pueblo y flota: pendiente → confirmado → preparando → despachado (por flota: empresa y número de guía obligatorios) → entregado.
+- El admin ve quién recoge en `/admin/pedidos` y en el detalle; `/admin/envios` tiene la pestaña "Para recoger en tienda".
 - Transiciones válidas (`cambiar_estado_pedido` las valida): pendiente→confirmado→preparando→despachado→entregado; cancelado solo desde pendiente o confirmado.
 - Pasar a `despachado` en provincia exige transportista y número de guía.
 - Cada cambio queda en `seguimiento_pedido` con fecha, hora y quién lo hizo; el cliente lo ve como línea de tiempo con colores de estado.

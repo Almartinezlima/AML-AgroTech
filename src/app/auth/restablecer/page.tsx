@@ -3,6 +3,10 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { esSesionDeRecuperacion, leerEnlaceRecuperacion } from '@/lib/auth/recuperacion'
+import { LuCircleCheck, LuClockAlert } from 'react-icons/lu'
+import Resultado from '@/components/ui/Resultado'
+import { claseBotonPrimario } from '@/components/ui/estilos'
+import MarcoAcceso from '../_components/MarcoAcceso'
 import FormularioNuevaClave, { type CuentaRecuperada } from './_components/FormularioNuevaClave'
 
 type Estado = 'verificando' | 'listo' | 'invalido' | 'exitoso'
@@ -64,52 +68,38 @@ export default function RestablecerPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#0a0f0a] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-        <h1 className="text-2xl font-bold text-[#f0fdf4] text-center mb-8">Nueva contraseña</h1>
-
-        <div className="bg-[#111811] border border-[#1a2e1a] rounded-2xl p-6 sm:p-8">
-          {estado === 'verificando' && (
-            <div className="animate-pulse flex flex-col gap-4" aria-label="Verificando enlace">
-              <div className="h-12 bg-[#162016] rounded-xl" />
-              <div className="h-12 bg-[#162016] rounded-xl" />
-            </div>
-          )}
-
-          {estado === 'invalido' && (
-            <div role="alert" className="text-center">
-              <div className="text-5xl mb-4">⏰</div>
-              <p className="text-[#f0fdf4] font-semibold mb-2">Enlace inválido o vencido</p>
-              <p className="text-[#86efac] text-sm mb-2">
-                Para cambiar la contraseña hay que abrir el enlace que llega al correo, en el mismo navegador donde se pidió.
-              </p>
-              {motivo && <p className="text-[#86efac] text-xs mb-2">Detalle: {motivo}</p>}
-              <Link href="/auth/recuperar" className="block mt-4 bg-[#22c55e] hover:bg-[#16a34a] text-[#0a0f0a] font-bold py-3 rounded-xl transition-colors">
-                Pedir otro enlace
-              </Link>
-            </div>
-          )}
-
-          {estado === 'exitoso' && (
-            <div role="status" className="text-center">
-              <div className="text-5xl mb-4">✅</div>
-              <p className="text-[#f0fdf4] font-semibold mb-2">Tu contraseña fue actualizada</p>
-              <p className="text-[#86efac] text-sm mb-6">Por seguridad cerramos la sesión. Entra con tu contraseña nueva.</p>
-              <Link href="/auth/login" className="block bg-[#22c55e] hover:bg-[#16a34a] text-[#0a0f0a] font-bold py-3 rounded-xl transition-colors">
-                Iniciar sesión
-              </Link>
-            </div>
-          )}
-
-          {estado === 'listo' && cuenta && (
-            <FormularioNuevaClave
-              cuenta={cuenta}
-              onExito={() => setEstado('exitoso')}
-              onSesionInvalida={() => setEstado('invalido')}
-            />
-          )}
+    <MarcoAcceso titulo="Nueva contraseña">
+      {estado === 'verificando' && (
+        <div className="flex flex-col gap-4" role="status" aria-label="Verificando enlace">
+          <div className="esqueleto h-12 rounded-xl" />
+          <div className="esqueleto h-12 rounded-xl" />
         </div>
-      </div>
-    </div>
+      )}
+
+      {estado === 'invalido' && (
+        <Resultado icono={LuClockAlert} titulo="Enlace inválido o vencido" tono="error" rol="alert">
+          <p className="text-texto-2 text-sm mb-2">
+            Para cambiar la contraseña hay que abrir el enlace que llega al correo, en el mismo navegador donde se pidió.
+          </p>
+          {motivo && <p className="text-texto-2 text-xs mb-2">Detalle: {motivo}</p>}
+          <Link href="/auth/recuperar" className={`${claseBotonPrimario} w-full mt-4`}>Pedir otro enlace</Link>
+        </Resultado>
+      )}
+
+      {estado === 'exitoso' && (
+        <Resultado icono={LuCircleCheck} titulo="Tu contraseña fue actualizada" tono="exito">
+          <p className="text-texto-2 text-sm mb-6">Por seguridad cerramos la sesión. Entra con tu contraseña nueva.</p>
+          <Link href="/auth/login" className={`${claseBotonPrimario} w-full`}>Iniciar sesión</Link>
+        </Resultado>
+      )}
+
+      {estado === 'listo' && cuenta && (
+        <FormularioNuevaClave
+          cuenta={cuenta}
+          onExito={() => setEstado('exitoso')}
+          onSesionInvalida={() => setEstado('invalido')}
+        />
+      )}
+    </MarcoAcceso>
   )
 }

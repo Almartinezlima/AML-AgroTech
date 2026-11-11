@@ -8,10 +8,15 @@ export const COLUMNAS_PRODUCTO =
 export const COLUMNAS_ZONA = 'id, nombre, tipo, costo, dias_min, dias_max, permite_contra_entrega, activo, orden'
 
 export const COLUMNAS_PEDIDO_RESUMEN =
-  'id, codigo, usuario_id, estado, estado_pago, metodo_pago, total, created_at, direccion_entrega, telefono_contacto, zonas_envio(nombre, tipo), envios(estado, transportista, numero_guia), pagos(estado)'
+  'id, codigo, usuario_id, estado, estado_pago, metodo_pago, total, created_at, direccion_entrega, telefono_contacto, recoge_nombre, recoge_ci, zonas_envio(nombre, tipo), envios(estado, transportista, numero_guia), pagos(estado)'
 
 export const COLUMNAS_PEDIDO_DETALLE =
-  'id, codigo, usuario_id, estado, estado_pago, metodo_pago, subtotal, costo_envio, total, created_at, direccion_entrega, telefono_contacto, notas, zonas_envio(nombre, tipo), pedido_items(id, producto_id, nombre_producto, precio_unitario, cantidad, subtotal), pagos(id, metodo, monto, estado, motivo_rechazo, comprobante_path, revisado_en), envios(id, estado, transportista, numero_guia, despachado_en, entregado_en), seguimiento_pedido(id, estado, nota, created_at)'
+  'id, codigo, usuario_id, estado, estado_pago, metodo_pago, subtotal, costo_envio, total, created_at, direccion_entrega, telefono_contacto, recoge_nombre, recoge_ci, notas, zonas_envio(nombre, tipo), pedido_items(id, producto_id, nombre_producto, precio_unitario, cantidad, subtotal), pagos(id, metodo, monto, estado, motivo_rechazo, comprobante_path, revisado_en), envios(id, estado, transportista, numero_guia, despachado_en, entregado_en), seguimiento_pedido(id, estado, nota, created_at)'
+
+// Compatibilidad mientras no se corra la migración 0007: sin las columnas de quién recoge.
+// 42703 = columna inexistente en Postgres.
+export const sinColumnasRecoge = (columnas: string) => columnas.replace(', recoge_nombre, recoge_ci', '')
+export const faltaColumna = (error: { code?: string } | null) => error?.code === '42703'
 
 // Los pedidos apuntan a auth.users, así que los nombres se buscan aparte en perfiles
 export async function buscarClientes(supabase: ClienteSupabase, ids: Array<string | null | undefined>) {

@@ -1,9 +1,9 @@
-// Tipos escritos a mano según la migración 0003.
+// Tipos escritos a mano según las migraciones 0003, 0006 y 0007.
 
-export const ESTADOS_PEDIDO = ['pendiente', 'confirmado', 'preparando', 'despachado', 'entregado', 'cancelado'] as const
+export const ESTADOS_PEDIDO = ['pendiente', 'confirmado', 'preparando', 'listo_para_recoger', 'despachado', 'entregado', 'cancelado'] as const
 export type EstadoPedido = (typeof ESTADOS_PEDIDO)[number]
 
-export const ESTADOS_PAGO = ['pendiente', 'en_revision', 'verificado', 'rechazado'] as const
+export const ESTADOS_PAGO = ['pendiente', 'en_revision', 'verificado', 'rechazado', 'reembolso_pendiente', 'reembolsado'] as const
 export type EstadoPago = (typeof ESTADOS_PAGO)[number]
 
 export const METODOS_PAGO = ['qr', 'transferencia', 'contra_entrega'] as const
@@ -12,7 +12,7 @@ export type MetodoPago = (typeof METODOS_PAGO)[number]
 export const TIPOS_ZONA = ['recojo', 'urbano', 'provincia'] as const
 export type TipoZona = (typeof TIPOS_ZONA)[number]
 
-export type EstadoEnvio = 'por_despachar' | 'en_camino' | 'entregado'
+export type EstadoEnvio = 'por_despachar' | 'listo_para_recoger' | 'en_camino' | 'entregado'
 export type TipoMovimiento = 'entrada' | 'salida' | 'ajuste' | 'devolucion'
 
 export interface Categoria {
@@ -101,6 +101,9 @@ export interface PedidoResumen {
   created_at: string
   direccion_entrega: string | null
   telefono_contacto: string | null
+  // Zonas por flota: quién recoge la encomienda
+  recoge_nombre: string | null
+  recoge_ci: string | null
   zonas_envio: { nombre: string; tipo: TipoZona } | null
   envios: { estado: EstadoEnvio; transportista: string | null; numero_guia: string | null } | null
   pagos: { estado: EstadoPago } | null
@@ -170,6 +173,8 @@ export interface Dashboard {
   stock_bajo: Array<{ id: string; nombre: string; stock: number; stock_minimo: number; icono: string | null }>
   total_stock_bajo: number
   pagos_en_revision: number
+  // Desde la 0006; puede faltar si la migración todavía no se corrió
+  reembolsos_pendientes?: { pagos: number; total: number }
   cobrado: number
   por_cobrar: number
   valor_inventario: number

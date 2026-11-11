@@ -5,10 +5,12 @@ import { clasePagina } from '@/components/ui/estilos'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import type { EstadoPedido, PedidoResumen } from '@/types/comercio'
 import ListaPedidosAdmin from '../_components/ListaPedidosAdmin'
+import { LuTruck } from 'react-icons/lu'
 
 const GRUPOS: Array<{ estado: EstadoPedido; titulo: string; vacio: string }> = [
   { estado: 'confirmado', titulo: 'Por preparar', vacio: 'No hay pedidos por preparar' },
-  { estado: 'preparando', titulo: 'Por despachar', vacio: 'No hay pedidos por despachar' },
+  { estado: 'preparando', titulo: 'En preparación', vacio: 'No hay pedidos en preparación' },
+  { estado: 'listo_para_recoger', titulo: 'Para recoger en tienda', vacio: 'No hay pedidos esperando en tienda' },
   { estado: 'despachado', titulo: 'En camino', vacio: 'No hay pedidos en camino' },
 ]
 
@@ -21,7 +23,7 @@ export default function AdminEnviosPage() {
   return (
     <div className={clasePagina}>
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold text-[#f0fdf4] mb-6">Envíos</h1>
+        <h1 className="text-3xl font-bold text-texto mb-6">Envíos</h1>
 
         <div className="flex flex-wrap gap-2 mb-6">
           {GRUPOS.map((g) => (
@@ -30,7 +32,7 @@ export default function AdminEnviosPage() {
               onClick={() => setActivo(g.estado)}
               aria-pressed={g.estado === activo}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                g.estado === activo ? 'bg-[#22c55e] text-[#0a0f0a]' : 'bg-[#111811] border border-[#1a2e1a] text-[#86efac] hover:border-[#22c55e]'
+                g.estado === activo ? 'bg-acento text-white' : 'bg-tarjeta border border-borde text-texto-2 hover:border-acento'
               }`}
             >
               {g.titulo} ({delGrupo(g.estado).length})
@@ -43,7 +45,7 @@ export default function AdminEnviosPage() {
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
         ) : delGrupo(activo).length === 0 ? (
-          <BloqueVacio icono="🚚" mensaje={grupo.vacio} />
+          <BloqueVacio icono={LuTruck} mensaje={grupo.vacio} />
         ) : (
           <ListaPedidosAdmin pedidos={delGrupo(activo)} onActualizado={() => void recargar()} />
         )}

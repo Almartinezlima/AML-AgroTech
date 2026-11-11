@@ -1,0 +1,28 @@
+/* Swagger UI con contraste AA (auditoría 9 nov 2026): los colores por defecto
+   de los métodos y de las etiquetas chicas no llegan a 4,5:1. */
+.swagger-ui { color: #17251b; font-size: 15px; }
+.swagger-ui .info .title,
+.swagger-ui .opblock-tag { color: #17251b; }
+.swagger-ui .info .title small,
+.swagger-ui .info .title small.version-stamp { background: #374151; }
+.swagger-ui .info .title small pre { color: #ffffff; }
+.swagger-ui .info a,
+.swagger-ui .info .link { color: #15753a; }
+.swagger-ui .opblock .opblock-summary-method { color: #ffffff; text-shadow: none; }
+.swagger-ui .opblock.opblock-get .opblock-summary-method { background: #1d4ed8; }
+.swagger-ui .opblock.opblock-post .opblock-summary-method { background: #15753a; }
+.swagger-ui .opblock.opblock-put .opblock-summary-method,
+.swagger-ui .opblock.opblock-patch .opblock-summary-method { background: #92400e; }
+.swagger-ui .opblock.opblock-delete .opblock-summary-method { background: #b91c1c; }
+.swagger-ui .opblock .opblock-summary-path,
+.swagger-ui .opblock .opblock-summary-description { color: #17251b; }
+.swagger-ui .btn.authorize { color: #15753a; border-color: #15753a; }
+.swagger-ui .btn.authorize svg { fill: #15753a; }
+.swagger-ui .scheme-container { box-shadow: none; border-bottom: 1px solid #dfe5d8; }
+.swagger-ui .parameter__name,
+.swagger-ui .parameter__type,
+.swagger-ui .response-col_status,
+.swagger-ui table thead tr th,
+.swagger-ui .tab li { color: #17251b; }
+.swagger-ui .renderedMarkdown p,
+.swagger-ui .model-title { color: #374151; }

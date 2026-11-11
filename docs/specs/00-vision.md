@@ -24,12 +24,14 @@ Dentro: los 5 pilares completos para Visitante, Cliente y Administrador; API RES
 
 Fuera: pasarela de pago real (el QR es de demostración), portal del distribuidor, facturación electrónica (SIAT), app móvil nativa.
 
-## Zonas de envío iniciales
+## Zonas de envío (tienda en Villa Charcas)
 
-| Zona | Tipo | Cómo llega |
-|---|---|---|
-| Recojo en tienda (Sucre) | recojo | El cliente recoge |
-| Sucre urbano | urbano | Entrega propia |
-| Villa Charcas | provincia | Flota / encomienda |
-| Culpina | provincia | Flota / encomienda |
-| Incahuasi | provincia | Flota / encomienda |
+Estado real de la base (migración `0005`, 10 nov 2026):
+
+| Zona | Tipo | Costo | Cómo llega | Contra entrega |
+|---|---|---|---|---|
+| Recojo en tienda (Villa Charcas) | recojo | Bs. 0 | El cliente recoge cuando el pedido está "Listo para recoger" | Sí |
+| Villa Charcas (entrega en el pueblo) | urbano ("En el pueblo") | Bs. 10 | Entrega propia a la dirección | Sí |
+| Culpina | provincia ("Por flota") | Bs. 10 | Flota, con guía; recoge la persona indicada (nombre y CI) | No |
+| Incahuasi | provincia ("Por flota") | Bs. 10 | Flota, con guía; recoge la persona indicada (nombre y CI) | No |
+| Sucre (recojo en la terminal de buses) | provincia ("Por flota") | Bs. 15 | Flota hasta la terminal; recoge la persona indicada | No |

@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { LuLock } from 'react-icons/lu'
 import { useAuth } from '@/context/AuthContext'
 
 // Franja visible en todo el sitio cuando la cuenta está desactivada
@@ -11,8 +12,8 @@ export default function AvisoCuentaDesactivada() {
   if (perfil?.activo !== false || ruta === '/cuenta-desactivada') return null
 
   return (
-    <div role="alert" className="bg-red-900 border-b border-red-700 px-4 py-3 text-center text-sm text-red-200">
-      ⚠️ Tu cuenta está desactivada.{' '}
+    <div role="alert" className="flex items-center justify-center gap-2 bg-red-50 border-b border-red-300 px-4 py-3 text-center text-sm text-red-800">
+      <LuLock className="h-4 w-4 shrink-0" aria-hidden="true" /> Tu cuenta está desactivada.{' '}
       <Link href="/cuenta-desactivada" className="font-semibold underline">Ver más</Link>
     </div>
   )

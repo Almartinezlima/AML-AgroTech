@@ -1,12 +1,13 @@
-// Clases repetidas del tema, para que todas las pantallas se vean iguales
+// Clases repetidas del tema (docs/DISENO.md), para que todas las pantallas se vean iguales
 export const claseInput =
-  'w-full min-w-0 bg-[#162016] border border-[#1a2e1a] focus:border-[#22c55e] text-[#f0fdf4] placeholder-[#86efac] rounded-xl px-4 py-3 outline-none transition-colors'
-export const claseEtiqueta = 'text-[#86efac] text-sm font-medium mb-2 block'
-export const claseTarjeta = 'bg-[#111811] border border-[#1a2e1a] rounded-xl'
+  'w-full min-w-0 bg-tarjeta-hover border border-borde hover:border-[#b9c7b2] focus:border-acento focus-visible:outline-none focus:ring-2 focus:ring-acento/25 text-texto rounded-xl px-4 py-3 outline-none transition-colors'
+export const claseEtiqueta = 'text-texto-2 text-sm font-medium mb-2 block'
+export const claseTarjeta = 'bg-tarjeta border border-borde rounded-2xl'
 export const claseBotonPrimario =
-  'bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-60 text-[#0a0f0a] font-bold px-5 py-3 rounded-xl transition-colors text-center'
+  'inline-flex items-center justify-center gap-2 min-h-11 bg-acento hover:bg-acento-hover active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100 text-white font-bold px-5 py-3 rounded-xl transition text-center'
 export const claseBotonSecundario =
-  'border border-[#1a2e1a] hover:border-[#22c55e] disabled:opacity-60 text-[#f0fdf4] font-semibold px-5 py-3 rounded-xl transition-colors text-center'
+  'inline-flex items-center justify-center gap-2 min-h-11 border border-borde hover:border-acento hover:bg-tarjeta-hover disabled:opacity-60 text-texto font-semibold px-5 py-3 rounded-xl transition text-center'
 export const claseBotonPeligro =
-  'border border-red-700 text-red-400 hover:bg-red-950 disabled:opacity-60 font-semibold px-5 py-3 rounded-xl transition-colors text-center'
-export const clasePagina = 'min-h-screen bg-[#0a0f0a] py-8 px-4'
+  'inline-flex items-center justify-center gap-2 min-h-11 border border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-60 font-semibold px-5 py-3 rounded-xl transition-colors text-center'
+export const clasePagina = 'min-h-screen bg-fondo py-8 sm:py-10 px-4'
+export const claseTituloPagina = 'font-titulo text-3xl sm:text-4xl font-bold tracking-tight text-texto'

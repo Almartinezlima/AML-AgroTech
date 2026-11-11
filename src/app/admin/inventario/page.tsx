@@ -10,6 +10,7 @@ import { useDatosApi } from '@/lib/api/useDatosApi'
 import { INFO_NIVEL, nivelStock, type NivelStock } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import type { Producto } from '@/types/comercio'
+import { LuWarehouse } from 'react-icons/lu'
 
 type Filtro = NivelStock | 'todos'
 const FILTROS: Array<{ valor: Filtro; texto: string }> = [
@@ -69,13 +70,13 @@ export default function AdminInventarioPage() {
   return (
     <div className={clasePagina}>
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold text-[#f0fdf4]">Inventario</h1>
-        <p className="text-[#86efac] mt-1 mb-6">{activos.length} productos · Valor: {formatoBs(valor)}</p>
+        <h1 className="text-3xl font-bold text-texto">Inventario</h1>
+        <p className="text-texto-2 mt-1 mb-6">{activos.length} productos · Valor: {formatoBs(valor)}</p>
 
         <div className="flex flex-wrap gap-2 mb-6">
           {FILTROS.map((f) => (
             <button key={f.valor} onClick={() => setFiltro(f.valor)} aria-pressed={filtro === f.valor}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filtro === f.valor ? 'bg-[#22c55e] text-[#0a0f0a]' : 'bg-[#111811] border border-[#1a2e1a] text-[#86efac] hover:border-[#22c55e]'}`}>
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filtro === f.valor ? 'bg-acento text-white' : 'bg-tarjeta border border-borde text-texto-2 hover:border-acento'}`}>
               {f.texto}
             </button>
           ))}
@@ -86,20 +87,20 @@ export default function AdminInventarioPage() {
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
         ) : visibles.length === 0 ? (
-          <BloqueVacio icono="🏬" mensaje="No hay productos en este nivel" />
+          <BloqueVacio icono={LuWarehouse} mensaje="No hay productos en este nivel" />
         ) : (
           <ul className="flex flex-col gap-3">
             {visibles.map((p) => (
               <li key={p.id} className={`${claseTarjeta} p-4`}>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="min-w-0">
-                    <p className="text-[#f0fdf4] font-semibold text-sm break-words">{p.icono} {p.nombre}</p>
-                    <p className="text-[#86efac] text-xs">{p.sku ?? 'Sin SKU'} · {p.categorias?.nombre}</p>
+                    <p className="text-texto font-semibold text-sm break-words">{p.icono} {p.nombre}</p>
+                    <p className="text-texto-2 text-xs">{p.sku ?? 'Sin SKU'} · {p.categorias?.nombre}</p>
                   </div>
                   <Insignia info={INFO_NIVEL[nivelStock(p.stock, p.stock_minimo)]} />
                 </div>
                 <div className="flex items-center justify-between gap-3 flex-wrap mt-3">
-                  <p className="text-[#f0fdf4] text-sm"><span className="font-bold text-lg">{p.stock}</span> <span className="text-[#86efac]">{p.unidad} · mín. {p.stock_minimo}</span></p>
+                  <p className="text-texto text-sm"><span className="font-bold text-lg">{p.stock}</span> <span className="text-texto-2">{p.unidad} · mín. {p.stock_minimo}</span></p>
                   <div className="flex gap-2">
                     <Link href={`/admin/inventario/${p.id}`} className={`${claseBotonSecundario} !px-3 !py-2 text-sm`}>Kardex</Link>
                     <button onClick={() => abrir(p)} className={`${claseBotonPrimario} !px-3 !py-2 text-sm`}>Movimiento</button>
@@ -115,7 +116,7 @@ export default function AdminInventarioPage() {
         <Modal titulo={`Movimiento: ${producto.nombre}`} bloqueado={guardando} onCerrar={cerrar}>
           <form onSubmit={guardar} className="flex flex-col gap-4">
             <AvisoError mensaje={errorForm} />
-            <p className="text-[#86efac] text-sm">Stock actual: {producto.stock} {producto.unidad}</p>
+            <p className="text-texto-2 text-sm">Stock actual: {producto.stock} {producto.unidad}</p>
             <div>
               <label htmlFor="m-tipo" className={claseEtiqueta}>Tipo</label>
               <select id="m-tipo" value={tipo} onChange={(e) => setTipo(e.target.value as 'entrada' | 'ajuste')} className={claseInput}>

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { ESTADOS_PEDIDO, METODOS_PAGO, TIPOS_ZONA } from '@/types/comercio'
+import { REGEX_CI } from './reglas'
 
 const textoOpcional = (maximo: number) =>
   z.string({ error: 'El texto no es válido.' }).trim().max(maximo, { error: `Máximo ${maximo} caracteres.` }).nullable().optional()
@@ -27,6 +28,9 @@ export const esquemaCrearPedido = z.strictObject(
     telefono: z.string({ error: 'El teléfono es obligatorio.' }).trim().regex(/^[0-9+() -]{7,20}$/, { error: 'El teléfono no es válido.' }),
     metodo_pago: z.enum(METODOS_PAGO, { error: 'El método de pago no es válido.' }),
     notas: textoOpcional(500),
+    // Zonas por flota: quién recoge la encomienda (la base exige ambos para esas zonas)
+    recoge_nombre: z.string({ error: 'El nombre de quien recoge no es válido.' }).trim().min(3, { error: 'Escribe el nombre de quien recoge.' }).max(100, { error: 'Máximo 100 caracteres.' }).nullable().optional(),
+    recoge_ci: z.string({ error: 'El CI no es válido.' }).trim().regex(REGEX_CI, { error: 'El CI no es válido (ej.: 1234567 o 1234567-1B).' }).nullable().optional(),
   },
   { error: 'Los datos enviados no son válidos.' }
 )
@@ -42,6 +46,8 @@ export const esquemaEstadoPedido = z.strictObject(
   },
   { error: 'Los datos enviados no son válidos.' }
 )
+
+export const esquemaReembolso = z.strictObject({ nota: textoOpcional(300) }, { error: 'Los datos enviados no son válidos.' })
 
 export const esquemaVerificarPago = z.strictObject(
   { aprobado: z.boolean({ error: 'Indica si se aprueba o se rechaza.' }), motivo: textoOpcional(300) },
@@ -67,7 +73,14 @@ const camposProducto = {
   unidad: z.string({ error: 'La unidad es obligatoria.' }).trim().min(1, { error: 'La unidad es obligatoria.' }).max(30, { error: 'Máximo 30 caracteres.' }),
   categoria_id: z.uuid({ error: 'Elige una categoría.' }),
   icono: z.string({ error: 'El icono no es válido.' }).trim().max(8, { error: 'El icono no es válido.' }).optional(),
-  imagen_url: z.url({ error: 'La imagen no es válida.' }).nullable().optional(),
+  // URL https (Storage de Supabase) o foto incluida en la app: /productos/<sku>.webp
+  imagen_url: z
+    .union([
+      z.url({ protocol: /^https$/, error: 'La imagen no es válida.' }),
+      z.string().regex(/^\/productos\/[A-Za-z0-9_-]+\.webp$/, { error: 'La imagen no es válida.' }),
+    ], { error: 'La imagen no es válida.' })
+    .nullable()
+    .optional(),
 }
 
 // El stock no está aquí a propósito: solo cambia con movimientos de inventario

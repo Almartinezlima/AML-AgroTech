@@ -1,15 +1,21 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
-import { BloqueCarga, BloqueError } from '@/components/ui/Estados'
+import { BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import { productoParaCarrito, useCarrito } from '@/context/CarritoContext'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import type { Categoria, Producto } from '@/types/comercio'
 import TarjetaProducto from './_components/TarjetaProducto'
+import { LuSearch, LuSearchX } from 'react-icons/lu'
+import { estiloCategoria } from '@/lib/categorias'
+import { coincideBusqueda } from '@/lib/ecommerce/busqueda'
+import { claseBotonSecundario, clasePagina, claseTituloPagina } from '@/components/ui/estilos'
 
 const claseFiltro = (activo: boolean) =>
-  `px-4 py-2 rounded-full text-sm font-medium transition-all ${
-    activo ? 'bg-[#22c55e] text-[#0a0f0a]' : 'bg-[#111811] border border-[#1a2e1a] text-[#86efac] hover:border-[#22c55e]'
+  `inline-flex items-center gap-2 min-h-11 px-4 py-2 rounded-full text-sm font-semibold transition ${
+    activo ? 'bg-acento text-white shadow-sm' : 'bg-tarjeta border border-borde text-texto hover:border-acento'
   }`
+
+const ORDENES = ['nombre', 'precio-asc', 'precio-desc']
 
 export default function CatalogoPage() {
   const productos = useDatosApi<Producto[]>('/api/productos')
@@ -20,17 +26,33 @@ export default function CatalogoPage() {
   const [agregados, setAgregados] = useState<string[]>([])
   const { agregarItem } = useCarrito()
 
-  // Los enlaces de categorías de la portada llegan como ?categoria=
+  // Filtro, orden y búsqueda viven en la URL: sobreviven a recargar y se pueden compartir
+  const [urlLeida, setUrlLeida] = useState(false)
   useEffect(() => {
-    const categoria = new URLSearchParams(window.location.search).get('categoria')
+    const parametros = new URLSearchParams(window.location.search)
+    const categoria = parametros.get('categoria')
+    const termino = parametros.get('q')
+    const orden = parametros.get('orden')
     if (categoria) setCategoriaActiva(categoria)
+    if (termino) setBusqueda(termino.slice(0, 80))
+    if (orden && ORDENES.includes(orden)) setOrdenar(orden)
+    setUrlLeida(true)
   }, [])
 
+  useEffect(() => {
+    if (!urlLeida) return
+    const parametros = new URLSearchParams()
+    if (busqueda.trim()) parametros.set('q', busqueda.trim())
+    if (categoriaActiva !== 'Todos') parametros.set('categoria', categoriaActiva)
+    if (ordenar !== 'nombre') parametros.set('orden', ordenar)
+    const consulta = parametros.toString()
+    window.history.replaceState(window.history.state, '', `/catalogo${consulta ? `?${consulta}` : ''}`)
+  }, [urlLeida, busqueda, categoriaActiva, ordenar])
+
   const filtrados = useMemo(() => {
-    const termino = busqueda.toLowerCase()
     return (productos.datos ?? [])
       .filter(p => categoriaActiva === 'Todos' || p.categorias?.nombre === categoriaActiva)
-      .filter(p => p.nombre.toLowerCase().includes(termino))
+      .filter(p => coincideBusqueda(p, busqueda))
       .sort((a, b) => {
         if (ordenar === 'precio-asc') return a.precio - b.precio
         if (ordenar === 'precio-desc') return b.precio - a.precio
@@ -45,27 +67,36 @@ export default function CatalogoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0f0a] py-8 px-4">
+    <div className={clasePagina}>
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#f0fdf4] mb-2">Catálogo de Productos</h1>
-          <p className="text-[#86efac]">{filtrados.length} productos disponibles</p>
+          <h1 className={claseTituloPagina}>Catálogo de productos</h1>
+          <p className="text-texto-2 mt-2" aria-live="polite">
+            {productos.cargando
+              ? 'Cargando productos…'
+              : productos.error
+                ? 'No pudimos cargar los productos en este momento.'
+                : `${filtrados.length} producto${filtrados.length === 1 ? '' : 's'} con precios en bolivianos`}
+          </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <input
-            type="text"
-            placeholder="Buscar producto..."
-            aria-label="Buscar producto"
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className="flex-1 min-w-0 bg-[#111811] border border-[#1a2e1a] text-[#f0fdf4] placeholder-[#86efac] rounded-xl px-4 py-3 focus:outline-none focus:border-[#22c55e] transition-colors"
-          />
+          <div className="relative flex-1 min-w-0">
+            <LuSearch className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-texto-2" aria-hidden="true" />
+            <input
+              type="search"
+              placeholder="Buscar: urea, papa, aspersor…"
+              aria-label="Buscar producto"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-full min-h-12 bg-tarjeta border border-borde text-texto rounded-xl pl-12 pr-4 py-3 outline-none focus:border-acento focus:ring-2 focus:ring-acento/25 transition-colors"
+            />
+          </div>
           <select
             value={ordenar}
             aria-label="Ordenar productos"
             onChange={(e) => setOrdenar(e.target.value)}
-            className="bg-[#111811] border border-[#1a2e1a] text-[#86efac] rounded-xl px-4 py-3 focus:outline-none focus:border-[#22c55e] transition-colors"
+            className="min-h-12 bg-tarjeta border border-borde text-texto rounded-xl px-4 py-3 outline-none focus:border-acento transition-colors"
           >
             <option value="nombre">Ordenar: A-Z</option>
             <option value="precio-asc">Precio: menor a mayor</option>
@@ -74,30 +105,30 @@ export default function CatalogoPage() {
         </div>
 
         <div className="flex flex-wrap gap-3 mb-8">
-          <button onClick={() => setCategoriaActiva('Todos')} className={claseFiltro(categoriaActiva === 'Todos')}>Todos</button>
+          <button onClick={() => setCategoriaActiva('Todos')} className={claseFiltro(categoriaActiva === 'Todos')} aria-pressed={categoriaActiva === 'Todos'}>Todos</button>
           {(categorias.datos ?? []).map((cat) => (
-            <button key={cat.id} onClick={() => setCategoriaActiva(cat.nombre)} className={claseFiltro(categoriaActiva === cat.nombre)}>
-              {cat.icono} {cat.nombre}
+            <button key={cat.id} onClick={() => setCategoriaActiva(cat.nombre)} className={claseFiltro(categoriaActiva === cat.nombre)} aria-pressed={categoriaActiva === cat.nombre}>
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: estiloCategoria(cat.nombre).color }} aria-hidden="true" /> {cat.nombre}
             </button>
           ))}
         </div>
 
         {productos.cargando ? (
-          <BloqueCarga filas={6} alto="h-40" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" role="status" aria-label="Cargando">
+            {Array.from({ length: 8 }, (_, i) => <div key={i} className="esqueleto h-[30rem] rounded-2xl border border-borde" />)}
+          </div>
         ) : productos.error ? (
           <BloqueError mensaje={productos.error} onReintentar={() => void productos.recargar()} />
         ) : filtrados.length === 0 ? (
-          <div className="text-center py-20">
-            <span className="text-6xl">🔍</span>
-            <p className="text-[#86efac] mt-4 text-lg">No se encontraron productos</p>
-            <button onClick={() => { setBusqueda(''); setCategoriaActiva('Todos') }} className="mt-4 text-[#22c55e] hover:underline">
+          <BloqueVacio icono={LuSearchX} mensaje="No encontramos productos con esa búsqueda">
+            <button onClick={() => { setBusqueda(''); setCategoriaActiva('Todos') }} className={claseBotonSecundario}>
               Limpiar filtros
             </button>
-          </div>
+          </BloqueVacio>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filtrados.map((producto) => (
-              <TarjetaProducto key={producto.id} producto={producto} agregado={agregados.includes(producto.id)} onAgregar={handleAgregar} />
+            {filtrados.map((producto, i) => (
+              <TarjetaProducto key={producto.id} producto={producto} agregado={agregados.includes(producto.id)} onAgregar={handleAgregar} prioridad={i < 4} />
             ))}
           </div>
         )}

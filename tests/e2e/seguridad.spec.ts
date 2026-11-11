@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { PRODUCTO_A, agregarAlCarrito, cerrarSesion, exigirRegistroDirecto, iniciarSesion, registrarCliente } from './utilidades'
 
 test.describe('Seguridad', () => {
-  for (const ruta of ['/admin', '/pedidos', '/carrito']) {
+  for (const ruta of ['/admin', '/pedidos', '/checkout']) {
     test(`sin sesión, ${ruta} manda al login y recuerda a dónde iba`, async ({ page }) => {
       await page.goto(ruta)
       await expect(page).toHaveURL(new RegExp(`/auth/login\\?siguiente=${encodeURIComponent(ruta)}`))

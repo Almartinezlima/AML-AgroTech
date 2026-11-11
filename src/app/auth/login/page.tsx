@@ -2,12 +2,17 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import { Aviso } from '@/components/ui/Estados'
+import { claseBotonPrimario, claseEtiqueta, claseInput } from '@/components/ui/estilos'
+import MarcoAcceso from '../_components/MarcoAcceso'
 import { mensajeErrorAuth } from '@/lib/auth/mensajes'
 import { rutaInterna } from '@/lib/auth/redireccion'
+import { useConsultaSiguiente } from '@/lib/auth/useSiguiente'
 
 type Aviso = { tipo: 'error' | 'ok'; texto: string }
 
 export default function LoginPage() {
+  const consulta = useConsultaSiguiente()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [cargando, setCargando] = useState(false)
@@ -60,90 +65,43 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0f0a] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <span className="text-4xl">🌱</span>
-            <span className="text-2xl font-bold text-[#f0fdf4]">AML <span className="text-[#22c55e]">AgroTech</span></span>
-          </Link>
-          <h1 className="text-2xl font-bold text-[#f0fdf4]">Bienvenido de vuelta</h1>
-          <p className="text-[#86efac] mt-1">Ingresa a tu cuenta para continuar</p>
-        </div>
-
-        <div className="bg-[#111811] border border-[#1a2e1a] rounded-2xl p-8">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-
-            {aviso && (
-              <div role={aviso.tipo === 'error' ? 'alert' : 'status'}
-                className={`rounded-xl px-4 py-3 text-sm border ${aviso.tipo === 'error'
-                  ? 'bg-red-900 border-red-700 text-red-300'
-                  : 'bg-[#162016] border-[#22c55e] text-[#86efac]'}`}>
-                {aviso.tipo === 'error' ? '⚠️' : '📧'} {aviso.texto}
-                {sinConfirmar && (
-                  <button type="button" onClick={reenviar} disabled={reenviando}
-                    className="block mt-2 font-semibold underline disabled:opacity-60">
-                    {reenviando ? 'Reenviando...' : 'Reenviar correo'}
-                  </button>
-                )}
-              </div>
+    <MarcoAcceso
+      titulo="Bienvenido de vuelta"
+      subtitulo="Ingresa a tu cuenta para continuar"
+      pie={<>¿No tienes cuenta?{' '}<Link href={`/auth/registro${consulta}`} className="text-acento font-semibold hover:underline">Regístrate gratis</Link></>}
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        {aviso && (
+          <Aviso tipo={aviso.tipo}>
+            {aviso.texto}
+            {sinConfirmar && (
+              <button type="button" onClick={reenviar} disabled={reenviando}
+                className="block mt-2 font-semibold underline disabled:opacity-60">
+                {reenviando ? 'Reenviando…' : 'Reenviar correo'}
+              </button>
             )}
+          </Aviso>
+        )}
 
-            <div>
-              <label htmlFor="email" className="text-[#86efac] text-sm font-medium mb-2 block">Correo electrónico</label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@correo.com"
-                required
-                className="w-full bg-[#162016] border border-[#1a2e1a] focus:border-[#22c55e] text-[#f0fdf4] placeholder-[#86efac] rounded-xl px-4 py-3 outline-none transition-colors"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="text-[#86efac] text-sm font-medium mb-2 block">Contraseña</label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="w-full bg-[#162016] border border-[#1a2e1a] focus:border-[#22c55e] text-[#f0fdf4] placeholder-[#86efac] rounded-xl px-4 py-3 outline-none transition-colors"
-              />
-              <Link href="/auth/recuperar" className="inline-block mt-2 text-[#22c55e] text-sm hover:underline">
-                ¿Olvidaste tu contraseña?
-              </Link>
-            </div>
-
-            <button
-              type="submit"
-              disabled={cargando}
-              className="w-full bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-60 text-[#0a0f0a] font-bold py-3 rounded-xl transition-colors text-lg"
-            >
-              {cargando ? 'Ingresando...' : 'Ingresar'}
-            </button>
-
-          </form>
-
-          <div className="mt-6 pt-6 border-t border-[#1a2e1a] text-center">
-            <p className="text-[#86efac] text-sm">
-              ¿No tienes cuenta?{' '}
-              <Link href="/auth/registro" className="text-[#22c55e] font-semibold hover:underline">
-                Regístrate gratis
-              </Link>
-            </p>
-          </div>
+        <div>
+          <label htmlFor="email" className={claseEtiqueta}>Correo electrónico</label>
+          <input id="email" type="email" autoComplete="email" spellCheck={false} value={email}
+            onChange={(e) => setEmail(e.target.value)} placeholder="tu@correo.com" required className={claseInput} />
         </div>
 
-        <p className="text-center text-[#86efac] text-xs mt-6">
-          © 2026 AML AgroTech — Sucre, Bolivia 🌿
-        </p>
-      </div>
-    </div>
+        <div>
+          <label htmlFor="password" className={claseEtiqueta}>Contraseña</label>
+          <input id="password" type="password" autoComplete="current-password" value={password}
+            onChange={(e) => setPassword(e.target.value)} required className={claseInput} />
+          <Link href="/auth/recuperar" className="inline-block mt-2 text-acento text-sm hover:underline">
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
+
+        <button type="submit" disabled={cargando} className={`${claseBotonPrimario} w-full text-lg`}>
+          {cargando ? 'Ingresando…' : 'Ingresar'}
+        </button>
+      </form>
+    </MarcoAcceso>
   )
 }

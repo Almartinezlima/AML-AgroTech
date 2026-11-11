@@ -21,7 +21,7 @@ test.describe('Inventario', () => {
     await mas.click()
     // Codo PVC a Bs. 11,00 × 3
     await expect(page.getByText('Bs. 33,00').first()).toBeVisible()
-    const pedido = await finalizarCompra(page, { zona: 'Sucre urbano', metodo: 'Contra entrega' })
+    const pedido = await finalizarCompra(page, { zona: 'entrega en el pueblo', metodo: 'Contra entrega' })
     expect(await stockDe(page, productoId)).toBe(inicial - 3)
 
     // El cliente cancela: el stock vuelve

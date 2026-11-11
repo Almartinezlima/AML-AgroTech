@@ -10,6 +10,7 @@ export const INFO_ESTADO_PEDIDO: Record<EstadoPedido, { etiqueta: string; color:
   pendiente: { etiqueta: 'Pendiente', color: AMBAR },
   confirmado: { etiqueta: 'Confirmado', color: VERDE },
   preparando: { etiqueta: 'Preparando', color: AZUL },
+  listo_para_recoger: { etiqueta: 'Listo para recoger', color: AZUL },
   despachado: { etiqueta: 'Despachado', color: AZUL },
   entregado: { etiqueta: 'Entregado', color: VERDE },
   cancelado: { etiqueta: 'Cancelado', color: ROJO },
@@ -20,10 +21,13 @@ export const INFO_ESTADO_PAGO: Record<EstadoPago, { etiqueta: string; color: str
   en_revision: { etiqueta: 'En revisión', color: AZUL },
   verificado: { etiqueta: 'Pago verificado', color: VERDE },
   rechazado: { etiqueta: 'Pago rechazado', color: ROJO },
+  reembolso_pendiente: { etiqueta: 'Reembolso pendiente', color: AMBAR },
+  reembolsado: { etiqueta: 'Reembolsado', color: VERDE },
 }
 
 export const INFO_ESTADO_ENVIO: Record<EstadoEnvio, { etiqueta: string; color: string }> = {
   por_despachar: { etiqueta: 'Por despachar', color: AMBAR },
+  listo_para_recoger: { etiqueta: 'Listo para recoger', color: AZUL },
   en_camino: { etiqueta: 'En camino', color: AZUL },
   entregado: { etiqueta: 'Entregado', color: VERDE },
 }
@@ -41,10 +45,11 @@ export const ETIQUETA_METODO: Record<MetodoPago, string> = {
   contra_entrega: 'Contra entrega',
 }
 
+// En palabras simples para el cliente (los valores de la base siguen siendo recojo/urbano/provincia)
 export const ETIQUETA_TIPO_ZONA: Record<TipoZona, string> = {
   recojo: 'Recojo',
-  urbano: 'Urbano',
-  provincia: 'Provincia',
+  urbano: 'En el pueblo',
+  provincia: 'Por flota',
 }
 
 const SIGUIENTE: Partial<Record<EstadoPedido, EstadoPedido>> = {
@@ -54,7 +59,20 @@ const SIGUIENTE: Partial<Record<EstadoPedido, EstadoPedido>> = {
   despachado: 'entregado',
 }
 
-export const siguienteEstado = (estado: EstadoPedido) => SIGUIENTE[estado] ?? null
+// Recojo en tienda no pasa por "despachado": se prepara y queda listo para recoger (migración 0007)
+const SIGUIENTE_RECOJO: Partial<Record<EstadoPedido, EstadoPedido>> = {
+  pendiente: 'confirmado',
+  confirmado: 'preparando',
+  preparando: 'listo_para_recoger',
+  listo_para_recoger: 'entregado',
+}
+
+export const siguienteEstado = (estado: EstadoPedido, tipoZona?: TipoZona | null) =>
+  (tipoZona === 'recojo' ? SIGUIENTE_RECOJO : SIGUIENTE)[estado] ?? null
+
+// Estados en que el pago ya llegó o está por revisarse: el cliente no puede cancelar solo (0006)
+export const puedeCancelarCliente = (estado: EstadoPedido, estadoPago: EstadoPago) =>
+  estado === 'pendiente' && estadoPago === 'pendiente'
 
 export function tiempoEntrega(zona: Pick<ZonaEnvio, 'dias_min' | 'dias_max'>) {
   if (zona.dias_max === 0) return 'Mismo día'
