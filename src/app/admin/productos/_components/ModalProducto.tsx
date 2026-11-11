@@ -87,7 +87,7 @@ export default function ModalProducto({ producto, categorias, onCerrar, onGuarda
           <label htmlFor="p-categoria" className={claseEtiqueta}>Categoría</label>
           <select id="p-categoria" required value={form.categoria_id} onChange={(e) => cambiar({ categoria_id: e.target.value })} className={claseInput}>
             <option value="">Selecciona una categoría</option>
-            {categorias.map((c) => <option key={c.id} value={c.id}>{c.icono} {c.nombre}</option>)}
+            {categorias.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
           </select>
         </div>
         <div><label htmlFor="p-nombre" className={claseEtiqueta}>Nombre</label><input id="p-nombre" required maxLength={150} value={form.nombre} onChange={(e) => cambiar({ nombre: e.target.value })} className={claseInput} /></div>
