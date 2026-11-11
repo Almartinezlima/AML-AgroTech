@@ -94,7 +94,7 @@ export default function AdminInventarioPage() {
               <li key={p.id} className={`${claseTarjeta} p-4`}>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="min-w-0">
-                    <p className="text-texto font-semibold text-sm break-words">{p.icono} {p.nombre}</p>
+                    <p className="text-texto font-semibold text-sm break-words">{p.nombre}</p>
                     <p className="text-texto-2 text-xs">{p.sku ?? 'Sin SKU'} · {p.categorias?.nombre}</p>
                   </div>
                   <Insignia info={INFO_NIVEL[nivelStock(p.stock, p.stock_minimo)]} />

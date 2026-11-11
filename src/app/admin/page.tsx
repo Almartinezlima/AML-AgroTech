@@ -85,7 +85,7 @@ export default function AdminPage() {
                   <ul className="flex flex-col gap-3">
                     {d.stock_bajo.map((p) => (
                       <li key={p.id} className="flex justify-between gap-3 text-sm">
-                        <Link href={`/admin/inventario/${p.id}`} className="text-texto hover:text-acento min-w-0 break-words">{p.icono} {p.nombre}</Link>
+                        <Link href={`/admin/inventario/${p.id}`} className="text-texto hover:text-acento min-w-0 break-words">{p.nombre}</Link>
                         <span className="text-amber-800 whitespace-nowrap">{p.stock} / mín. {p.stock_minimo}</span>
                       </li>
                     ))}
