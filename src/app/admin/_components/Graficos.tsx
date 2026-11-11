@@ -15,7 +15,8 @@ const ESTILO_TOOLTIP = {
 
 const diaMes = (fecha: string) => `${fecha.slice(8, 10)}/${fecha.slice(5, 7)}`
 
-// Cada gráfico lleva una tabla oculta para lectores de pantalla
+// Cada gráfico lleva una tabla oculta para lectores de pantalla.
+// Sin animación: recharts la repite en cada cambio de tamaño (girar el celular) y las barras desaparecen un momento
 export function GraficoVentas({ datos }: { datos: Dashboard['ventas_7_dias'] }) {
   if (datos.every((d) => Number(d.total) === 0)) {
     return <p className="text-texto-2 text-sm py-16 text-center">Sin ventas en estos días.</p>
@@ -32,7 +33,7 @@ export function GraficoVentas({ datos }: { datos: Dashboard['ventas_7_dias'] }) 
             <XAxis dataKey="dia" tick={EJE} axisLine={false} tickLine={false} />
             <YAxis tick={EJE} axisLine={false} tickLine={false} width={48} />
             <Tooltip {...ESTILO_TOOLTIP} formatter={(valor) => [formatoBs(Number(valor)), 'Ventas']} />
-            <Bar dataKey="total" fill={VERDE} radius={[4, 4, 0, 0]} maxBarSize={32} />
+            <Bar dataKey="total" fill={VERDE} radius={[4, 4, 0, 0]} maxBarSize={32} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -59,7 +60,7 @@ export function GraficoPedidosEstado({ datos }: { datos: Dashboard['pedidos_por_
             <XAxis type="number" allowDecimals={false} hide />
             <YAxis type="category" dataKey="estado" tick={EJE} axisLine={false} tickLine={false} width={84} />
             <Tooltip {...ESTILO_TOOLTIP} formatter={(valor) => [String(valor), 'Pedidos']} />
-            <Bar dataKey="total" fill={VERDE} radius={[0, 4, 4, 0]} maxBarSize={20} label={{ position: 'right', fill: '#17251b', fontSize: 14 }} />
+            <Bar dataKey="total" fill={VERDE} radius={[0, 4, 4, 0]} maxBarSize={20} isAnimationActive={false} label={{ position: 'right', fill: '#17251b', fontSize: 14 }} />
           </BarChart>
         </ResponsiveContainer>
       </div>
