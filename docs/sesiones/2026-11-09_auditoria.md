@@ -215,7 +215,7 @@ Con la cuenta admin de `.env.test.local`, contra el build de producción (`.next
 
 **Capturas** (excluidas de git):
 - Las 8 pantallas del admin en tema claro, 1280 y 375 px: `.auditoria/admin-capturas/` (`01-dashboard`, `02-pagos`, `03-pedidos`, `04-envios`, `05-productos`, `06-inventario`, `07-zonas`, `08-usuarios`).
-- El recorrido paso a paso (reembolso pendiente, kardex): `.auditoria/9-admin-recorrido/`; lo que ve el cliente: `.auditoria/9-admin-cliente/`.
+- El recorrido paso a paso (reembolso pendiente, kardex): `.auditoria/9-admin-recorrido/`.
 
 **Datos E2E creados:** pedidos AML-000034 a AML-000049, cuentas "Cliente admin E2E" (`e2e+aud…@amlagrotech.test`) y productos `E2E-ADM-62618` y `E2E-ADM-99368`, desactivados (no se borran).
 
