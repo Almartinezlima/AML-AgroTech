@@ -131,7 +131,7 @@ export default function ProductoPage() {
           <ul className="grid gap-3 rounded-2xl border border-borde bg-tarjeta p-4 text-sm sm:grid-cols-2">
             <li className="flex items-start gap-3">
               <LuTruck className="mt-0.5 h-5 w-5 shrink-0 text-trigo" aria-hidden="true" />
-              <span className="text-texto-2"><span className="block font-semibold text-texto">Envío desde Villa Charcas</span>En el pueblo Bs. 10 · Culpina e Incahuasi Bs. 10 · Sucre Bs. 15 (recojo en la terminal)</span>
+              <span className="text-texto-2"><span className="block font-semibold text-texto">Envío desde Villa Charcas</span>Recojo gratis en la tienda · a domicilio en los 5 distritos de Villa Charcas · Incahuasi y Culpina por flota. El costo según tu zona lo ves al pagar</span>
             </li>
             <li className="flex items-start gap-3">
               <LuShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-trigo" aria-hidden="true" />

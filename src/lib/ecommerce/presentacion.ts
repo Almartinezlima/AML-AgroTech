@@ -48,7 +48,7 @@ export const ETIQUETA_METODO: Record<MetodoPago, string> = {
 // En palabras simples para el cliente (los valores de la base siguen siendo recojo/urbano/provincia)
 export const ETIQUETA_TIPO_ZONA: Record<TipoZona, string> = {
   recojo: 'Recojo',
-  urbano: 'En el pueblo',
+  urbano: 'A domicilio',
   provincia: 'Por flota',
 }
 

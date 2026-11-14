@@ -13,7 +13,7 @@ import { AuthProvider } from '@/context/AuthContext'
 
 export const metadata: Metadata = {
   title: 'AML AgroTech — Insumos agrícolas en Chuquisaca',
-  description: 'Agroquímicos, semillas, riego, cañerías y herramientas con precios en Bs. y envío a Sucre, Villa Charcas, Culpina e Incahuasi.',
+  description: 'Agroquímicos, semillas, riego, cañerías y herramientas con precios en Bs. y envío a Villa Charcas y sus distritos, Incahuasi y Culpina.',
 }
 
 export default function RootLayout({

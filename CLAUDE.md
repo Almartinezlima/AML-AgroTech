@@ -136,7 +136,7 @@ Contrastes medidos (WCAG AA): texto 15:1, texto-2 7:1, acento 5,3:1, trigo 5,1:1
 ## Datos y negocio
 
 - Catálogo: 36 productos reales. Base de precios de Sucre (Observatorio Agroambiental, 2º sem. 2023); riego y cañerías son estimados. Desde la migración 0008 los fertilizantes Urea, Calferquim, Molimax y los 3 nuevos (Fosfato Diamónico, Cloruro de Potasio, Urea Protegida) tienen precio de referencia de mercado de SurtiAgro (Santa Cruz, 7 sep 2026) con tendencia; nuestro precio incluye el flete hasta Villa Charcas. Ficha técnica opcional por producto (composición, cultivos, modo de uso, dosis y banda toxicológica, esta solo en Agroquímicos). Detalle en `docs/specs/07-reingenieria.md`.
-- La tienda está en **Villa Charcas**. Zonas: **Recojo en tienda (Villa Charcas)** Bs. 0 · **Villa Charcas (entrega en el pueblo)** Bs. 10 · **Culpina** Bs. 10 · **Incahuasi** Bs. 10 · **Sucre (recojo en la terminal de buses)** Bs. 15. Contra entrega solo en Villa Charcas; Culpina, Incahuasi y Sucre van por flota con número de guía.
+- La tienda está en **Villa Charcas**. Zonas (migración 0010, 14 nov 2026): **Recojo en tienda (Villa Charcas)** Bs. 0 · a domicilio: **Villa Charcas — Distrito 1 (el pueblo)** Bs. 15, **Distrito Pucara** Bs. 20, **Distrito Santa Elena** Bs. 25, **Distrito Supas** Bs. 30, **Distrito Kaisaka** Bs. 35 · por flota con nombre y CI de quien recoge y número de guía: **Incahuasi** Bs. 20, **Culpina** Bs. 25. Contra entrega solo en recojo y Distrito 1. **Sucre está inactiva** (no se borra: hay pedidos viejos).
 - El **QR de pago es de demostración** (repo y Render son públicos): nunca subir un QR o cuenta bancaria real.
 - Cuentas demo para la feria: se crean con el panel de Supabase; las contraseñas **nunca** van al repo.
 

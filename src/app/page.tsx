@@ -54,7 +54,7 @@ export default function Home() {
 
       <section className="border-y border-borde bg-tarjeta/40 px-4 py-12 sm:px-6 md:py-20 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <Encabezado titulo="Zonas de envío" texto="Salimos desde Villa Charcas: al pueblo, a los municipios vecinos y a Sucre por flota." />
+          <Encabezado titulo="Zonas de envío" texto="Salimos desde Villa Charcas: a domicilio en sus 5 distritos y por flota a Incahuasi y Culpina." />
           <ZonasPortada />
         </div>
       </section>
