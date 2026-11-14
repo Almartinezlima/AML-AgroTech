@@ -124,7 +124,7 @@ Contrastes medidos (WCAG AA): texto 15:1, texto-2 7:1, acento 5,3:1, trigo 5,1:1
 - **Letra**: ningún texto de contenido por debajo de 14 px (la escala `text-xs` de Tailwind vale 14 px y `text-sm` 15 px); el menú en 16 px. Botones táctiles de 44 px como mínimo.
 - **Portada**: la foto propia de Villa Charcas a pantalla completa, con un velo oscuro suave solo del lado del texto.
 - **Tipografía**: Bricolage Grotesque (títulos) + Figtree (texto), con `next/font`.
-- **Imágenes**: fotos reales siempre (productos en `public/productos/<sku>.webp`, categorías en `public/categorias/`, portada en `public/portada/`). Fuente de cada una en `docs/CREDITOS_IMAGENES.md`. Nunca íconos como imagen de producto.
+- **Imágenes**: fotos reales siempre (los 36 productos en `public/productos/<sku>.webp`, categorías en `public/categorias/`, portada en `public/portada/`). Fuente de cada una en `docs/CREDITOS_IMAGENES.md`. Nunca íconos como imagen de producto.
 - **Color por categoría** (`src/lib/categorias.ts`): Semillas verde, Riego azul, Agroquímicos naranja, Herramientas tierra, Cañerías gris azulado. Solo en etiquetas y detalles.
 - **Íconos**: Lucide (`react-icons/lu`) solo para la interfaz (carrito, usuario, camión…). Sin emojis en la interfaz. Detalle completo en `docs/DISENO.md`.
 
