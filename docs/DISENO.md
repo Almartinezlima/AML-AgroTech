@@ -33,7 +33,7 @@ Fondo crema, tarjetas blancas con sombra suave, verde de la marca, dorado trigo 
 
 Estados (nunca solo color: siempre con texto): pendiente `#f59e0b` · verificado/entregado `#22c55e` · en camino `#3b82f6` · cancelado/rechazado `#ef4444`. El punto de la insignia usa ese color; **el texto usa su tono oscuro** (`#92400e`, `#166534`, `#1d4ed8`, `#b91c1c`) para pasar AA sobre blanco. El trigo **no es un estado**.
 
-Sobre fotos (hero, categorías) el texto es blanco con velo oscuro debajo.
+Sobre fotos el texto es blanco. En la portada se lee solo con sombra doble en las letras (sin velo ni cajas); en las tarjetas de categorías sigue con velo oscuro debajo.
 
 ## 3. Tipografía
 
@@ -76,7 +76,7 @@ La tienda se ve **con fotos reales**, no con ilustraciones ni íconos.
 - **Tarjeta**: foto de borde a borde (`aspect-square`, `object-cover`), franja inferior con el color de la categoría, zoom suave al pasar y la tarjeta se levanta con sombra.
 - **Producto nuevo sin foto**: se muestra la foto de su categoría. Nunca una imagen rota ni un ícono.
 - **Categorías**: una foto por categoría en `public/categorias/`.
-- **Portada**: foto propia de un campo de papa en Villa Charcas (Aldo Martínez Lima), en `public/portada/villa-charcas.webp`, con `next/image` (`priority`, `placeholder="blur"`) y un velo oscuro suave solo del lado del texto, para que la foto se vea. Crédito en el hero y en el footer.
+- **Portada**: foto propia de un campo de papa en Villa Charcas (Aldo Martínez Lima), en `public/portada/villa-charcas.webp`, con `next/image` (`priority`, `placeholder="blur"`) sin capas, velos ni filtros encima: la foto va original. El texto (etiqueta, título, subtítulo y ventajas) lleva sombra doble en las letras, `0 1px 2px` al 60 % y `0 2px 14px` al 45 %, y la imagen usa `object-[90%_50%]` para que en celular el título caiga sobre nubes oscuras (contraste medio del fondo 3,5:1 en vez de 2,3:1). Crédito en el hero y en el footer.
 - **Créditos**: fuente, autor y licencia de cada foto en `docs/CREDITOS_IMAGENES.md`. Las de tienda son de uso referencial académico: reemplazarlas antes de comercializar.
 - **Íconos**: Lucide (`react-icons/lu`, ISC) solo para la interfaz, `aria-hidden` si son decorativos. Sin emojis.
 
