@@ -1,19 +1,15 @@
-import { expect, test } from '@playwright/test'
 import {
-  PRODUCTO_B, agregarAlCarrito, exigirAdmin, exigirRegistroDirecto, finalizarCompra,
-  idDeProducto, paginaAdmin, registrarCliente, stockDe,
+  PRODUCTO_B, agregarAlCarrito, entrarComoCliente, exigirAdmin, expect, finalizarCompra,
+  idDeProducto, paginaAdmin, stockDe, test,
 } from './utilidades'
 
 test.describe('Inventario', () => {
   test('el stock baja al comprar, vuelve al cancelar y queda en el kardex', async ({ page, browser }) => {
-    await exigirRegistroDirecto()
-    exigirAdmin()
-
     const productoId = await idDeProducto(page, PRODUCTO_B)
     const inicial = await stockDe(page, productoId)
 
     // Compra 3 unidades
-    await registrarCliente(page)
+    await entrarComoCliente(page)
     await agregarAlCarrito(page, PRODUCTO_B)
     await page.goto('/carrito')
     const mas = page.getByRole('button', { name: `Agregar uno de ${PRODUCTO_B}` })
@@ -24,7 +20,7 @@ test.describe('Inventario', () => {
     const pedido = await finalizarCompra(page, { zona: 'Distrito 1', metodo: 'Contra entrega' })
     expect(await stockDe(page, productoId)).toBe(inicial - 3)
 
-    // El cliente cancela: el stock vuelve
+    // El cliente cancela: el stock vuelve (la limpieza final ve que ya está cancelado y no repite)
     await page.goto(`/pedidos/${pedido.id}`)
     await page.getByRole('button', { name: 'Cancelar pedido' }).click()
     await page.getByRole('dialog').getByRole('button', { name: 'Sí, cancelar' }).click()
@@ -40,6 +36,7 @@ test.describe('Inventario', () => {
     await expect(venta).toContainText('-3')
     await expect(devolucion).toContainText('Devolución')
     await expect(devolucion).toContainText('+3')
+    await admin.context().close()
   })
 
   test('el admin registra una entrada y el stock sube', async ({ page, browser }) => {
@@ -61,13 +58,16 @@ test.describe('Inventario', () => {
     }
 
     await registrar('entrada', 5, 'E2E: entrada de prueba')
-    expect(await stockDe(page, productoId)).toBe(inicial + 5)
+    try {
+      expect(await stockDe(page, productoId)).toBe(inicial + 5)
 
-    await admin.goto(`/admin/inventario/${productoId}`)
-    await expect(admin.locator('li', { hasText: 'E2E: entrada de prueba' }).first()).toContainText('+5')
-
-    // Se deja el stock como estaba (queda registrado como ajuste en el kardex)
-    await registrar('ajuste', -5, 'E2E: revierte la entrada de prueba')
+      await admin.goto(`/admin/inventario/${productoId}`)
+      await expect(admin.locator('li', { hasText: 'E2E: entrada de prueba' }).first()).toContainText('+5')
+    } finally {
+      // Se deja el stock como estaba aunque falle lo de arriba (queda como ajuste en el kardex)
+      await registrar('ajuste', -5, 'E2E: revierte la entrada de prueba')
+    }
     expect(await stockDe(page, productoId)).toBe(inicial)
+    await admin.context().close()
   })
 })

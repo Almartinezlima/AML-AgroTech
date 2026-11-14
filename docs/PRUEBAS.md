@@ -1,6 +1,6 @@
 # Pruebas E2E (Playwright)
 
-Pruebas de punta a punta que usan la app **como un usuario de verdad**: se registran por la pantalla, compran, suben comprobantes y el admin aprueba, despacha y mueve inventario. Corren contra la **base real de Supabase** (no hay base de pruebas aparte).
+Pruebas de punta a punta que usan la app **como un usuario de verdad**: el cliente compra y sube comprobantes; el admin aprueba, despacha y mueve inventario. Corren contra la **base real de Supabase** (no hay base de pruebas aparte), así que **cada prueba deja la base como estaba** (fase 2B, 14 nov 2026): solo usan 2 cuentas fijas y cierran todo lo que crean.
 
 ## 1. Preparar (una sola vez)
 
@@ -14,16 +14,22 @@ Pruebas de punta a punta que usan la app **como un usuario de verdad**: se regis
    npx playwright install chromium
    ```
 
-2. Copiar `.env.test.example` como `.env.test.local` y completar la cuenta **admin** de prueba:
+2. Correr la migración **0011** en el SQL Editor de Supabase (crea `anular_pedido_prueba`, que usa la limpieza).
+
+3. Crear la **cuenta cliente de prueba** registrándose en la web con un correo **`@amlagrotech.test`** (por ejemplo `cliente@amlagrotech.test`). Ese dominio es obligatorio: solo los pedidos de esas cuentas se pueden anular, y el panel las oculta.
+
+4. Copiar `.env.test.example` como `.env.test.local` y completar las **2 cuentas fijas**:
 
    ```
    E2E_ADMIN_EMAIL=...
    E2E_ADMIN_PASSWORD=...
+   E2E_CLIENTE_EMAIL=...@amlagrotech.test
+   E2E_CLIENTE_PASSWORD=...
    ```
 
    `.env.test.local` está en `.gitignore` y nunca se sube. Las pruebas **nunca** usan la service role.
 
-3. En Supabase → Authentication → Sign In / Providers → Email: **"Confirm email" apagado**. Si está encendido, las pruebas que necesitan un cliente quedan **omitidas** (no fallidas) con un aviso, y no se manda ningún correo (la prueba lee la configuración pública de Auth antes de registrar a nadie).
+5. En Supabase → Authentication → Sign In / Providers → Email: **"Confirm email" apagado**. Si está encendido, la prueba de registro queda **omitida** (no fallida) con un aviso, y no se manda ningún correo.
 
 ## 2. Correr
 
@@ -33,7 +39,7 @@ Pruebas de punta a punta que usan la app **como un usuario de verdad**: se regis
 | `npm run test:e2e` | Usa el `npm run dev` del **3000** (o lo levanta si no hay) | Mientras programás, con UN solo `npm run dev` abierto |
 | `npm run test:e2e:ui` | Modo visual de Playwright para ver cada paso | Para depurar una prueba |
 
-Una sola prueba: `npx playwright test seguridad` (o `compra`, `pagos`, `inventario`, `responsive`).
+Una sola prueba: `npx playwright test seguridad` (o `compra`, `pagos`, `inventario`, `registro`, `responsive`).
 
 Reporte: `npx playwright show-report` (abre `playwright-report/`). Si algo falla quedan captura, video y traza en `test-results/`.
 
@@ -43,28 +49,44 @@ Reporte: `npx playwright show-report` (abre `playwright-report/`). Si algo falla
 
 | Archivo | Prueba |
 |---|---|
-| `seguridad.spec.ts` | Sin sesión `/admin`, `/pedidos`, `/carrito` → login con `?siguiente=`; API sin sesión → 401; cliente en `/admin` → `/`; cliente en `/api/usuarios` → 403; contraseña mala → "Correo o contraseña incorrectos"; `/auth/restablecer` con sesión normal o `code` falso → "Enlace inválido o vencido" sin formulario; vuelve a donde iba tras el login (e ignora destinos externos); el carrito de una cuenta no lo ve otra en el mismo navegador |
-| `compra.spec.ts` | Registro → catálogo → 2 productos → recarga (el carrito sigue) → checkout a Villa Charcas (sin contra entrega, total = subtotal + 35) → código `AML-…` → aparece en Mis pedidos |
-| `pagos-distribucion.spec.ts` | Cliente sube comprobante (PNG generado en la prueba) → admin aprueba → confirmado → preparando → despachado con flota y guía → entregado → el cliente ve la línea de tiempo completa |
+| `barrido.setup.ts` | Corre **antes** de todo: anula los pedidos que el cliente fijo dejó abiertos en una corrida cortada y desactiva las cuentas `e2e+registro-…` que quedaron activas |
+| `seguridad.spec.ts` | Sin sesión `/admin`, `/pedidos`, `/checkout` → login con `?siguiente=`; API sin sesión → 401; cliente en `/admin` → `/`; cliente en `/api/usuarios` → 403; contraseña mala → "Correo o contraseña incorrectos"; `/auth/restablecer` con sesión normal o `code` falso → "Enlace inválido o vencido" sin formulario; vuelve a donde iba tras el login (e ignora destinos externos); el carrito del cliente no lo ve el admin en el mismo navegador |
+| `registro.spec.ts` | Registro por la pantalla → entra directo al catálogo → al terminar el admin desactiva la cuenta, el panel no la lista y si intenta entrar ve "cuenta desactivada" |
+| `compra.spec.ts` | Catálogo → 2 productos → recarga (el carrito sigue) → checkout a Culpina (pide quién recoge, sin contra entrega, total = subtotal + Bs. 25) → código `AML-…` → aparece en Mis pedidos |
+| `pagos-distribucion.spec.ts` | Cliente sube comprobante (PNG generado en la prueba) → el pedido no aparece en el panel con el interruptor apagado y sí encendido → admin aprueba → confirmado → preparando → despachado con flota y guía → entregado → el cliente ve la línea de tiempo completa → se anula y el stock vuelve al valor inicial |
 | `inventario.spec.ts` | El stock baja al comprar y vuelve al cancelar; el kardex muestra "Venta AML-…" y "Cancelación AML-…"; el admin registra una entrada (+5) y luego un ajuste (−5) para dejar el stock como estaba |
-| `responsive.spec.ts` | Inicio, catálogo, auth, carrito, checkout, pedidos y panel admin en **360 px** sin scroll horizontal |
+| `fase-6b.spec.ts` | Búsqueda sin tildes, carrito sin cuenta, deshacer, sincronía entre pestañas, comprobante que bloquea la cancelación del cliente, páginas inexistentes |
+| `responsive.spec.ts` | Inicio, catálogo, auth, carrito, checkout, pedidos y panel admin (dashboard, pedidos, pagos, envíos, usuarios, inventario) en **360 px** sin scroll horizontal |
 
-## 4. Datos que dejan las pruebas
+## 4. Limpieza: qué queda en la base después de una corrida
 
-No se borra nada (regla del proyecto). Todo queda marcado para filtrarlo:
+Las pruebas importan `test` desde `utilidades.ts`, que trae un fixture automático `limpieza`: al terminar cada prueba, **pase o falle**, el admin de prueba:
 
-- Clientes: correo `e2e+<marca de tiempo>@amlagrotech.test`, nombre "Cliente E2E".
-- Pedidos: nota "E2E: pedido de prueba automática", dirección "E2E — …", flota "Trans Copacabana (E2E)", guía `E2E-…`.
-- Inventario: motivos "E2E: entrada de prueba" y "E2E: revierte la entrada de prueba".
+- **Anula** cada pedido que la prueba creó (`POST /api/pedidos/{id}/anular-prueba`, migración 0011): lo cancela en cualquier estado (también entregado), devuelve el stock con una "devolución" en el kardex (`Limpieza E2E AML-…`) y cierra el pago como reembolsado si hubo comprobante. Si ya estaba cancelado no devuelve stock dos veces.
+- **Desactiva** la cuenta que creó la prueba de registro.
 
-Cada corrida completa crea unas 12 cuentas y 3 pedidos. Para la feria conviene que el panel (dashboard, listas) permita ocultar los datos `e2e+…`: queda como pendiente.
+Resultado: **el stock queda igual, no queda ningún pedido abierto ni nada por cobrar**, y el panel no cuenta nada de esto. Como no se borra nada (regla del proyecto), sí quedan rastros históricos, marcados para filtrarlos:
 
-Consulta para verlos en el SQL Editor:
+- Unos 5 pedidos **cancelados** por corrida en la cuenta cliente fija, con nota "E2E: pedido de prueba automática".
+- Sus filas en el kardex (venta + devolución) y en el seguimiento.
+- El archivo del comprobante (PNG de 1×1 px) en el bucket privado: no hay política para borrarlo.
+- 1 cuenta `e2e+registro-<marca de tiempo>@amlagrotech.test` **desactivada** por corrida.
+- Motivos de inventario "E2E: entrada de prueba" y "E2E: revierte la entrada de prueba".
+
+### En el panel
+
+El panel admin **oculta por defecto** los pedidos, pagos y cuentas `@amlagrotech.test` (dashboard, pedidos, envíos, pagos y usuarios). El interruptor **"Mostrar datos de prueba"** los muestra; la preferencia se recuerda en ese navegador. El **kardex no se filtra**: es la historia real del stock, y las filas de prueba ya dicen "E2E" o "Limpieza E2E".
+
+Las APIs aceptan `?pruebas=1` para incluirlos (`/api/pedidos?alcance=todos`, `/api/pagos`, `/api/usuarios`, `/api/dashboard`).
+
+### Datos viejos
+
+Las 126 cuentas `e2e+<marca de tiempo>@amlagrotech.test` y sus pedidos de antes de la fase 2B **siguen en la base** (ocultos en el panel). Se ordenan en la fase de cierre. Consulta para verlos en el SQL Editor:
 
 ```sql
 select p.codigo, p.estado, p.total, u.email
 from public.pedidos p
 join public.perfiles u on u.id = p.usuario_id
-where u.email like 'e2e+%'
+where u.email like '%@amlagrotech.test'
 order by p.created_at desc;
 ```

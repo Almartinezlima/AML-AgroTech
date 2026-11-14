@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
-import { PRODUCTO_A, agregarAlCarrito, exigirRegistroDirecto, paginaAdmin, registrarCliente, exigirAdmin } from './utilidades'
+import { type Page } from '@playwright/test'
+import { PRODUCTO_A, agregarAlCarrito, entrarComoCliente, exigirAdmin, expect, paginaAdmin, test } from './utilidades'
 
 const ANCHO = 360
 
@@ -22,8 +22,7 @@ test.describe('Celular de 360 px sin scroll horizontal', () => {
   }
 
   test('cliente: carrito y checkout', async ({ page }) => {
-    await exigirRegistroDirecto()
-    await registrarCliente(page)
+    await entrarComoCliente(page)
     await agregarAlCarrito(page, PRODUCTO_A)
     await sinScrollHorizontal(page, '/carrito')
     await sinScrollHorizontal(page, '/checkout')
@@ -34,7 +33,7 @@ test.describe('Celular de 360 px sin scroll horizontal', () => {
     exigirAdmin()
     const admin = await paginaAdmin(browser)
     await admin.setViewportSize({ width: ANCHO, height: 780 })
-    for (const ruta of ['/admin', '/admin/pedidos', '/admin/pagos', '/admin/inventario']) {
+    for (const ruta of ['/admin', '/admin/pedidos', '/admin/pagos', '/admin/envios', '/admin/usuarios', '/admin/inventario']) {
       await sinScrollHorizontal(admin, ruta)
     }
   })
