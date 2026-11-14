@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import InterruptorPruebas, { conPruebas, useMostrarPruebas } from '@/components/admin/InterruptorPruebas'
 import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import { clasePagina } from '@/components/ui/estilos'
 import { useDatosApi } from '@/lib/api/useDatosApi'
@@ -15,7 +16,8 @@ const GRUPOS: Array<{ estado: EstadoPedido; titulo: string; vacio: string }> = [
 ]
 
 export default function AdminEnviosPage() {
-  const { datos, cargando, error, recargar } = useDatosApi<PedidoResumen[]>('/api/pedidos?alcance=todos')
+  const { mostrar, setMostrar, listo } = useMostrarPruebas()
+  const { datos, cargando, error, recargar } = useDatosApi<PedidoResumen[]>(listo ? conPruebas('/api/pedidos?alcance=todos', mostrar) : null)
   const [activo, setActivo] = useState<EstadoPedido>('confirmado')
   const grupo = GRUPOS.find((g) => g.estado === activo) ?? GRUPOS[0]
   const delGrupo = (estado: EstadoPedido) => (datos ?? []).filter((p) => p.estado === estado)
@@ -23,7 +25,10 @@ export default function AdminEnviosPage() {
   return (
     <div className={clasePagina}>
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold text-texto mb-6">Envíos</h1>
+        <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
+          <h1 className="text-3xl font-bold text-texto">Envíos</h1>
+          <InterruptorPruebas mostrar={mostrar} onCambiar={setMostrar} />
+        </div>
 
         <div className="flex flex-wrap gap-2 mb-6">
           {GRUPOS.map((g) => (
@@ -40,7 +45,7 @@ export default function AdminEnviosPage() {
           ))}
         </div>
 
-        {cargando ? (
+        {cargando || !listo ? (
           <BloqueCarga />
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />

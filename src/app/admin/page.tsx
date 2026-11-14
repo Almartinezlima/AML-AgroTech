@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import InterruptorPruebas, { conPruebas, useMostrarPruebas } from '@/components/admin/InterruptorPruebas'
 import { BloqueCarga, BloqueError } from '@/components/ui/Estados'
 import { clasePagina, claseTarjeta } from '@/components/ui/estilos'
 import { useDatosApi } from '@/lib/api/useDatosApi'
@@ -23,14 +24,18 @@ function Cifra({ titulo, valor, detalle, href }: { titulo: string; valor: string
 }
 
 export default function AdminPage() {
-  const { datos: d, cargando, error, recargar } = useDatosApi<Dashboard>('/api/dashboard')
+  const { mostrar, setMostrar, listo } = useMostrarPruebas()
+  const { datos: d, cargando, error, recargar } = useDatosApi<Dashboard>(listo ? conPruebas('/api/dashboard', mostrar) : null)
 
   return (
     <div className={clasePagina}>
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-texto mb-8">Panel de administración</h1>
+        <div className="flex items-center justify-between gap-3 flex-wrap mb-8">
+          <h1 className="text-3xl font-bold text-texto">Panel de administración</h1>
+          <InterruptorPruebas mostrar={mostrar} onCambiar={setMostrar} />
+        </div>
 
-        {cargando ? (
+        {cargando || !listo ? (
           <BloqueCarga filas={4} alto="h-28" />
         ) : error || !d ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
