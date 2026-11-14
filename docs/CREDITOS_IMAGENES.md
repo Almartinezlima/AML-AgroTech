@@ -2,7 +2,7 @@
 
 Fuente de cada foto de la tienda. **AML AgroTech es por ahora una demo académica (feria de software USFX, SIS324).** Antes de comercializarla hay que reemplazar las fotos marcadas como *Derechos del titular* por fotos propias o con permiso, y revisar las de licencia **NC** (no comercial).
 
-- Las fotos están en `public/` (800×800 WebP los productos y categorías; 2400 px la portada). La base apunta a ellas con `imagen_url` (migración `0004`).
+- Las fotos están en `public/` (800×800 WebP los productos y categorías; 1600×1200 la portada). La base apunta a ellas con `imagen_url` (migración `0004`).
 - **Wikimedia Commons / Openverse**: licencias libres (CC0, dominio público, CC BY, CC BY-SA). Se usan dando crédito; **BY-SA** pide compartir la obra derivada (el recorte) con la misma licencia.
 - **Agrizon**: fotos de catálogo de una tienda agrícola en línea (envases de fabricantes). Solo como referencia visual en la demo.
 - **Unsplash**: licencia Unsplash (uso libre, el crédito es cortesía).
