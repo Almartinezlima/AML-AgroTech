@@ -6,7 +6,8 @@ import path from 'node:path'
 // Variables públicas de Next (.env.local) para consultar la configuración de Auth
 loadEnvConfig(process.cwd(), true)
 
-// Credenciales de prueba (.env.test.local, ignorado por git). Nunca la service role.
+// Credenciales de las 2 cuentas fijas de prueba, admin y cliente (.env.test.local, ignorado
+// por git). Nunca la service role.
 const archivoPruebas = path.join(process.cwd(), '.env.test.local')
 if (existsSync(archivoPruebas)) {
   for (const linea of readFileSync(archivoPruebas, 'utf8').split(/\r?\n/)) {
@@ -65,6 +66,10 @@ export default defineConfig({
     trace: 'retain-on-failure',
     navigationTimeout: 45_000,
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    // Antes de todo: cierra pedidos y cuentas de prueba que dejó abiertos una corrida cortada
+    { name: 'barrido', testMatch: /barrido\.setup\.ts/, use: { ...devices['Desktop Chrome'] } },
+    { name: 'chromium', dependencies: ['barrido'], use: { ...devices['Desktop Chrome'] } },
+  ],
   webServer: URL_EXTERNA ? undefined : servidor,
 })

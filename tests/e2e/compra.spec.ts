@@ -1,13 +1,11 @@
-import { expect, test } from '@playwright/test'
-import { PRODUCTO_A, PRODUCTO_B, agregarAlCarrito, exigirRegistroDirecto, finalizarCompra, registrarCliente } from './utilidades'
+import { PRODUCTO_A, PRODUCTO_B, agregarAlCarrito, entrarComoCliente, expect, finalizarCompra, test } from './utilidades'
+
+// Costo de Culpina por flota desde la migración 0010
+const ENVIO_CULPINA = 25
 
 test.describe('Compra completa', () => {
-  test.beforeEach(async () => {
-    await exigirRegistroDirecto()
-  })
-
-  test('registrarse, armar el carrito y pedir a Culpina', async ({ page }) => {
-    await registrarCliente(page)
+  test('armar el carrito y pedir a Culpina', async ({ page }) => {
+    await entrarComoCliente(page)
 
     await agregarAlCarrito(page, PRODUCTO_A)
     await agregarAlCarrito(page, PRODUCTO_B)
@@ -38,9 +36,10 @@ test.describe('Compra completa', () => {
     await expect(page.getByRole('radio', { name: /Contra entrega/ })).toHaveCount(0)
     await expect(page.getByText('El pago contra entrega no está disponible para envíos a Culpina.')).toBeVisible()
 
+    // El pedido se anula solo al terminar la prueba (fixture `limpieza`)
     const pedido = await finalizarCompra(page, { zona: 'Culpina', metodo: 'QR', recogeNombre: 'Juan Mamani E2E', recogeCi: '1234567' })
-    expect(pedido.envio).toBe(10)
-    expect(pedido.total).toBeCloseTo(pedido.subtotal + 10, 2)
+    expect(pedido.envio).toBe(ENVIO_CULPINA)
+    expect(pedido.total).toBeCloseTo(pedido.subtotal + ENVIO_CULPINA, 2)
     expect(pedido.codigo).toMatch(/^AML-/)
 
     // El pedido aparece en Mis pedidos, con quién recoge en el detalle, y el carrito quedó vacío

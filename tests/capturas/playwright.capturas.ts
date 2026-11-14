@@ -10,5 +10,7 @@ export default defineConfig({
   reporter: 'line',
   outputDir: '../../test-results/capturas-salida',
   webServer: undefined,
+  // Sin el barrido de las E2E: las capturas solo leen
+  projects: [{ name: 'chromium' }],
   use: { ...base.use, baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000' },
 })

@@ -1,7 +1,7 @@
-import { expect, test, type Page } from '@playwright/test'
+import { type Page } from '@playwright/test'
 import {
-  PRODUCTO_A, agregarAlCarrito, exigirAdmin, exigirRegistroDirecto, finalizarCompra,
-  imagenComprobante, paginaAdmin, registrarCliente,
+  PRODUCTO_A, agregarAlCarrito, datosDePruebaEnPanel, entrarComoCliente, expect, finalizarCompra, idDeProducto,
+  imagenComprobante, limpiarDatosDePrueba, paginaAdmin, stockDe, test,
 } from './utilidades'
 
 // Abre el modal de avance del pedido en el panel y lo confirma
@@ -22,11 +22,11 @@ async function avanzarPedido(admin: Page, codigo: string, estado: string, datos?
 
 test.describe('Pagos y distribución', () => {
   test('comprobante → aprobación → preparación → despacho por flota → entrega', async ({ page, browser }) => {
-    await exigirRegistroDirecto()
-    exigirAdmin()
+    const productoId = await idDeProducto(page, PRODUCTO_A)
+    const stockInicial = await stockDe(page, productoId)
 
     // Cliente: compra a provincia con QR y sube su comprobante
-    await registrarCliente(page)
+    await entrarComoCliente(page)
     await agregarAlCarrito(page, PRODUCTO_A)
     const pedido = await finalizarCompra(page, { zona: 'Culpina', metodo: 'QR' })
 
@@ -36,8 +36,15 @@ test.describe('Pagos y distribución', () => {
     await expect(page.getByText('En revisión')).toBeVisible()
     await expect(page.getByRole('link', { name: /Ver comprobante subido/ })).toBeVisible()
 
-    // Admin: aprueba el pago
+    // Admin: con el interruptor apagado el pago de prueba no aparece; encendido, sí
     const admin = await paginaAdmin(browser)
+    await admin.goto('/admin/pedidos')
+    await datosDePruebaEnPanel(admin, false)
+    await expect(admin.getByRole('link', { name: pedido.codigo, exact: true })).toHaveCount(0)
+    await datosDePruebaEnPanel(admin, true)
+    await expect(admin.getByRole('link', { name: pedido.codigo, exact: true })).toBeVisible()
+
+    // Aprueba el pago (la preferencia del interruptor vale para todo el panel)
     await admin.goto('/admin/pagos')
     const pago = admin.locator('li', { has: admin.getByRole('link', { name: pedido.codigo, exact: true }) })
     await pago.getByRole('button', { name: 'Aprobar' }).click()
@@ -54,6 +61,7 @@ test.describe('Pagos y distribución', () => {
     await avanzarPedido(admin, pedido.codigo, 'Preparando')
     await avanzarPedido(admin, pedido.codigo, 'Despachado', { flota: 'Trans Copacabana (E2E)', guia })
     await avanzarPedido(admin, pedido.codigo, 'Entregado')
+    await admin.context().close()
 
     // Cliente: ve la línea de tiempo completa con flota y guía
     await page.reload()
@@ -65,5 +73,12 @@ test.describe('Pagos y distribución', () => {
     await expect(page.getByText('Trans Copacabana (E2E)')).toBeVisible()
     await expect(page.getByText(guia)).toBeVisible()
     await expect(page.getByText('Pago verificado').first()).toBeVisible()
+
+    // Limpieza: el pedido entregado se anula y el stock vuelve a lo de antes
+    expect(await stockDe(page, productoId)).toBe(stockInicial - 1)
+    await limpiarDatosDePrueba(browser)
+    expect(await stockDe(page, productoId)).toBe(stockInicial)
+    await page.reload()
+    await expect(page.getByText('Cancelado', { exact: true }).first()).toBeVisible()
   })
 })

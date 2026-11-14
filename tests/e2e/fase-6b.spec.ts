@@ -1,6 +1,5 @@
-import { expect, test } from '@playwright/test'
 import {
-  PRODUCTO_A, PRODUCTO_B, agregarAlCarrito, exigirRegistroDirecto, finalizarCompra, imagenComprobante, registrarCliente,
+  PRODUCTO_A, PRODUCTO_B, agregarAlCarrito, entrarComoCliente, expect, finalizarCompra, imagenComprobante, test,
 } from './utilidades'
 
 // Correcciones de la auditoría (fase 6B) que no necesitan la cuenta admin
@@ -60,9 +59,9 @@ test.describe('Fase 6B', () => {
   })
 
   test('después de enviar el comprobante el cliente ya no puede cancelar solo', async ({ page }) => {
-    await exigirRegistroDirecto()
-    await registrarCliente(page)
+    await entrarComoCliente(page)
     await agregarAlCarrito(page, PRODUCTO_A)
+    // Queda en revisión: el cliente ya no puede cancelarlo; lo anula el admin al terminar
     const pedido = await finalizarCompra(page, { zona: 'Culpina', metodo: 'QR' })
     await page.goto(`/pedidos/${pedido.id}`)
     await expect(page.getByRole('button', { name: 'Cancelar pedido' })).toBeVisible()

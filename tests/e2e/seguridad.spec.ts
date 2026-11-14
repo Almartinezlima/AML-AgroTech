@@ -1,5 +1,6 @@
-import { expect, test } from '@playwright/test'
-import { PRODUCTO_A, agregarAlCarrito, cerrarSesion, exigirRegistroDirecto, iniciarSesion, registrarCliente } from './utilidades'
+import {
+  PRODUCTO_A, agregarAlCarrito, cerrarSesion, entrarComoCliente, exigirAdmin, exigirCliente, expect, iniciarSesion, test,
+} from './utilidades'
 
 test.describe('Seguridad', () => {
   for (const ruta of ['/admin', '/pedidos', '/checkout']) {
@@ -35,27 +36,28 @@ test.describe('Seguridad', () => {
     await expect(page.getByLabel('Contraseña nueva')).toHaveCount(0)
   })
 
-  test.describe('con un cliente registrado', () => {
-    test.beforeEach(async () => {
-      await exigirRegistroDirecto()
+  // Con el cliente fijo de prueba (E2E_CLIENTE_EMAIL): no se crean cuentas nuevas
+  test.describe('con el cliente de prueba', () => {
+    test.beforeEach(() => {
+      exigirCliente()
     })
 
     test('un cliente que entra a /admin vuelve al inicio', async ({ page }) => {
-      await registrarCliente(page)
+      await entrarComoCliente(page)
       await page.goto('/admin')
       await expect(page).toHaveURL(/\/$/)
       await expect(page.getByRole('link', { name: 'Panel Admin' })).toHaveCount(0)
     })
 
     test('un cliente en /api/usuarios recibe 403', async ({ page }) => {
-      await registrarCliente(page)
+      await entrarComoCliente(page)
       const respuesta = await page.request.get('/api/usuarios')
       expect(respuesta.status()).toBe(403)
       expect((await respuesta.json()).error.codigo).toBe('SIN_PERMISO')
     })
 
     test('/auth/restablecer con una sesión normal abierta NO permite cambiar la contraseña', async ({ page }) => {
-      await registrarCliente(page)
+      await entrarComoCliente(page)
       // Sin enlace
       await page.goto('/auth/restablecer')
       await expect(page.getByText('Enlace inválido o vencido')).toBeVisible()
@@ -70,28 +72,27 @@ test.describe('Seguridad', () => {
     })
 
     test('después del login vuelve a donde iba', async ({ page, browser }) => {
-      const cuenta = await registrarCliente(page)
-      const otro = await (await browser.newContext()).newPage()
-      await otro.goto('/pedidos')
-      await expect(otro).toHaveURL(/siguiente=%2Fpedidos/)
-      await iniciarSesion(otro, cuenta, '/pedidos')
-      await expect(otro).toHaveURL(/\/pedidos$/)
+      const cuenta = exigirCliente()
+      await page.goto('/pedidos')
+      await expect(page).toHaveURL(/siguiente=%2Fpedidos/)
+      await iniciarSesion(page, cuenta, '/pedidos')
+      await expect(page).toHaveURL(/\/pedidos$/)
       // Un destino externo se ignora
-      const tercero = await (await browser.newContext()).newPage()
-      await iniciarSesion(tercero, cuenta, '//sitio-malicioso.com')
-      await expect(tercero).toHaveURL(/localhost:\d+\/$/)
+      const otro = await (await browser.newContext()).newPage()
+      await iniciarSesion(otro, cuenta, '//sitio-malicioso.com')
+      await expect(otro).toHaveURL(/localhost:\d+\/$/)
+      await otro.context().close()
     })
 
     test('el carrito de una cuenta no lo ve otra en el mismo navegador', async ({ page }) => {
-      const primera = await registrarCliente(page)
+      const primera = await entrarComoCliente(page)
       await agregarAlCarrito(page, PRODUCTO_A)
       await page.goto('/carrito')
       await expect(page.getByText(PRODUCTO_A)).toBeVisible()
 
-      // Sale y entra otra persona en el mismo navegador
+      // Sale y entra otra persona (el admin de prueba) en el mismo navegador
       await cerrarSesion(page)
-      await registrarCliente(page)
-      await page.goto('/carrito')
+      await iniciarSesion(page, exigirAdmin(), '/carrito')
       await expect(page.getByText('Tu carrito está vacío')).toBeVisible()
 
       // La primera cuenta recupera su carrito al volver
