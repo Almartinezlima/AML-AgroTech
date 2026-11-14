@@ -10,7 +10,12 @@ const VENTAJAS = [
   { icono: LuMapPin, texto: 'Precios en bolivianos, desde Villa Charcas' },
 ]
 
-// Portada: foto propia de Villa Charcas a pantalla ancha, propuesta de valor y buscador
+// Sombra doble en las letras: una corta y nítida que hace de borde y otra amplia y suave.
+// Es lo único que ayuda a leer el texto: la foto va original, sin capas ni filtros encima.
+const SOMBRA_TEXTO = '[text-shadow:0_1px_2px_rgba(0,0,0,0.6),0_2px_14px_rgba(0,0,0,0.45)]'
+
+// Portada: foto propia de Villa Charcas a pantalla ancha, propuesta de valor y buscador.
+// Encuadre a la derecha (90 %): en celular el título cae sobre nubes más oscuras y se ven el árbol y el sol.
 export default function Hero() {
   return (
     <section className="relative isolate overflow-hidden">
@@ -20,23 +25,20 @@ export default function Hero() {
         priority
         placeholder="blur"
         sizes="100vw"
-        className="absolute inset-0 -z-20 h-full w-full object-cover"
+        className="absolute inset-0 -z-20 h-full w-full object-cover object-[90%_50%]"
       />
-      {/* Velo suave: oscurece solo el lado del texto para que la foto de Villa Charcas se vea */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/60 via-black/30 to-transparent" aria-hidden="true" />
-      <div className="absolute inset-x-0 bottom-0 -z-10 h-1/3 bg-gradient-to-t from-black/35 to-transparent" aria-hidden="true" />
 
       <div className="mx-auto flex min-h-[640px] max-w-7xl flex-col justify-center px-4 py-20 sm:px-6 md:min-h-[720px] lg:px-8">
         <div className="max-w-2xl">
-          <p className="animate-entrada inline-flex items-center gap-2 rounded-full border border-white/30 bg-black/30 px-4 py-1.5 text-sm font-medium text-[#f3e3b5] backdrop-blur">
+          <p className={`animate-entrada inline-flex items-center gap-2 text-sm font-medium text-[#f3e3b5] ${SOMBRA_TEXTO}`}>
             <LuMapPin className="h-4 w-4" aria-hidden="true" /> Villa Charcas · Chuquisaca · Bolivia
           </p>
 
-          <h1 className="animate-entrada mt-6 font-titulo text-4xl font-extrabold leading-[1.05] tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] sm:text-6xl lg:text-7xl" style={{ animationDelay: '80ms' }}>
+          <h1 className={`animate-entrada mt-6 font-titulo text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl ${SOMBRA_TEXTO}`} style={{ animationDelay: '80ms' }}>
             Todo para tu campo, con envío hasta tu pueblo
           </h1>
 
-          <p className="animate-entrada mt-6 max-w-xl text-lg text-white/95 drop-shadow-[0_1px_8px_rgba(0,0,0,0.5)] sm:text-xl" style={{ animationDelay: '160ms' }}>
+          <p className={`animate-entrada mt-6 max-w-xl text-lg text-white sm:text-xl ${SOMBRA_TEXTO}`} style={{ animationDelay: '160ms' }}>
             Semillas, fertilizantes, riego, cañerías y herramientas para la agricultura de los valles de Chuquisaca.
           </p>
 
@@ -67,7 +69,7 @@ export default function Hero() {
             </Link>
           </div>
 
-          <ul className="animate-entrada mt-10 grid gap-3 text-sm text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)] sm:grid-cols-3" style={{ animationDelay: '400ms' }}>
+          <ul className={`animate-entrada mt-10 grid gap-3 text-sm text-white sm:grid-cols-3 ${SOMBRA_TEXTO}`} style={{ animationDelay: '400ms' }}>
             {VENTAJAS.map(({ icono: Icono, texto }) => (
               <li key={texto} className="flex items-start gap-2">
                 <Icono className="mt-0.5 h-4 w-4 shrink-0 text-[#86efac]" aria-hidden="true" /> {texto}
