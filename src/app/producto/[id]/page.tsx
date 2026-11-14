@@ -8,7 +8,9 @@ import ImagenProducto from '@/components/ImagenProducto'
 import { BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import Insignia from '@/components/ui/Insignia'
 import { claseBotonPrimario, clasePagina } from '@/components/ui/estilos'
+import FichaTecnica from './_components/FichaTecnica'
 import OtrosProductos from './_components/OtrosProductos'
+import PrecioMercado from './_components/PrecioMercado'
 import { productoParaCarrito, useCarrito } from '@/context/CarritoContext'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import { estiloCategoria } from '@/lib/categorias'
@@ -95,6 +97,7 @@ export default function ProductoPage() {
             <p className="font-titulo text-4xl font-bold tabular-nums tracking-tight text-acento">{formatoBs(producto.precio)}</p>
             <span className="text-texto-2">por {producto.unidad}</span>
           </div>
+          <PrecioMercado producto={producto} />
 
           <div className="flex flex-wrap items-center gap-3">
             <Insignia info={nivel} />
@@ -102,6 +105,7 @@ export default function ProductoPage() {
           </div>
 
           {producto.descripcion && <p className="max-w-prose leading-relaxed text-texto-2">{producto.descripcion}</p>}
+          <FichaTecnica producto={producto} />
 
           {!agotado && (
             <div className="flex items-center gap-3">

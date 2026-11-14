@@ -21,6 +21,7 @@
 | [`specs/04-distribucion.md`](specs/04-distribucion.md) | Distribución |
 | [`specs/05-almacenamiento.md`](specs/05-almacenamiento.md) | Almacenamiento (inventario) |
 | [`specs/06-casos-de-uso.md`](specs/06-casos-de-uso.md) | Catálogo de casos de uso (base para StarUML) |
+| [`specs/07-reingenieria.md`](specs/07-reingenieria.md) | Reingeniería del catálogo: ficha técnica y precio de mercado |
 
 ## Carpetas
 

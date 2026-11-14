@@ -60,6 +60,55 @@ components:
         categoria_id: { type: string, format: uuid }
         icono: { type: string }
         imagen_url: { type: string, format: uri, nullable: true }
+        composicion: { type: string, nullable: true, maxLength: 200, description: 'Ingrediente activo o N-P-K', example: 'N-P-K 18-46-0' }
+        cultivos: { type: string, nullable: true, maxLength: 300 }
+        modo_uso: { type: string, nullable: true, maxLength: 1000 }
+        dosis: { type: string, nullable: true, maxLength: 300 }
+        banda_toxicologica: { $ref: '#/components/schemas/BandaToxicologica' }
+        precio_referencia: { type: number, minimum: 0.01, nullable: true, description: 'Precio de referencia de mercado (no es el precio de venta)' }
+        fuente_precio: { type: string, nullable: true, maxLength: 150, example: 'SurtiAgro, mercado de Santa Cruz' }
+        fecha_precio: { type: string, format: date, nullable: true, example: '2026-09-07' }
+        tendencia_precio: { $ref: '#/components/schemas/TendenciaPrecio' }
+    BandaToxicologica:
+      type: string
+      nullable: true
+      enum: [roja, amarilla, azul, verde, null]
+      description: Solo productos de la categoría Agroquímicos (la base lo exige con un trigger; si no, 422)
+    TendenciaPrecio:
+      type: string
+      nullable: true
+      enum: [al_alza, estable, a_la_baja, null]
+      description: Tendencia del mercado, no de nuestro precio
+    Producto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        sku: { type: string, nullable: true, example: AGR-012 }
+        nombre: { type: string }
+        descripcion: { type: string, nullable: true }
+        precio: { type: number }
+        stock: { type: integer }
+        stock_minimo: { type: integer }
+        unidad: { type: string, example: saco 50kg }
+        categoria_id: { type: string, format: uuid, nullable: true }
+        icono: { type: string, nullable: true }
+        imagen_url: { type: string, nullable: true }
+        activo: { type: boolean }
+        composicion: { type: string, nullable: true, maxLength: 200, description: 'Ingrediente activo o N-P-K', example: 'N-P-K 18-46-0' }
+        cultivos: { type: string, nullable: true, maxLength: 300 }
+        modo_uso: { type: string, nullable: true, maxLength: 1000 }
+        dosis: { type: string, nullable: true, maxLength: 300 }
+        banda_toxicologica: { $ref: '#/components/schemas/BandaToxicologica' }
+        precio_referencia: { type: number, minimum: 0.01, nullable: true, description: 'Precio de referencia de mercado (no es el precio de venta)' }
+        fuente_precio: { type: string, nullable: true, maxLength: 150, example: 'SurtiAgro, mercado de Santa Cruz' }
+        fecha_precio: { type: string, format: date, nullable: true, example: '2026-09-07' }
+        tendencia_precio: { $ref: '#/components/schemas/TendenciaPrecio' }
+        categorias:
+          type: object
+          nullable: true
+          properties:
+            nombre: { type: string }
+            icono: { type: string }
     ZonaEntrada:
       type: object
       required: [nombre, tipo, costo, dias_min, dias_max, permite_contra_entrega]
@@ -134,7 +183,14 @@ paths:
       parameters:
         - { name: alcance, in: query, schema: { type: string, enum: [activos, todos] }, description: "`todos` requiere admin" }
       responses:
-        '200': { description: Lista de productos }
+        '200':
+          description: Lista de productos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/Producto' } }
     post:
       tags: [Inventario]
       summary: Crear producto (admin). Nace con stock 0
@@ -155,7 +211,14 @@ paths:
       tags: [Catálogo]
       summary: Detalle de un producto
       responses:
-        '200': { description: Producto }
+        '200':
+          description: Producto
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Producto' }
         '404': { $ref: '#/components/responses/Error' }
     patch:
       tags: [Inventario]

@@ -6,6 +6,7 @@ import Modal from '@/components/ui/Modal'
 import { claseBotonPrimario, claseBotonSecundario, claseEtiqueta, claseInput } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError, pedirApi } from '@/lib/api/cliente'
 import type { Categoria, Producto } from '@/types/comercio'
+import CamposFicha, { cuerpoFicha, fichaInicial, type FormFicha } from './CamposFicha'
 
 const MAX_BYTES = 2 * 1024 * 1024
 
@@ -27,10 +28,12 @@ export default function ModalProducto({ producto, categorias, onCerrar, onGuarda
     categoria_id: producto?.categoria_id ?? '',
     imagen_url: producto?.imagen_url ?? '',
   })
+  const [ficha, setFicha] = useState<FormFicha>(() => fichaInicial(producto))
   const [guardando, setGuardando] = useState(false)
   const [subiendo, setSubiendo] = useState(false)
   const [error, setError] = useState('')
   const cambiar = (cambios: Partial<typeof form>) => setForm((f) => ({ ...f, ...cambios }))
+  const esAgroquimico = categorias.find((c) => c.id === form.categoria_id)?.nombre === 'Agroquímicos'
 
   const subirImagen = async (archivo: File | undefined) => {
     if (!archivo) return
@@ -65,6 +68,7 @@ export default function ModalProducto({ producto, categorias, onCerrar, onGuarda
       unidad: form.unidad.trim(),
       categoria_id: form.categoria_id,
       imagen_url: form.imagen_url || null,
+      ...cuerpoFicha(ficha, esAgroquimico),
       ...(producto ? {} : { icono: categoria?.icono ?? '📦' }),
     }
 
@@ -111,6 +115,8 @@ export default function ModalProducto({ producto, categorias, onCerrar, onGuarda
             className="text-texto-2 text-sm w-full min-w-0 file:mr-3 file:bg-tarjeta-hover file:border file:border-borde file:text-texto file:rounded-lg file:px-3 file:py-2" />
           {subiendo && <p className="text-texto-2 text-xs mt-1">Subiendo imagen...</p>}
         </div>
+
+        <CamposFicha ficha={ficha} esAgroquimico={esAgroquimico} onCambiar={(cambios) => setFicha((f) => ({ ...f, ...cambios }))} />
 
         {!producto && <p className="text-texto-2 text-xs">El producto se crea con stock 0. Luego registra una entrada en Inventario.</p>}
 
