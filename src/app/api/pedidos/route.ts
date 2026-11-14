@@ -5,6 +5,7 @@ import { requerirAdmin, requerirSesion } from '@/lib/api/sesion'
 import { validarCuerpo, validarParametros } from '@/lib/api/validacion'
 import { buscarClientes, COLUMNAS_PEDIDO_RESUMEN, faltaColumna, sinColumnasRecoge } from '@/lib/ecommerce/consultas'
 import { esquemaCrearPedido } from '@/lib/ecommerce/esquemas'
+import { esCorreoPrueba, parametroPruebas } from '@/lib/pruebas'
 import { ESTADOS_PEDIDO, type PedidoCreado, type PedidoResumen } from '@/types/comercio'
 
 export const dynamic = 'force-dynamic'
@@ -12,11 +13,13 @@ export const dynamic = 'force-dynamic'
 const esquemaParametros = z.object({
   alcance: z.enum(['propios', 'todos']).default('propios'),
   estado: z.enum(ESTADOS_PEDIDO).optional(),
+  pruebas: parametroPruebas,
 })
 
-// GET /api/pedidos — Los propios. Con ?alcance=todos, solo admin.
+// GET /api/pedidos — Los propios. Con ?alcance=todos, solo admin, sin los pedidos de cuentas
+// de prueba (@amlagrotech.test) salvo que pida ?pruebas=1.
 export const GET = manejarRuta(async (request: NextRequest) => {
-  const { alcance, estado } = validarParametros(request, esquemaParametros)
+  const { alcance, estado, pruebas } = validarParametros(request, esquemaParametros)
   const sesion = alcance === 'todos' ? await requerirAdmin() : await requerirSesion()
 
   const consultar = (columnas: string) => {
@@ -38,7 +41,8 @@ export const GET = manejarRuta(async (request: NextRequest) => {
   if (alcance === 'propios') return respuestaOk(pedidos)
 
   const clientes = await buscarClientes(sesion.supabase, pedidos.map((p) => p.usuario_id))
-  return respuestaOk(pedidos.map((p) => ({ ...p, cliente: clientes.get(p.usuario_id) ?? null })))
+  const conCliente = pedidos.map((p) => ({ ...p, cliente: clientes.get(p.usuario_id) ?? null }))
+  return respuestaOk(pruebas ? conCliente : conCliente.filter((p) => !esCorreoPrueba(p.cliente?.email)))
 })
 
 // POST /api/pedidos — Crea el pedido. Precios y totales los calcula la base.

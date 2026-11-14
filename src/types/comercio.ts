@@ -105,6 +105,7 @@ export interface EventoSeguimiento {
 export interface ClientePedido {
   nombre: string
   telefono: string | null
+  email: string
 }
 
 export interface PedidoResumen {

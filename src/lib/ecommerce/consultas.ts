@@ -29,13 +29,13 @@ export async function buscarClientes(supabase: ClienteSupabase, ids: Array<strin
 
   const { data, error } = await supabase
     .from('perfiles')
-    .select('id, nombre, telefono')
+    .select('id, nombre, telefono, email')
     .in('id', unicos)
 
   if (error) throw error
 
   for (const perfil of data ?? []) {
-    clientes.set(perfil.id, { nombre: perfil.nombre, telefono: perfil.telefono })
+    clientes.set(perfil.id, { nombre: perfil.nombre, telefono: perfil.telefono, email: perfil.email })
   }
 
   return clientes
