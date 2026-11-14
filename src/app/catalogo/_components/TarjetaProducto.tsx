@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { LuCheck, LuShoppingCart } from 'react-icons/lu'
 import EtiquetaCategoria from '@/components/EtiquetaCategoria'
 import ImagenProducto from '@/components/ImagenProducto'
+import { InsigniaTendencia } from '@/components/InsigniasFicha'
 import { estiloCategoria } from '@/lib/categorias'
 import { nivelStock } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
@@ -61,6 +62,7 @@ export default function TarjetaProducto({ producto, agregado, onAgregar, priorid
             <p className={`font-titulo font-bold tabular-nums tracking-tight text-texto ${compacta ? 'text-xl' : 'text-2xl'}`}>{formatoBs(producto.precio)}</p>
             <span className="text-sm text-texto-2">por {producto.unidad}</span>
           </div>
+          {producto.tendencia_precio && <InsigniaTendencia tendencia={producto.tendencia_precio} className="mt-1" />}
           <p className={`mb-3 mt-0.5 text-sm ${stock.clase}`}>
             {agotado ? 'Sin unidades por ahora' : `${stock.texto} · Stock: ${producto.stock}`}
           </p>
