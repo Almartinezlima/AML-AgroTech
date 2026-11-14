@@ -29,7 +29,7 @@ El catálogo tenía nombre, precio, unidad y una descripción corta. Las tiendas
 | Descartado | Razón |
 |---|---|
 | Diseño, colores y maquetación de las tiendas | AML AgroTech tiene su propia identidad (tema claro agrícola, `docs/DISENO.md`). Copiar el aspecto de otra tienda la diluye y no aporta al agricultor |
-| Fotos de producto de otras webs | Tienen derechos de su titular. Los 3 productos nuevos muestran la foto de su categoría (`public/categorias/agroquimicos.webp`, CC BY-SA 2.0) hasta tener fotos propias, y el texto alternativo lo aclara |
+| Fotos de SurtiAgro | Tienen derechos de su titular y no hacían falta. En la fase 1B los 3 productos nuevos recibieron fotos de Agrizon (Yara DAP, Agrogen KCl, Urea Green), con el mismo criterio que 20 de los 33 existentes: uso referencial académico, a reemplazar antes de comercializar. Detalle en `docs/CREDITOS_IMAGENES.md` (migración `0009`) |
 | Dosis y banda inventadas | Son datos de seguridad. Quedan vacíos hasta que Aldo los cargue desde el admin con la etiqueta en la mano |
 | Composición dudosa | Carbotecnia Arranque queda sin composición porque ni el nombre ni la etiqueta conocida la dicen |
 | Precio de Santa Cruz como precio de venta | Santa Cruz está a más de 600 km de Villa Charcas. Se muestra como **referencia** y el precio de venta incluye el flete |
