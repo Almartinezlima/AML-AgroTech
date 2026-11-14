@@ -20,22 +20,36 @@ interface PasoEntregaProps {
   onCambiar: (cambios: Partial<DatosEntrega>) => void
 }
 
+// Grupos del checkout según el tipo de zona: una zona nueva del admin cae sola en su grupo
+const GRUPOS = [
+  { titulo: 'Villa Charcas y sus distritos', tipos: ['recojo', 'urbano'] },
+  { titulo: 'Otros municipios', tipos: ['provincia'] },
+] as const
+
 export default function PasoEntrega({ zonas, datos, onCambiar }: PasoEntregaProps) {
   const zona = zonas.find((z) => z.id === datos.zonaId)
+  const grupos = GRUPOS
+    .map((g) => ({ titulo: g.titulo, zonas: zonas.filter((z) => (g.tipos as readonly string[]).includes(z.tipo)) }))
+    .filter((g) => g.zonas.length > 0)
 
   return (
     <div className="flex flex-col gap-5">
-      <fieldset className="flex flex-col gap-3">
+      <fieldset className="flex flex-col gap-4">
         <legend className={claseEtiqueta}>¿Dónde recibes tu pedido?</legend>
-        {zonas.map((z) => (
-          <label key={z.id} className={`flex cursor-pointer items-center gap-3 rounded-2xl border bg-tarjeta p-4 transition hover:border-acento ${z.id === datos.zonaId ? 'border-acento ring-2 ring-acento/20' : 'border-borde'}`}>
-            <input type="radio" name="zona" checked={z.id === datos.zonaId} onChange={() => onCambiar({ zonaId: z.id })} className="h-5 w-5 accent-acento" />
-            <span className="min-w-0 flex-1">
-              <span className="block font-semibold text-texto">{z.nombre}</span>
-              <span className="block text-sm text-texto-2">{ETIQUETA_TIPO_ZONA[z.tipo]} · {tiempoEntrega(z)}</span>
-            </span>
-            <span className="whitespace-nowrap font-bold text-acento">{z.costo === 0 ? 'Gratis' : formatoBs(z.costo)}</span>
-          </label>
+        {grupos.map((grupo, i) => (
+          <div key={grupo.titulo} role="group" aria-labelledby={`grupo-zonas-${i}`} className="flex flex-col gap-3">
+            <p id={`grupo-zonas-${i}`} className="text-sm font-semibold text-texto">{grupo.titulo}</p>
+            {grupo.zonas.map((z) => (
+              <label key={z.id} className={`flex cursor-pointer items-center gap-3 rounded-2xl border bg-tarjeta p-4 transition hover:border-acento ${z.id === datos.zonaId ? 'border-acento ring-2 ring-acento/20' : 'border-borde'}`}>
+                <input type="radio" name="zona" checked={z.id === datos.zonaId} onChange={() => onCambiar({ zonaId: z.id })} className="h-5 w-5 accent-acento" />
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold text-texto">{z.nombre}</span>
+                  <span className="block text-sm text-texto-2">{ETIQUETA_TIPO_ZONA[z.tipo]} · {tiempoEntrega(z)}</span>
+                </span>
+                <span className="whitespace-nowrap font-bold text-acento">{z.costo === 0 ? 'Gratis' : formatoBs(z.costo)}</span>
+              </label>
+            ))}
+          </div>
         ))}
       </fieldset>
 
@@ -48,9 +62,9 @@ export default function PasoEntrega({ zonas, datos, onCambiar }: PasoEntregaProp
 
       {zona?.tipo === 'urbano' && (
         <div>
-          <label htmlFor="direccion" className={claseEtiqueta}>Dirección de entrega en el pueblo</label>
+          <label htmlFor="direccion" className={claseEtiqueta}>Dirección o comunidad de entrega</label>
           <textarea id="direccion" rows={2} maxLength={300} value={datos.direccion} onChange={(e) => onCambiar({ direccion: e.target.value })}
-            placeholder="Ej.: Calle Sucre, a media cuadra de la plaza" className={`${claseInput} resize-none`} />
+            placeholder="Ej.: Calle Sucre, a media cuadra de la plaza · o tu comunidad y una referencia" className={`${claseInput} resize-none`} />
         </div>
       )}
 
