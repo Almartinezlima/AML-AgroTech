@@ -3,7 +3,9 @@ import type { ClientePedido } from '@/types/comercio'
 type ClienteSupabase = Awaited<ReturnType<typeof import('@/lib/api/supabase-servidor').createServerSupabaseClient>>
 
 export const COLUMNAS_PRODUCTO =
-  'id, sku, nombre, descripcion, precio, stock, stock_minimo, unidad, categoria_id, icono, imagen_url, activo, categorias(nombre, icono)'
+  'id, sku, nombre, descripcion, precio, stock, stock_minimo, unidad, categoria_id, icono, imagen_url, activo, ' +
+  'composicion, cultivos, modo_uso, dosis, banda_toxicologica, precio_referencia, fuente_precio, fecha_precio, tendencia_precio, ' +
+  'categorias(nombre, icono)'
 
 export const COLUMNAS_ZONA = 'id, nombre, tipo, costo, dias_min, dias_max, permite_contra_entrega, activo, orden'
 

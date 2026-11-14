@@ -1,4 +1,4 @@
-// Tipos escritos a mano según las migraciones 0003, 0006 y 0007.
+// Tipos escritos a mano según las migraciones 0003, 0006, 0007 y 0008.
 
 export const ESTADOS_PEDIDO = ['pendiente', 'confirmado', 'preparando', 'listo_para_recoger', 'despachado', 'entregado', 'cancelado'] as const
 export type EstadoPedido = (typeof ESTADOS_PEDIDO)[number]
@@ -11,6 +11,12 @@ export type MetodoPago = (typeof METODOS_PAGO)[number]
 
 export const TIPOS_ZONA = ['recojo', 'urbano', 'provincia'] as const
 export type TipoZona = (typeof TIPOS_ZONA)[number]
+
+export const BANDAS_TOXICOLOGICAS = ['roja', 'amarilla', 'azul', 'verde'] as const
+export type BandaToxicologica = (typeof BANDAS_TOXICOLOGICAS)[number]
+
+export const TENDENCIAS_PRECIO = ['al_alza', 'estable', 'a_la_baja'] as const
+export type TendenciaPrecio = (typeof TENDENCIAS_PRECIO)[number]
 
 export type EstadoEnvio = 'por_despachar' | 'listo_para_recoger' | 'en_camino' | 'entregado'
 export type TipoMovimiento = 'entrada' | 'salida' | 'ajuste' | 'devolucion'
@@ -35,6 +41,17 @@ export interface Producto {
   icono: string | null
   imagen_url: string | null
   activo: boolean
+  // Ficha técnica (migración 0008): todo opcional
+  composicion: string | null
+  cultivos: string | null
+  modo_uso: string | null
+  dosis: string | null
+  banda_toxicologica: BandaToxicologica | null
+  // Precio de referencia de mercado (no es nuestro precio)
+  precio_referencia: number | null
+  fuente_precio: string | null
+  fecha_precio: string | null
+  tendencia_precio: TendenciaPrecio | null
   categorias: { nombre: string; icono: string } | null
 }
 

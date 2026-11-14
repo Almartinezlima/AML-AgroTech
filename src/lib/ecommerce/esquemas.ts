@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ESTADOS_PEDIDO, METODOS_PAGO, TIPOS_ZONA } from '@/types/comercio'
+import { BANDAS_TOXICOLOGICAS, ESTADOS_PEDIDO, METODOS_PAGO, TENDENCIAS_PRECIO, TIPOS_ZONA } from '@/types/comercio'
 import { REGEX_CI } from './reglas'
 
 const textoOpcional = (maximo: number) =>
@@ -73,6 +73,17 @@ const camposProducto = {
   unidad: z.string({ error: 'La unidad es obligatoria.' }).trim().min(1, { error: 'La unidad es obligatoria.' }).max(30, { error: 'Máximo 30 caracteres.' }),
   categoria_id: z.uuid({ error: 'Elige una categoría.' }),
   icono: z.string({ error: 'El icono no es válido.' }).trim().max(8, { error: 'El icono no es válido.' }).optional(),
+  // Ficha técnica (migración 0008). La base exige que la banda sea solo de Agroquímicos.
+  composicion: textoOpcional(200),
+  cultivos: textoOpcional(300),
+  modo_uso: textoOpcional(1000),
+  dosis: textoOpcional(300),
+  banda_toxicologica: z.enum(BANDAS_TOXICOLOGICAS, { error: 'La banda toxicológica no es válida.' }).nullable().optional(),
+  // Precio de referencia de mercado: fuente y fecha para que el cliente sepa de dónde sale
+  precio_referencia: z.number({ error: 'El precio de referencia no es válido.' }).positive({ error: 'El precio de referencia debe ser mayor a 0.' }).max(99999999, { error: 'El precio de referencia es demasiado alto.' }).nullable().optional(),
+  fuente_precio: textoOpcional(150),
+  fecha_precio: z.iso.date({ error: 'La fecha del precio no es válida (AAAA-MM-DD).' }).nullable().optional(),
+  tendencia_precio: z.enum(TENDENCIAS_PRECIO, { error: 'La tendencia no es válida.' }).nullable().optional(),
   // URL https (Storage de Supabase) o foto incluida en la app: /productos/<sku>.webp
   imagen_url: z
     .union([
