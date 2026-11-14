@@ -2,7 +2,7 @@
 
 **Actualizado:** 14 nov 2026 (rama `master`; la fase 6B se unió con el PR #5). Revisado contra el código, el deploy y la base real de Supabase.
 
-> ✅ Migraciones `0001` a `0007` corridas en la base real.
+> ✅ Migraciones `0001` a `0010` corridas en la base real. ⏳ `0011` (limpieza de pruebas E2E) pendiente: se corre después de unir la fase 2B de pruebas limpias.
 >
 > ✅ Deploy activo en Render: https://aml-agrotech.onrender.com (plan gratis: la primera visita tras un rato sin uso tarda unos 45 s en despertar; abrirla unos minutos antes de la demo).
 
@@ -12,19 +12,19 @@
 
 | Pilar | Estado | Qué hay | Qué falta |
 |---|---|---|---|
-| E-commerce | ✅ Probado E2E | Catálogo y portada con datos reales, ficha, carrito persistente, checkout en 3 pasos, pedidos con línea de tiempo, cancelación, panel con cifras reales; recorrido admin probado E2E (10 nov) | Ocultar datos `e2e+…` en el panel; paginar `/admin/pedidos` |
+| E-commerce | ✅ Probado E2E | Catálogo y portada con datos reales, ficha, carrito persistente, checkout en 3 pasos, pedidos con línea de tiempo, cancelación, panel con cifras reales; recorrido admin probado E2E (10 nov) | Paginar `/admin/pedidos` |
 | Seguridad | ✅ Probada E2E | Roles protegidos en base (`es_admin`, `proteger_campos_perfil`), RLS reescrita, middleware con rol verificado en servidor, `/admin/usuarios` real, recuperación de contraseña segura (solo con enlace de recuperación), mensajes de Auth reales, carrito por cuenta, `/cuenta`, encabezados de seguridad | En Supabase Auth: mínimo de contraseña 8 y Redirect URLs |
 | Pagos | ✅ Probado E2E | QR y cuenta de demostración, contra entrega, comprobante en bucket privado, verificación con motivo de rechazo, reembolsos | Probar el rechazo en E2E |
 | Distribución | ✅ Probada E2E | Zonas editables, flota y guía, panel de envíos, recojo "Listo para recoger", WhatsApp | Definir `NEXT_PUBLIC_WHATSAPP_TIENDA`; confirmar los costos de referencia |
 | Almacenamiento | ✅ Probado E2E | Kardex, entradas y ajustes, stock protegido, niveles, alertas, CSV, valor del inventario | — |
 | API REST | 🟢 Programada | `src/app/api/**`, OpenAPI en `docs/api/openapi.yaml`, Swagger en `/api-docs` | — |
-| Pruebas | ✅ 29 E2E | Playwright: seguridad, compra, pagos, distribución, inventario, admin, 360 px | Correrlas en GitHub Actions (gratis) |
+| Pruebas | ✅ 30 E2E + barrido | Playwright: seguridad, registro, compra, pagos, distribución, inventario, admin, 360 px. Desde la fase 2B solo usan 2 cuentas fijas (admin y cliente `@amlagrotech.test`) y cada prueba anula lo que crea; el panel oculta los datos de prueba con el interruptor "Mostrar datos de prueba" ([`PRUEBAS.md`](PRUEBAS.md)) | Correr la 0011 y crear la cuenta cliente antes de la próxima corrida; ordenar las 126 cuentas viejas en la fase de cierre; GitHub Actions |
 | Deploy | ✅ Activo | Render: https://aml-agrotech.onrender.com | Next 14.2.35 es el último 14.2.x y `npm audit` aún marca una crítica en `next`: solo se arregla con Next 16 (cambio mayor), después de la feria |
 
 ## Base de datos real (14 nov 2026)
 
-- Migraciones `0001` a `0007` corridas. Buckets `productos` (público) y `comprobantes` (privado).
-- Datos (conteo del 9 nov): 33 productos, 3 cuentas reales, más las cuentas y pedidos de prueba (`e2e+…@amlagrotech.test`) que dejan las pruebas E2E.
+- Migraciones `0001` a `0010` corridas; `0011` pendiente. Buckets `productos` (público) y `comprobantes` (privado).
+- Datos (conteo del 14 nov): 36 productos, 8 zonas activas (Sucre inactiva), 126 cuentas de prueba viejas `e2e+…@amlagrotech.test` con 49 pedidos (26 pendientes, 13 entregados, 10 cancelados). Se ocultan en el panel y se ordenan en la fase de cierre.
 - "Confirm email" apagado (para la feria).
 
 ## Plan de fases
@@ -35,6 +35,8 @@
 | 1 | `fase/1-seguridad` | Seguridad + base de la API ✅ programada |
 | 2 | `fase/2-comercio` | E-commerce, API REST, Swagger, inventario, pagos y distribución ✅ programada (reemplaza a las fases 2 a 5) |
 | 2B | `fase/2b-calidad` | Arreglos de autenticación + pruebas E2E con Playwright ✅ |
+| 2A | `fase/2a-zonas` | Zonas: distritos de Villa Charcas, Incahuasi y Culpina; Sucre inactiva ✅ (PR #10) |
+| 2B | `fase/2b-pruebas-limpias` | Pruebas E2E sin basura: 2 cuentas fijas, limpieza al terminar, interruptor de datos de prueba en el panel (migración 0011) |
 | 6 | `fase/6-diseno` | Diseño de feria: fotos reales, color por categoría, tipografía y portada ✅ |
 | 6B | `fase/6-diseno` | Correcciones de la auditoría + tema claro ✅ (unida a `master`, PR #5) |
 | 6 | `fase/6-pulido` | Cuentas demo, README, celular |
