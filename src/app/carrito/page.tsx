@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { LuArrowLeft, LuMinus, LuPlus, LuShoppingCart, LuTrash2, LuUndo2 } from 'react-icons/lu'
+import { LuArrowLeft, LuArrowRight, LuMinus, LuPlus, LuShoppingCart, LuTrash2, LuUndo2 } from 'react-icons/lu'
+import PasosCompra from '@/components/compra/PasosCompra'
 import EtiquetaCategoria from '@/components/EtiquetaCategoria'
 import ImagenProducto from '@/components/ImagenProducto'
 import { BloqueCarga, BloqueVacio } from '@/components/ui/Estados'
@@ -45,7 +46,7 @@ export default function CarritoPage() {
   const avisoDeshacer = quitado && (
     <div role="status" className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl bg-texto px-4 py-3 text-white shadow-2xl sm:bottom-6">
       <span className="min-w-0 truncate text-sm">Quitaste «{quitado.nombre}»</span>
-      <button onClick={deshacer} className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl px-3 font-semibold text-[#86efac] hover:bg-white/10">
+      <button onClick={deshacer} className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl px-3 font-semibold text-white underline underline-offset-2 hover:bg-white/10">
         <LuUndo2 className="h-4 w-4" aria-hidden="true" /> Deshacer
       </button>
     </div>
@@ -73,6 +74,7 @@ export default function CarritoPage() {
   return (
     <div className={clasePagina}>
       <div className="max-w-6xl mx-auto">
+        <PasosCompra actual={0} />
         <h1 className={claseTituloPagina}>Mi carrito</h1>
         <p className="text-texto-2 mt-2 mb-8">
           {items.length} producto{items.length !== 1 ? 's' : ''} agregado{items.length !== 1 ? 's' : ''} · {unidades} unidad{unidades !== 1 ? 'es' : ''}
@@ -100,7 +102,7 @@ export default function CarritoPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-titulo text-lg font-bold tabular-nums text-texto">{formatoBs(item.precio * item.cantidad)}</span>
-                      <button onClick={() => quitar(item)} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-estado-error-texto transition hover:bg-estado-error/5">
+                      <button onClick={() => quitar(item)} title={`Quitar ${item.nombre} del carrito`} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-estado-error-texto transition hover:bg-estado-error/5">
                         <LuTrash2 className="h-4 w-4" aria-hidden="true" /> Quitar
                       </button>
                     </div>
@@ -108,11 +110,6 @@ export default function CarritoPage() {
                 </div>
               </li>
             ))}
-            <li>
-              <Link href="/catalogo" className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-acento hover:text-acento-hover">
-                <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Seguir comprando
-              </Link>
-            </li>
           </ul>
 
           <aside className={`${claseTarjeta} h-fit p-5 sm:p-6 lg:sticky lg:top-24`}>
@@ -127,17 +124,24 @@ export default function CarritoPage() {
                 : 'El costo de envío se calcula al elegir la zona de entrega.'}
             </p>
 
-            {cargandoSesion || user ? (
-              <Link href="/checkout" className={`${claseBotonPrimario} mt-6 w-full text-lg`}>Continuar con la compra</Link>
-            ) : (
-              <div className="mt-6 flex flex-col gap-3">
-                <p className="rounded-xl bg-tarjeta-hover px-4 py-3 text-sm text-texto">
-                  Para terminar la compra necesitas una cuenta. Tu carrito se guarda.
-                </p>
-                <Link href="/auth/login?siguiente=%2Fcheckout" className={`${claseBotonPrimario} w-full text-lg`}>Iniciar sesión y comprar</Link>
-                <Link href="/auth/registro?siguiente=%2Fcheckout" className={`${claseBotonSecundario} w-full`}>Crear cuenta gratis</Link>
-              </div>
-            )}
+            <div className="mt-6 flex flex-col gap-3">
+              {cargandoSesion || user ? (
+                <Link href="/checkout" className={`${claseBotonPrimario} w-full text-lg`}>
+                  Ir a pagar <LuArrowRight className="h-5 w-5" aria-hidden="true" />
+                </Link>
+              ) : (
+                <>
+                  <p className="rounded-xl bg-tarjeta-hover px-4 py-3 text-sm text-texto">
+                    Para pagar necesitas una cuenta. Tu carrito queda guardado.
+                  </p>
+                  <Link href="/auth/login?siguiente=%2Fcheckout" className={`${claseBotonPrimario} w-full text-lg`}>Iniciar sesión para pagar</Link>
+                  <Link href="/auth/registro?siguiente=%2Fcheckout" className={`${claseBotonSecundario} w-full`}>Crear cuenta para pagar</Link>
+                </>
+              )}
+              <Link href="/catalogo" className={`${claseBotonSecundario} w-full`}>
+                <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Seguir comprando
+              </Link>
+            </div>
           </aside>
         </div>
       </div>

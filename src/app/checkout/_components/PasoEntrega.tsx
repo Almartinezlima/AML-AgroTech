@@ -56,7 +56,7 @@ export default function PasoEntrega({ zonas, datos, onCambiar }: PasoEntregaProp
       {zona?.tipo === 'recojo' && (
         <p className="flex items-start gap-3 rounded-2xl bg-tarjeta-hover p-4 text-sm text-texto">
           <LuStore className="mt-0.5 h-5 w-5 shrink-0 text-acento" aria-hidden="true" />
-          Te avisamos por WhatsApp cuando tu pedido esté listo para recoger en la tienda de Villa Charcas.
+          Recoges tu pedido en la tienda de Villa Charcas. En «Mis pedidos» verás cuando esté listo para recoger.
         </p>
       )}
 

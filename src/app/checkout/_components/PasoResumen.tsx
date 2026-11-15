@@ -1,19 +1,20 @@
-import { claseTarjeta } from '@/components/ui/estilos'
-import { ETIQUETA_METODO, tiempoEntrega } from '@/lib/ecommerce/presentacion'
+import { claseTarjeta, claseTituloSeccion } from '@/components/ui/estilos'
+import { tiempoEntrega } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
-import type { Cotizacion, MetodoPago, ZonaEnvio } from '@/types/comercio'
+import type { Cotizacion, ZonaEnvio } from '@/types/comercio'
 import type { DatosEntrega } from './PasoEntrega'
 
 interface PasoResumenProps {
   cotizacion: Cotizacion
   zona: ZonaEnvio
   entrega: DatosEntrega
-  metodo: MetodoPago
 }
 
-export default function PasoResumen({ cotizacion, zona, entrega, metodo }: PasoResumenProps) {
+// Lo que se va a pedir, con el total calculado por el servidor (paso Pago)
+export default function PasoResumen({ cotizacion, zona, entrega }: PasoResumenProps) {
   return (
     <section aria-label="Resumen del pedido" className="flex flex-col gap-4">
+      <h2 className={claseTituloSeccion}>Tu pedido</h2>
       <div className={`${claseTarjeta} p-4 flex flex-col gap-2`}>
         {cotizacion.items.map((item) => (
           <div key={item.producto_id} className="flex justify-between gap-3 text-sm">
@@ -37,7 +38,6 @@ export default function PasoResumen({ cotizacion, zona, entrega, metodo }: PasoR
           <div className="flex justify-between gap-3"><dt className="text-texto-2">Recoge en la flota</dt><dd className="text-texto text-right min-w-0 break-words">{entrega.recogeNombre} · CI {entrega.recogeCi.toUpperCase()}</dd></div>
         )}
         <div className="flex justify-between gap-3"><dt className="text-texto-2">Teléfono</dt><dd className="text-texto">{entrega.telefono}</dd></div>
-        <div className="flex justify-between gap-3"><dt className="text-texto-2">Pago</dt><dd className="text-texto">{ETIQUETA_METODO[metodo]}</dd></div>
       </dl>
     </section>
   )
