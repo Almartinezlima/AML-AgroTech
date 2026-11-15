@@ -7,7 +7,7 @@ import { claseBotonPrimario, claseBotonSecundario } from '@/components/ui/estilo
 export default function NoEncontrado() {
   return (
     <div className="flex min-h-[70vh] items-center justify-center bg-fondo px-4 py-16">
-      <div className="w-full max-w-lg rounded-3xl border border-borde bg-tarjeta p-8 text-center shadow-sm sm:p-10">
+      <div className="w-full max-w-lg rounded-3xl border border-borde bg-tarjeta p-6 text-center shadow-tarjeta sm:p-10">
         <div className="mb-6"><Marca tamano="grande" /></div>
         <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-tarjeta-hover text-trigo">
           <LuMapPinOff className="h-8 w-8" aria-hidden="true" />

@@ -8,12 +8,7 @@ import TarjetaProducto from './_components/TarjetaProducto'
 import { LuSearch, LuSearchX } from 'react-icons/lu'
 import { estiloCategoria } from '@/lib/categorias'
 import { coincideBusqueda } from '@/lib/ecommerce/busqueda'
-import { claseBotonSecundario, clasePagina, claseTituloPagina } from '@/components/ui/estilos'
-
-const claseFiltro = (activo: boolean) =>
-  `inline-flex items-center gap-2 min-h-11 px-4 py-2 rounded-full text-sm font-semibold transition ${
-    activo ? 'bg-acento text-white shadow-sm' : 'bg-tarjeta border border-borde text-texto hover:border-acento'
-  }`
+import { claseBotonSecundario, claseFiltro, clasePagina, claseTituloPagina } from '@/components/ui/estilos'
 
 const ORDENES = ['nombre', 'precio-asc', 'precio-desc']
 
@@ -104,7 +99,7 @@ export default function CatalogoPage() {
           </select>
         </div>
 
-        <div className="flex flex-wrap gap-3 mb-8">
+        <div role="group" aria-label="Filtrar por categoría" className="flex flex-wrap gap-2 sm:gap-3 mb-8">
           <button onClick={() => setCategoriaActiva('Todos')} className={claseFiltro(categoriaActiva === 'Todos')} aria-pressed={categoriaActiva === 'Todos'}>Todos</button>
           {(categorias.datos ?? []).map((cat) => (
             <button key={cat.id} onClick={() => setCategoriaActiva(cat.nombre)} className={claseFiltro(categoriaActiva === cat.nombre)} aria-pressed={categoriaActiva === cat.nombre}>

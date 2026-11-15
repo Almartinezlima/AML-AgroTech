@@ -47,7 +47,7 @@ function Contenido({ items, zona, totalServidor }: ResumenCompraProps) {
 // Escritorio: tarjeta fija a la derecha
 export function ResumenLateral(props: ResumenCompraProps) {
   return (
-    <aside aria-label="Resumen de tu compra" className="hidden h-fit rounded-2xl border border-borde bg-tarjeta p-5 shadow-sm lg:sticky lg:top-24 lg:block">
+    <aside aria-label="Resumen de tu compra" className="hidden h-fit rounded-2xl border border-borde bg-tarjeta p-5 shadow-tarjeta lg:sticky lg:top-24 lg:block">
       <h2 className="mb-4 font-titulo text-xl font-bold text-texto">Tu compra</h2>
       <Contenido {...props} />
     </aside>
@@ -59,7 +59,7 @@ export function ResumenPlegable(props: ResumenCompraProps) {
   const subtotal = props.items.reduce((suma, i) => suma + i.precio * i.cantidad, 0)
   const total = props.totalServidor ?? subtotal + (props.zona?.costo ?? 0)
   return (
-    <details className="group mb-5 rounded-2xl border border-borde bg-tarjeta shadow-sm lg:hidden">
+    <details className="group mb-5 rounded-2xl border border-borde bg-tarjeta shadow-tarjeta lg:hidden">
       <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-semibold text-texto">
         <span className="min-w-0">Tu compra · {props.items.length} producto{props.items.length === 1 ? '' : 's'}</span>
         <span className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap tabular-nums text-acento">

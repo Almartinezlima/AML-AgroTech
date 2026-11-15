@@ -7,7 +7,7 @@ import EtiquetaCategoria from '@/components/EtiquetaCategoria'
 import ImagenProducto from '@/components/ImagenProducto'
 import { BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import Insignia from '@/components/ui/Insignia'
-import { claseBotonPrimario, clasePagina } from '@/components/ui/estilos'
+import { claseBotonCantidad, claseBotonPrimario, clasePagina, claseTarjeta } from '@/components/ui/estilos'
 import FichaTecnica from './_components/FichaTecnica'
 import OtrosProductos from './_components/OtrosProductos'
 import PrecioMercado from './_components/PrecioMercado'
@@ -18,7 +18,6 @@ import { INFO_NIVEL, nivelStock } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import type { Producto } from '@/types/comercio'
 
-const claseCantidad = 'grid h-11 w-11 place-items-center rounded-xl border border-borde bg-tarjeta-hover text-texto transition hover:border-acento disabled:opacity-40'
 
 export default function ProductoPage() {
   const { id } = useParams<{ id: string }>()
@@ -74,7 +73,7 @@ export default function ProductoPage() {
       </Link>
 
       <div className="mt-5 grid gap-8 md:grid-cols-2 lg:gap-12">
-        <div className="relative overflow-hidden rounded-3xl border border-borde shadow-2xl shadow-black/10">
+        <div className="relative overflow-hidden rounded-3xl border border-borde shadow-tarjeta-hover">
           <ImagenProducto
             nombre={producto.nombre}
             imagen={producto.imagen_url}
@@ -110,11 +109,11 @@ export default function ProductoPage() {
           {!agotado && (
             <div className="flex items-center gap-3">
               <span className="text-sm text-texto-2">Cantidad</span>
-              <button aria-label="Quitar uno" disabled={cantidad <= 1} onClick={() => setCantidad((c) => c - 1)} className={claseCantidad}>
+              <button aria-label="Quitar uno" disabled={cantidad <= 1} onClick={() => setCantidad((c) => c - 1)} className={claseBotonCantidad}>
                 <LuMinus className="h-4 w-4" aria-hidden="true" />
               </button>
               <span className="w-10 text-center text-lg font-semibold tabular-nums text-texto" aria-live="polite">{cantidad}</span>
-              <button aria-label="Agregar uno" disabled={cantidad >= producto.stock} onClick={() => setCantidad((c) => c + 1)} className={claseCantidad}>
+              <button aria-label="Agregar uno" disabled={cantidad >= producto.stock} onClick={() => setCantidad((c) => c + 1)} className={claseBotonCantidad}>
                 <LuPlus className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
@@ -128,7 +127,7 @@ export default function ProductoPage() {
             )}
           </button>
 
-          <ul className="grid gap-3 rounded-2xl border border-borde bg-tarjeta p-4 text-sm sm:grid-cols-2">
+          <ul className={`${claseTarjeta} grid gap-3 p-4 text-sm sm:grid-cols-2`}>
             <li className="flex items-start gap-3">
               <LuTruck className="mt-0.5 h-5 w-5 shrink-0 text-trigo" aria-hidden="true" />
               <span className="text-texto-2"><span className="block font-semibold text-texto">Envío desde Villa Charcas</span>Recojo gratis en la tienda · a domicilio en los 5 distritos de Villa Charcas · Incahuasi y Culpina por flota. El costo según tu zona lo ves al pagar</span>

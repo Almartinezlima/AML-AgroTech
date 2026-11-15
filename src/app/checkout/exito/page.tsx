@@ -24,7 +24,7 @@ function ContenidoExito() {
       <div className="text-center mb-6">
         <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-acento/10 text-acento ring-1 ring-acento/30"><LuCircleCheck className="h-9 w-9" aria-hidden="true" /></span>
         <h1 className="font-titulo text-3xl font-bold text-texto mb-2">¡Pedido registrado!</h1>
-        <p className="text-texto-2">Tu código es <span className="text-acento font-mono font-bold">{pedido.codigo}</span></p>
+        <p className="text-texto-2">Tu código es <span className="text-acento font-titulo font-bold">{pedido.codigo}</span></p>
       </div>
 
       <div className="bg-tarjeta-hover border border-borde rounded-xl p-4 mb-6">

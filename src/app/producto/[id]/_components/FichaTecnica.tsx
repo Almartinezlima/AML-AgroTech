@@ -1,5 +1,6 @@
 import { InsigniaBanda } from '@/components/InsigniasFicha'
 import type { Producto } from '@/types/comercio'
+import { claseTarjeta } from '@/components/ui/estilos'
 
 // Solo se muestran los campos que tienen dato; sin ninguno, el bloque no aparece
 export default function FichaTecnica({ producto }: { producto: Producto }) {
@@ -13,7 +14,7 @@ export default function FichaTecnica({ producto }: { producto: Producto }) {
   if (filas.length === 0 && !producto.banda_toxicologica) return null
 
   return (
-    <section aria-labelledby="titulo-ficha" className="rounded-2xl border border-borde bg-tarjeta p-4">
+    <section aria-labelledby="titulo-ficha" className={`${claseTarjeta} p-4`}>
       <h2 id="titulo-ficha" className="font-titulo text-lg font-bold text-texto">Ficha técnica</h2>
       <dl className="mt-3 grid gap-3 text-sm">
         {filas.map((fila) => (

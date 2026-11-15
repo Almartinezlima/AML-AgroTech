@@ -42,7 +42,7 @@ export default function InstruccionesPago({ metodo, monto, codigo }: Instruccion
           <Image src="/pagos/qr-demo.png" alt="QR de demostración" width={160} height={160} />
         </div>
         <div className="w-full flex flex-col gap-3">
-          <p className="text-amber-800 text-sm font-semibold">QR de demostración — no realizar pagos reales</p>
+          <p className="text-estado-pendiente-texto text-sm font-semibold">QR de demostración — no realizar pagos reales</p>
           {detalle}
         </div>
       </div>
@@ -51,7 +51,7 @@ export default function InstruccionesPago({ metodo, monto, codigo }: Instruccion
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-amber-800 text-sm font-semibold">Cuenta de demostración — no realizar pagos reales</p>
+      <p className="text-estado-pendiente-texto text-sm font-semibold">Cuenta de demostración — no realizar pagos reales</p>
       <dl className="text-sm flex flex-col gap-1">
         <div className="flex justify-between gap-3"><dt className="text-texto-2">Banco</dt><dd className="text-texto">Banco Demo</dd></div>
         <div className="flex justify-between gap-3"><dt className="text-texto-2">Cuenta</dt><dd className="text-texto font-mono">000-000000-0</dd></div>

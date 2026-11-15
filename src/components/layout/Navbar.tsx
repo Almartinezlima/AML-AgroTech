@@ -107,7 +107,7 @@ export default function Navbar() {
             </Link>
             {user && <Link href="/cuenta" className={claseEnlace(activo('/cuenta'))} onClick={cerrarMenu}>Mi cuenta</Link>}
             {user ? (
-              <button onClick={handleCerrarSesion} className="mt-1 inline-flex min-h-11 items-center gap-2 rounded-lg px-3 py-2 text-left text-base text-red-700 hover:bg-tarjeta-hover">
+              <button onClick={handleCerrarSesion} className="mt-1 inline-flex min-h-11 items-center gap-2 rounded-lg px-3 py-2 text-left text-base text-estado-error-texto hover:bg-tarjeta-hover">
                 <LuLogOut className="h-4 w-4" aria-hidden="true" /> Cerrar sesión
               </button>
             ) : (

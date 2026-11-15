@@ -33,7 +33,7 @@ export default function PedidosPage() {
                 <Link href={`/pedidos/${pedido.id}`} className={`${claseTarjeta} block p-4 sm:p-5 hover:border-acento transition-colors`}>
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div>
-                      <p className="text-acento font-mono font-bold">{pedido.codigo}</p>
+                      <p className="text-acento font-titulo text-lg font-bold">{pedido.codigo}</p>
                       <p className="text-texto-2 text-xs mt-1">{fechaHora(pedido.created_at)}</p>
                     </div>
                     <div className="flex gap-2 flex-wrap">

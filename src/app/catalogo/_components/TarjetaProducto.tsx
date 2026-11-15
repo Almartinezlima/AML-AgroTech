@@ -18,8 +18,8 @@ interface TarjetaProductoProps {
 }
 
 const TEXTO_STOCK = {
-  agotado: { texto: 'Agotado', clase: 'text-red-700' },
-  bajo: { texto: 'Últimas unidades', clase: 'text-amber-800' },
+  agotado: { texto: 'Agotado', clase: 'text-estado-error-texto' },
+  bajo: { texto: 'Últimas unidades', clase: 'text-estado-pendiente-texto' },
   normal: { texto: 'Disponible', clase: 'text-texto-2' },
 }
 
@@ -31,7 +31,7 @@ export default function TarjetaProducto({ producto, agregado, onAgregar, priorid
 
   return (
     <article
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-borde bg-tarjeta shadow-lg shadow-black/5 transition duration-300 hover:-translate-y-1 hover:border-[color:var(--color-cat)] hover:shadow-2xl hover:shadow-black/10"
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-borde bg-tarjeta shadow-tarjeta transition duration-300 hover:-translate-y-1 hover:border-[color:var(--color-cat)] hover:shadow-tarjeta-hover"
       style={{ ['--color-cat' as string]: `${color}80` }}
     >
       <Link href={`/producto/${producto.id}`} tabIndex={-1} aria-hidden="true" className="relative block overflow-hidden">
