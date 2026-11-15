@@ -25,7 +25,14 @@ Pruebas de punta a punta que usan la app **como un usuario de verdad**: el clien
    E2E_ADMIN_PASSWORD=...
    E2E_CLIENTE_EMAIL=...@amlagrotech.test
    E2E_CLIENTE_PASSWORD=...
+   # Fase 6A: los 2 distribuidores de demostración (migración 0014)
+   E2E_DIST1_EMAIL=distribuidor.sucre@amlagrotech.test
+   E2E_DIST1_PASSWORD=...
+   E2E_DIST2_EMAIL=distribuidor.scz@amlagrotech.test
+   E2E_DIST2_PASSWORD=...
    ```
+
+   Las cuentas de los distribuidores se crean en Supabase Auth con esas contraseñas **antes** de correr la 0014. La cuenta admin de las E2E cuenta como prueba desde la 0013 (`aml_es_cuenta_prueba`, por su id): sus movimientos no avisan por Telegram ni cuentan en el resumen.
 
    `.env.test.local` está en `.gitignore` y nunca se sube. Las pruebas **nunca** usan la service role.
 
@@ -56,6 +63,7 @@ Reporte: `npx playwright show-report` (abre `playwright-report/`). Si algo falla
 | `pagos-distribucion.spec.ts` | Cliente sube comprobante (PNG generado en la prueba) → el pedido no aparece en el panel con el interruptor apagado y sí encendido → admin aprueba → confirmado → preparando → despachado con flota y guía → entregado → el cliente ve la línea de tiempo completa → se anula y el stock vuelve al valor inicial |
 | `inventario.spec.ts` | El stock baja al comprar y vuelve al cancelar; el kardex muestra "Venta AML-…" y "Cancelación AML-…"; el admin registra una entrada (+5) y luego un ajuste (−5) para dejar el stock como estaba |
 | `fase-6b.spec.ts` | Búsqueda sin tildes, carrito sin cuenta, deshacer, sincronía entre pestañas, comprobante que bloquea la cancelación del cliente, páginas inexistentes |
+| `distribuidor.spec.ts` | Fase 6A, no crea nada: el registro ya no ofrece la cuenta de distribuidor; un cliente no entra a `/distribuidor` (→ `/`) y su API le da 403; el distribuidor 1 ve solo sus presentaciones, no puede editar una del 2 (404), no lee `/api/distribuidores` (403) ni entra a `/admin`; «Marcar sin stock» se ve en el panel del admin y se revierte |
 | `responsive.spec.ts` | Inicio, catálogo, auth, carrito, checkout, pedidos y panel admin (dashboard, pedidos, pagos, envíos, usuarios, inventario) en **360 px** sin scroll horizontal |
 
 ## 4. Limpieza: qué queda en la base después de una corrida

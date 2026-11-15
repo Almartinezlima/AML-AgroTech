@@ -40,14 +40,16 @@ export default function LoginPage() {
     // Una cuenta desactivada entra solo para ver el aviso
     const { data: perfil } = await supabase
       .from('perfiles')
-      .select('activo')
+      .select('activo, rol')
       .eq('id', data.user.id)
       .maybeSingle()
 
     const siguiente = new URLSearchParams(window.location.search).get('siguiente')
     // Navegación completa: el router de Next guarda precargas hechas SIN sesión
     // (p. ej. /carrito → login) y las reusaría; así se parte de cero con la cuenta nueva
-    window.location.assign(perfil?.activo === false ? '/cuenta-desactivada' : rutaInterna(siguiente))
+    // El distribuidor (proveedor) entra a su panel si no venía de otra pantalla
+    const inicio = perfil?.rol === 'distribuidor' ? '/distribuidor' : '/'
+    window.location.assign(perfil?.activo === false ? '/cuenta-desactivada' : rutaInterna(siguiente, inicio))
   }
 
   const reenviar = async () => {
