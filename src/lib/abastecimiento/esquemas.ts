@@ -74,3 +74,73 @@ export const esquemaEditarPresentacion = z
   )
   .partial()
   .refine((cambios) => Object.keys(cambios).length > 0, { message: 'No hay cambios para guardar.' })
+
+// ───── Órdenes de compra (0015) ─────
+const cantidadPresentaciones = z
+  .number({ error: 'La cantidad no es válida.' })
+  .int({ error: 'La cantidad va en números enteros.' })
+  .max(100000, { error: 'La cantidad es demasiado grande.' })
+
+const motivo = (que: string) =>
+  z.string({ error: `Escribe el motivo ${que}.` }).trim().min(3, { error: `Escribe el motivo ${que} (mínimo 3 caracteres).` }).max(300, { error: 'Máximo 300 caracteres.' })
+
+// "Armar orden": junta por proveedor en sus borradores
+export const esquemaArmarOrdenes = z.strictObject(
+  {
+    lineas: z
+      .array(
+        z.strictObject({
+          presentacion_id: z.uuid({ error: 'La presentación no es válida.' }),
+          cantidad: cantidadPresentaciones.min(1, { error: 'Pide al menos 1.' }),
+        }),
+        { error: 'Elige al menos un producto.' }
+      )
+      .min(1, { error: 'Elige al menos un producto.' })
+      .max(200, { error: 'Son demasiadas líneas.' }),
+  },
+  { error: 'Los datos enviados no son válidos.' }
+)
+
+// Cambiar o sumar una línea del borrador (0 = quitarla)
+export const esquemaLineaBorrador = z.strictObject(
+  {
+    presentacion_id: z.uuid({ error: 'La presentación no es válida.' }),
+    cantidad: cantidadPresentaciones.min(0, { error: 'La cantidad no puede ser negativa.' }),
+  },
+  { error: 'Los datos enviados no son válidos.' }
+)
+
+export const esquemaMotivoCancelacion = z.strictObject({ motivo: motivo('de la cancelación') }, { error: 'Los datos enviados no son válidos.' })
+export const esquemaMotivoRechazo = z.strictObject({ motivo: motivo('del rechazo') }, { error: 'Los datos enviados no son válidos.' })
+
+export const esquemaAceptarOrden = z.strictObject(
+  {
+    // AAAA-MM-DD del calendario; la base valida que no sea antes de hoy en Bolivia
+    fecha_estimada: z.string({ error: 'Elige la fecha de entrega.' }).regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Elige la fecha de entrega.' }),
+  },
+  { error: 'Los datos enviados no son válidos.' }
+)
+
+export const esquemaDespacharOrden = z.strictObject(
+  {
+    transportista: z.string({ error: 'Escribe el transportista.' }).trim().min(2, { error: 'Escribe el transportista.' }).max(80, { error: 'Máximo 80 caracteres.' }),
+    guia: z.string({ error: 'Escribe el número de guía.' }).trim().min(1, { error: 'Escribe el número de guía.' }).max(60, { error: 'Máximo 60 caracteres.' }),
+  },
+  { error: 'Los datos enviados no son válidos.' }
+)
+
+export const esquemaRecibirOrden = z.strictObject(
+  {
+    lineas: z
+      .array(
+        z.strictObject({
+          item_id: z.uuid({ error: 'La línea no es válida.' }),
+          cantidad_recibida: cantidadPresentaciones.min(0, { error: 'Lo recibido no puede ser negativo.' }),
+        })
+      )
+      .min(1, { error: 'Indica lo que llegó de cada línea.' })
+      .max(200),
+    nota: z.string().trim().max(300, { error: 'La nota es muy larga (máximo 300 caracteres).' }).optional(),
+  },
+  { error: 'Los datos enviados no son válidos.' }
+)
