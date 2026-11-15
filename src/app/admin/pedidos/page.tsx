@@ -1,20 +1,25 @@
 'use client'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import EncabezadoAdmin from '@/components/admin/EncabezadoAdmin'
 import InterruptorPruebas, { conPruebas, useMostrarPruebas } from '@/components/admin/InterruptorPruebas'
 import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
-import { claseInput, clasePagina } from '@/components/ui/estilos'
+import { claseEnlace, claseInput, clasePagina } from '@/components/ui/estilos'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import { INFO_ESTADO_PEDIDO } from '@/lib/ecommerce/presentacion'
 import { ESTADOS_PEDIDO, type EstadoPedido, type PedidoResumen } from '@/types/comercio'
 import ListaPedidosAdmin from '../_components/ListaPedidosAdmin'
 import { LuShoppingCart } from 'react-icons/lu'
 
-export default function AdminPedidosPage() {
+// ?codigo=AML-0123 (enlace del aviso de Telegram) muestra solo ese pedido
+function ContenidoPedidos() {
+  const codigo = useSearchParams().get('codigo')?.trim().toUpperCase() || null
   const [estado, setEstado] = useState<EstadoPedido | ''>('')
   const { mostrar, setMostrar, listo } = useMostrarPruebas()
   const url = conPruebas(`/api/pedidos?alcance=todos${estado ? `&estado=${estado}` : ''}`, mostrar)
   const { datos, cargando, error, recargar } = useDatosApi<PedidoResumen[]>(listo ? url : null)
+  const pedidos = codigo ? datos?.filter((p) => p.codigo.toUpperCase() === codigo) : datos
 
   return (
     <div className={clasePagina}>
@@ -38,16 +43,31 @@ export default function AdminPedidosPage() {
           }
         />
 
+        {codigo && (
+          <p className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-texto-2">
+            Mostrando solo el pedido <span className="font-semibold text-texto">{codigo}</span>
+            <Link href="/admin/pedidos" className={claseEnlace}>Ver todos los pedidos</Link>
+          </p>
+        )}
+
         {cargando || !listo ? (
           <BloqueCarga />
-        ) : error || !datos ? (
+        ) : error || !pedidos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
-        ) : datos.length === 0 ? (
-          <BloqueVacio icono={LuShoppingCart} mensaje="No hay pedidos con ese estado" />
+        ) : pedidos.length === 0 ? (
+          <BloqueVacio icono={LuShoppingCart} mensaje={codigo ? `No se encontró el pedido ${codigo} con este filtro` : 'No hay pedidos con ese estado'} />
         ) : (
-          <ListaPedidosAdmin pedidos={datos} onActualizado={() => void recargar()} />
+          <ListaPedidosAdmin pedidos={pedidos} onActualizado={() => void recargar()} />
         )}
       </div>
     </div>
+  )
+}
+
+export default function AdminPedidosPage() {
+  return (
+    <Suspense fallback={<div className={clasePagina}><BloqueCarga /></div>}>
+      <ContenidoPedidos />
+    </Suspense>
   )
 }

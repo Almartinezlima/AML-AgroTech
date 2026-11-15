@@ -1,19 +1,19 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { LuCamera, LuFileText, LuRefreshCw, LuSend } from 'react-icons/lu'
+import { LuCamera, LuFileText, LuImage, LuRefreshCw, LuSend } from 'react-icons/lu'
 import { AvisoError } from '@/components/ui/Estados'
-import { claseBotonPrimario, claseBotonSecundario } from '@/components/ui/estilos'
+import { claseBotonPrimario, claseBotonSecundario, claseEnlace } from '@/components/ui/estilos'
 import { mensajeDeError, pedirApi } from '@/lib/api/cliente'
+import { ErrorImagen, MAX_BYTES_COMPROBANTE, prepararFotoComprobante } from '@/lib/pagos/imagen'
 
-const MAX_BYTES = 3 * 1024 * 1024
-const TIPOS = 'image/jpeg,image/png,image/webp,application/pdf'
-
-// Botón propio en español: en el celular abre la cámara; también deja elegir un archivo o PDF.
+// Tres caminos: sacar la foto con la cámara, elegirla de la galería (sin «capture», así el
+// celular muestra Galería/Fotos) o subir un PDF. Las fotos se achican a JPG antes de enviar.
 // Muestra una vista previa antes de enviar.
 export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: string; onEnviado: () => void }) {
   const [archivo, setArchivo] = useState<File | null>(null)
   const [vista, setVista] = useState<string | null>(null)
   const [subiendo, setSubiendo] = useState(false)
+  const [preparando, setPreparando] = useState(false)
   const [error, setError] = useState('')
 
   // La vista previa se libera al cambiar de archivo o al salir
@@ -24,12 +24,34 @@ export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: st
     return () => URL.revokeObjectURL(url)
   }, [archivo])
 
-  const elegir = (lista: FileList | null) => {
-    const elegido = lista?.[0] ?? null
+  const elegirFoto = async (entrada: HTMLInputElement) => {
+    const elegido = entrada.files?.[0]
+    entrada.value = '' // permite volver a elegir la misma foto
+    if (!elegido) return
     setError('')
-    if (elegido && elegido.size > MAX_BYTES) {
+    setPreparando(true)
+    try {
+      setArchivo(await prepararFotoComprobante(elegido))
+    } catch (causa) {
       setArchivo(null)
-      return setError('La foto pesa más de 3 MB. Sácala de nuevo con menos zoom o recórtala, y vuelve a elegirla.')
+      setError(causa instanceof ErrorImagen ? causa.message : 'No pudimos abrir esa foto. Elige otra o sácala de nuevo.')
+    } finally {
+      setPreparando(false)
+    }
+  }
+
+  const elegirPdf = (entrada: HTMLInputElement) => {
+    const elegido = entrada.files?.[0]
+    entrada.value = ''
+    if (!elegido) return
+    setError('')
+    if (elegido.type !== 'application/pdf') {
+      setArchivo(null)
+      return setError('Ese archivo no es un PDF. Para una foto usa «Elegir de la galería».')
+    }
+    if (elegido.size > MAX_BYTES_COMPROBANTE) {
+      setArchivo(null)
+      return setError('El PDF pesa más de 3 MB. Mejor saca una foto del comprobante o una captura de pantalla.')
     }
     setArchivo(elegido)
   }
@@ -56,19 +78,31 @@ export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: st
       <p className="font-semibold text-texto">Envíanos tu comprobante</p>
       <AvisoError mensaje={error} />
 
-      {!archivo ? (
-        <div className="flex flex-col gap-2 sm:flex-row">
-          {/* El input queda oculto: el botón visible es la etiqueta */}
-          <label className={`${claseBotonPrimario} cursor-pointer`}>
-            <LuCamera className="h-5 w-5" aria-hidden="true" /> Subir foto del comprobante
-            <input type="file" accept="image/*" capture="environment" className="sr-only"
-              aria-label="Subir foto del comprobante" onChange={(e) => elegir(e.target.files)} />
-          </label>
-          <label className={`${claseBotonSecundario} cursor-pointer`}>
-            <LuFileText className="h-5 w-5" aria-hidden="true" /> Elegir archivo o PDF
-            <input type="file" accept={TIPOS} className="sr-only" aria-label="Elegir archivo o PDF de la galería"
-              onChange={(e) => elegir(e.target.files)} />
-          </label>
+      {preparando ? (
+        <p className="rounded-xl border border-borde bg-tarjeta px-4 py-3 text-sm text-texto-2" role="status">Preparando la foto…</p>
+      ) : !archivo ? (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            {/* El input queda oculto: el botón visible es la etiqueta */}
+            <label className={`${claseBotonPrimario} cursor-pointer`}>
+              <LuCamera className="h-5 w-5" aria-hidden="true" /> Sacar foto
+              <input type="file" accept="image/*" capture="environment" className="sr-only"
+                aria-label="Sacar foto del comprobante con la cámara" onChange={(e) => void elegirFoto(e.currentTarget)} />
+            </label>
+            <label className={`${claseBotonSecundario} cursor-pointer`}>
+              <LuImage className="h-5 w-5" aria-hidden="true" /> Elegir de la galería
+              <input type="file" accept="image/*" className="sr-only"
+                aria-label="Elegir foto del comprobante de la galería" onChange={(e) => void elegirFoto(e.currentTarget)} />
+            </label>
+          </div>
+          <p className="text-sm text-texto-2">
+            ¿Te lo mandaron en PDF?{' '}
+            <label className={`${claseEnlace} inline-flex min-h-11 cursor-pointer items-center`}>
+              Subir PDF
+              <input type="file" accept="application/pdf" className="sr-only"
+                aria-label="Subir comprobante en PDF" onChange={(e) => elegirPdf(e.currentTarget)} />
+            </label>
+          </p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -90,7 +124,7 @@ export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: st
           </div>
         </div>
       )}
-      <p className="text-sm text-texto-2">JPG, PNG, WEBP o PDF, máximo 3 MB.</p>
+      <p className="text-sm text-texto-2">Foto o PDF. Las fotos se achican solas antes de enviarse.</p>
     </div>
   )
 }

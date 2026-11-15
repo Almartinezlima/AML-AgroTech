@@ -66,7 +66,7 @@ test.describe('Fase 6B', () => {
     await page.goto(`/pedidos/${pedido.id}`)
     await expect(page.getByRole('button', { name: 'Cancelar pedido' })).toBeVisible()
 
-    await page.getByLabel('Subir foto del comprobante').setInputFiles({ name: 'comprobante-e2e.png', mimeType: 'image/png', buffer: imagenComprobante() })
+    await page.getByLabel('Elegir foto del comprobante de la galería').setInputFiles({ name: 'comprobante-e2e.png', mimeType: 'image/png', buffer: imagenComprobante() })
     await expect(page.getByAltText('Vista previa del comprobante')).toBeVisible()
     await page.getByRole('button', { name: 'Enviar comprobante' }).click()
     await expect(page.getByText('En revisión').first()).toBeVisible()
