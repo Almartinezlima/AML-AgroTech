@@ -326,6 +326,30 @@ paths:
         '401': { $ref: '#/components/responses/Error' }
         '409': { $ref: '#/components/responses/Error' }
         '422': { $ref: '#/components/responses/Error' }
+  /pedidos/ultima-entrega:
+    get:
+      tags: [Pedidos]
+      summary: Datos de entrega del último pedido propio (para rellenar el checkout)
+      description: 'Solo pedidos del usuario de la sesión. Devuelve zona (solo si sigue activa), dirección, teléfono y quién recoge en flota; data es null si todavía no tiene pedidos (fase 4).'
+      security: [{ sesion: [] }]
+      responses:
+        '200':
+          description: Datos de la última entrega, o null
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    nullable: true
+                    type: object
+                    properties:
+                      zona_id: { type: string, format: uuid, nullable: true }
+                      direccion: { type: string, nullable: true }
+                      telefono: { type: string, nullable: true }
+                      recoge_nombre: { type: string, nullable: true }
+                      recoge_ci: { type: string, nullable: true }
+        '401': { $ref: '#/components/responses/Error' }
   /pedidos/cotizar:
     post:
       tags: [Pedidos]
