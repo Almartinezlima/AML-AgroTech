@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { LuArrowRight, LuStore } from 'react-icons/lu'
+import { LuArrowRight, LuMessageCircle, LuStore } from 'react-icons/lu'
 import CategoriasPortada from './_components/CategoriasPortada'
 import ComoComprar from './_components/ComoComprar'
 import Hero from './_components/Hero'
@@ -21,6 +21,9 @@ function Encabezado({ titulo, texto, enlace }: { titulo: string; texto: string; 
     </div>
   )
 }
+
+const NUMERO_WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA
+const MENSAJE_PROVEEDOR = 'Hola, soy proveedor mayorista de insumos agrícolas y quiero ofrecerles mis productos.'
 
 export default function Home() {
   return (
@@ -64,11 +67,16 @@ export default function Home() {
           <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-acento/20 blur-3xl" aria-hidden="true" />
           <div className="pointer-events-none absolute -bottom-24 -right-16 h-64 w-64 rounded-full bg-trigo/15 blur-3xl" aria-hidden="true" />
           <LuStore className="relative mx-auto h-10 w-10 text-trigo" aria-hidden="true" />
-          <h2 className="relative mt-4 font-titulo text-3xl font-bold tracking-tight text-texto sm:text-4xl">¿Tienes un negocio agropecuario?</h2>
-          <p className="relative mx-auto mt-3 max-w-xl text-lg text-texto-2">Regístrate como distribuidor y compra para tu tienda en Villa Charcas, Culpina o Incahuasi.</p>
-          <Link href="/auth/registro" className="relative mt-8 inline-flex h-12 items-center rounded-2xl bg-acento px-7 font-bold text-white shadow-lg shadow-acento/30 transition hover:bg-acento-hover">
-            Crear cuenta de distribuidor
-          </Link>
+          <h2 className="relative mt-4 font-titulo text-3xl font-bold tracking-tight text-texto sm:text-4xl">¿Eres proveedor mayorista?</h2>
+          <p className="relative mx-auto mt-3 max-w-xl text-lg text-texto-2">Si vendes insumos agrícolas al por mayor en Sucre o Santa Cruz, escríbenos: te habilitamos un panel para ofrecerle tus productos a la tienda.</p>
+          {NUMERO_WHATSAPP ? (
+            <a href={`https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(MENSAJE_PROVEEDOR)}`} target="_blank" rel="noopener noreferrer"
+              className="relative mt-8 inline-flex h-12 items-center gap-2 rounded-2xl bg-acento px-7 font-bold text-white shadow-lg shadow-acento/30 transition hover:bg-acento-hover">
+              <LuMessageCircle className="h-5 w-5" aria-hidden="true" /> Escribir a la tienda por WhatsApp
+            </a>
+          ) : (
+            <p className="relative mt-6 font-semibold text-texto">Visítanos en la tienda de Villa Charcas.</p>
+          )}
         </div>
       </section>
     </div>

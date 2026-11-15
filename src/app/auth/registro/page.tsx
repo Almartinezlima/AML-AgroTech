@@ -6,15 +6,9 @@ import { mensajeErrorAuth } from '@/lib/auth/mensajes'
 import { rutaInterna } from '@/lib/auth/redireccion'
 import { useConsultaSiguiente } from '@/lib/auth/useSiguiente'
 import RevisaCorreo from './_components/RevisaCorreo'
-import { LuTruck, LuUser } from 'react-icons/lu'
 import { Aviso } from '@/components/ui/Estados'
 import { claseBotonPrimario, claseEtiqueta, claseInput } from '@/components/ui/estilos'
 import MarcoAcceso from '../_components/MarcoAcceso'
-
-const roles = [
-  { valor: 'cliente', label: 'Cliente / Agricultor', icono: LuUser, descripcion: 'Compra insumos agrícolas' },
-  { valor: 'distribuidor', label: 'Distribuidor', icono: LuTruck, descripcion: 'Vende y distribuye productos' },
-]
 
 const CORREO_YA_REGISTRADO = 'Ese correo ya está registrado. Inicia sesión o recupera tu contraseña.'
 
@@ -24,7 +18,6 @@ export default function RegistroPage() {
   const [email, setEmail] = useState('')
   const [telefono, setTelefono] = useState('')
   const [password, setPassword] = useState('')
-  const [rol, setRol] = useState('cliente')
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
   const [revisarCorreo, setRevisarCorreo] = useState(false)
@@ -45,12 +38,13 @@ export default function RegistroPage() {
     const { data: { session: sesionPrevia } } = await supabase.auth.getSession()
     if (sesionPrevia) await supabase.auth.signOut({ scope: 'local' })
 
-    // El perfil lo crea el trigger handle_new_user a partir de estos datos
+    // El perfil lo crea el trigger handle_new_user a partir de estos datos. Toda cuenta nueva
+    // es cliente: el rol distribuidor (proveedor) lo asigna el admin.
     const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { nombre, rol, telefono: telefono || null },
+        data: { nombre, telefono: telefono || null },
         emailRedirectTo: `${window.location.origin}/auth/login`,
       },
     })
@@ -102,22 +96,6 @@ export default function RegistroPage() {
             )}
           </Aviso>
         )}
-
-        <fieldset>
-          <legend className="text-texto-2 text-sm font-medium mb-3">Tipo de cuenta</legend>
-          <div className="grid grid-cols-2 gap-3">
-            {roles.map(({ valor, label, descripcion, icono: Icono }) => (
-              <button key={valor} type="button" onClick={() => setRol(valor)} aria-pressed={rol === valor}
-                className={`p-3 rounded-xl border text-left transition ${
-                  rol === valor ? 'border-acento bg-tarjeta-hover ring-1 ring-acento/40' : 'border-borde bg-tarjeta-hover hover:border-acento/60'
-                }`}>
-                <Icono className={`h-6 w-6 mb-2 ${rol === valor ? 'text-acento' : 'text-texto-2'}`} aria-hidden="true" />
-                <div className={`text-sm font-semibold ${rol === valor ? 'text-acento' : 'text-texto'}`}>{label}</div>
-                <div className="text-texto-2 text-xs mt-0.5">{descripcion}</div>
-              </button>
-            ))}
-          </div>
-        </fieldset>
 
         <div>
           <label htmlFor="nombre" className={claseEtiqueta}>Nombre completo</label>

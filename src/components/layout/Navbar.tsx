@@ -16,6 +16,7 @@ export default function Navbar() {
   const { user, perfil, cerrarSesion } = useAuth()
   const ruta = usePathname()
   const esAdmin = user && perfil?.rol === 'admin'
+  const esDistribuidor = user && perfil?.rol === 'distribuidor'
 
   const handleCerrarSesion = async () => {
     await cerrarSesion()
@@ -47,6 +48,11 @@ export default function Navbar() {
             {esAdmin && (
               <Link href="/admin" className={`${claseEnlace(activo('/admin'))} inline-flex items-center gap-1.5`}>
                 <LuLayoutDashboard className="h-4 w-4" aria-hidden="true" /> Panel Admin
+              </Link>
+            )}
+            {esDistribuidor && (
+              <Link href="/distribuidor" className={`${claseEnlace(activo('/distribuidor'))} inline-flex items-center gap-1.5`}>
+                <LuLayoutDashboard className="h-4 w-4" aria-hidden="true" /> Panel del proveedor
               </Link>
             )}
           </div>
@@ -102,6 +108,7 @@ export default function Navbar() {
               <Link key={e.href} href={e.href} className={claseEnlace(activo(e.href))} onClick={cerrarMenu}>{e.texto}</Link>
             ))}
             {esAdmin && <Link href="/admin" className={claseEnlace(activo('/admin'))} onClick={cerrarMenu}>Panel Admin</Link>}
+            {esDistribuidor && <Link href="/distribuidor" className={claseEnlace(activo('/distribuidor'))} onClick={cerrarMenu}>Panel del proveedor</Link>}
             <Link href="/carrito" className={claseEnlace(activo('/carrito'))} onClick={cerrarMenu}>
               Mi carrito {totalItems > 0 && `(${totalItems})`}
             </Link>
