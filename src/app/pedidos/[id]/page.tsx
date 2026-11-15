@@ -13,6 +13,7 @@ import { INFO_ESTADO_ENVIO, estadoCliente, fechaHora, puedeCancelarCliente } fro
 import { formatoBs } from '@/lib/utils'
 import type { PedidoDetalle } from '@/types/comercio'
 import BloquePago from './_components/BloquePago'
+import BotonNota from './_components/BotonNota'
 import LineaTiempo from './_components/LineaTiempo'
 import { LuArrowLeft, LuMessageCircle } from 'react-icons/lu'
 
@@ -143,6 +144,8 @@ export default function PedidoDetallePage() {
             <h2 className="text-texto font-bold mb-4">Seguimiento</h2>
             <LineaTiempo eventos={pedido.seguimiento_pedido} />
           </section>
+
+          <BotonNota pedido={pedido} />
 
           {puedeCancelar && (
             <button onClick={() => { setErrorCancelar(''); setCancelando(true) }} className={claseBotonPeligro}>Cancelar pedido</button>

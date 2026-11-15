@@ -8,9 +8,10 @@ import ModalConfirmacion from '@/components/ui/ModalConfirmacion'
 import { claseBoton, claseBotonPrimario, claseBotonSecundario, claseEnlace, claseEtiqueta, claseInput, claseTarjeta, claseTextoPendiente } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { ETIQUETA_METODO, INFO_ESTADO_PAGO, INFO_ESTADO_PEDIDO, fechaHora, siguienteEstado } from '@/lib/ecommerce/presentacion'
+import { nombreArchivoNota, situacionNota } from '@/lib/ecommerce/notaVenta'
 import { formatoBs } from '@/lib/utils'
 import type { PedidoResumen } from '@/types/comercio'
-import { LuHourglass } from 'react-icons/lu'
+import { LuFileDown, LuHourglass } from 'react-icons/lu'
 
 // Un dato del pedido: "Entrega: Distrito Pucara"
 function Dato({ titulo, children }: { titulo: string; children: React.ReactNode }) {
@@ -97,6 +98,12 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-b-2xl border-t border-borde bg-tarjeta-hover/40 px-4 py-3">
                 <span className="font-titulo text-xl font-bold tabular-nums text-texto">{formatoBs(pedido.total)}</span>
                 <div className="flex flex-wrap items-center justify-end gap-2">
+                  {/* Nota de venta (fase 7). Los cancelados se ven en el detalle: allí se sabe si se llegaron a confirmar */}
+                  {situacionNota(pedido) === 'disponible' && (
+                    <a href={`/api/pedidos/${pedido.id}/nota`} download={nombreArchivoNota(pedido.codigo)} className={claseBoton('secundario', 'chico')}>
+                      <LuFileDown className="h-4 w-4" aria-hidden="true" /> Nota PDF
+                    </a>
+                  )}
                   {(pedido.estado === 'pendiente' || pedido.estado === 'confirmado') && (
                     <button onClick={() => { setError(''); setCancelando(pedido) }} className={claseBoton('peligro', 'chico')}>Cancelar</button>
                   )}
