@@ -29,13 +29,13 @@ export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: st
     setError('')
     if (elegido && elegido.size > MAX_BYTES) {
       setArchivo(null)
-      return setError('El archivo supera el máximo de 3 MB. Saca la foto de nuevo o recórtala.')
+      return setError('La foto pesa más de 3 MB. Sácala de nuevo con menos zoom o recórtala, y vuelve a elegirla.')
     }
     setArchivo(elegido)
   }
 
   const enviar = async () => {
-    if (!archivo) return setError('Primero saca o elige la foto del comprobante.')
+    if (!archivo) return setError('Primero saca o elige la foto del comprobante; después toca «Enviar comprobante».')
     setSubiendo(true)
     setError('')
     try {
@@ -85,7 +85,7 @@ export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: st
               <LuSend className="h-5 w-5" aria-hidden="true" /> {subiendo ? 'Enviando…' : 'Enviar comprobante'}
             </button>
             <button onClick={() => setArchivo(null)} disabled={subiendo} className={claseBotonSecundario}>
-              <LuRefreshCw className="h-4 w-4" aria-hidden="true" /> Elegir otro
+              <LuRefreshCw className="h-4 w-4" aria-hidden="true" /> Elegir otra foto
             </button>
           </div>
         </div>

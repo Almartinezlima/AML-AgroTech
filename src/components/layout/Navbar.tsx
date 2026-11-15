@@ -103,7 +103,7 @@ export default function Navbar() {
             ))}
             {esAdmin && <Link href="/admin" className={claseEnlace(activo('/admin'))} onClick={cerrarMenu}>Panel Admin</Link>}
             <Link href="/carrito" className={claseEnlace(activo('/carrito'))} onClick={cerrarMenu}>
-              Carrito {totalItems > 0 && `(${totalItems})`}
+              Mi carrito {totalItems > 0 && `(${totalItems})`}
             </Link>
             {user && <Link href="/cuenta" className={claseEnlace(activo('/cuenta'))} onClick={cerrarMenu}>Mi cuenta</Link>}
             {user ? (
