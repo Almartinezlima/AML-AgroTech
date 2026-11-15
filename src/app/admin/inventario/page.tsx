@@ -2,15 +2,17 @@
 import { useCallback, useState } from 'react'
 import Link from 'next/link'
 import { AvisoError, BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
+import EncabezadoAdmin from '@/components/admin/EncabezadoAdmin'
+import TarjetasResumen from '@/components/admin/TarjetasResumen'
 import Insignia from '@/components/ui/Insignia'
 import Modal from '@/components/ui/Modal'
-import { claseBotonPrimario, claseBotonSecundario, claseEtiqueta, claseInput, clasePagina, claseTarjeta } from '@/components/ui/estilos'
+import { claseBoton, claseBotonPrimario, claseBotonSecundario, claseEtiqueta, claseFilaFiltros, claseFiltro, claseInput, clasePagina, claseTarjeta } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import { INFO_NIVEL, nivelStock, type NivelStock } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import type { Producto } from '@/types/comercio'
-import { LuWarehouse } from 'react-icons/lu'
+import { LuPackageX, LuTriangleAlert, LuWallet, LuWarehouse } from 'react-icons/lu'
 
 type Filtro = NivelStock | 'todos'
 const FILTROS: Array<{ valor: Filtro; texto: string }> = [
@@ -19,6 +21,9 @@ const FILTROS: Array<{ valor: Filtro; texto: string }> = [
   { valor: 'bajo', texto: 'Bajo' },
   { valor: 'agotado', texto: 'Agotado' },
 ]
+
+// Columnas de la lista en escritorio: producto | stock | estado | acciones
+const COLUMNAS = 'md:grid-cols-[minmax(0,1fr)_8rem_8rem_15rem] md:gap-4'
 
 export default function AdminInventarioPage() {
   const { datos, cargando, error, recargar } = useDatosApi<Producto[]>('/api/productos?alcance=todos')
@@ -37,6 +42,8 @@ export default function AdminInventarioPage() {
     .filter((p) => filtro === 'todos' || nivelStock(p.stock, p.stock_minimo) === filtro)
     .sort((a, b) => a.stock - b.stock)
   const valor = activos.reduce((suma, p) => suma + p.stock * p.precio, 0)
+  // Cuántos productos hay en cada nivel (para las cifras y los filtros)
+  const cuenta = (nivel: NivelStock) => activos.filter((p) => nivelStock(p.stock, p.stock_minimo) === nivel).length
 
   const abrir = (p: Producto) => {
     setProducto(p)
@@ -70,45 +77,61 @@ export default function AdminInventarioPage() {
   return (
     <div className={clasePagina}>
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold text-texto">Inventario</h1>
-        <p className="text-texto-2 mt-1 mb-6">{activos.length} productos · Valor: {formatoBs(valor)}</p>
-
-        <div className="flex flex-wrap gap-2 mb-6">
-          {FILTROS.map((f) => (
-            <button key={f.valor} onClick={() => setFiltro(f.valor)} aria-pressed={filtro === f.valor}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filtro === f.valor ? 'bg-acento text-white' : 'bg-tarjeta border border-borde text-texto-2 hover:border-acento'}`}>
-              {f.texto}
-            </button>
-          ))}
-        </div>
+        <EncabezadoAdmin titulo="Inventario" descripcion="Stock de cada producto activo. Registra compras y ajustes, o abre su kardex." />
 
         {cargando ? (
           <BloqueCarga />
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
-        ) : visibles.length === 0 ? (
-          <BloqueVacio icono={LuWarehouse} mensaje="No hay productos en este nivel" />
         ) : (
-          <ul className="flex flex-col gap-3">
-            {visibles.map((p) => (
-              <li key={p.id} className={`${claseTarjeta} p-4`}>
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="min-w-0">
-                    <p className="text-texto font-semibold text-sm break-words">{p.nombre}</p>
-                    <p className="text-texto-2 text-xs">{p.sku ?? 'Sin SKU'} · {p.categorias?.nombre}</p>
-                  </div>
-                  <Insignia info={INFO_NIVEL[nivelStock(p.stock, p.stock_minimo)]} />
+          <>
+            <TarjetasResumen etiqueta="Resumen del inventario" cifras={[
+              { titulo: 'Stock bajo', valor: String(cuenta('bajo')), detalle: 'En su mínimo o debajo', icono: LuTriangleAlert, tono: cuenta('bajo') > 0 ? 'pendiente' : 'neutro' },
+              { titulo: 'Agotados', valor: String(cuenta('agotado')), detalle: 'Sin unidades', icono: LuPackageX, tono: cuenta('agotado') > 0 ? 'error' : 'neutro' },
+              { titulo: 'Valor del inventario', valor: formatoBs(valor), detalle: `${activos.length} productos activos · stock × precio`, icono: LuWallet, tono: 'acento', ancha: true },
+            ]} />
+
+            <div role="group" aria-label="Filtrar por nivel de stock" className={`${claseFilaFiltros} mb-4`}>
+              {FILTROS.map((f) => (
+                <button key={f.valor} onClick={() => setFiltro(f.valor)} aria-pressed={filtro === f.valor} className={claseFiltro(filtro === f.valor)}>
+                  {f.texto} <span className="tabular-nums opacity-80">{f.valor === 'todos' ? activos.length : cuenta(f.valor)}</span>
+                </button>
+              ))}
+            </div>
+
+            {visibles.length === 0 ? (
+              <BloqueVacio icono={LuWarehouse} mensaje="No hay productos en este nivel" />
+            ) : (
+              <div className="md:overflow-hidden md:rounded-2xl md:border md:border-borde md:bg-tarjeta md:shadow-tarjeta">
+                {/* Encabezado de columnas: solo en escritorio */}
+                <div aria-hidden="true" className={`hidden md:grid ${COLUMNAS} border-b border-borde bg-tarjeta-hover/60 px-4 py-2.5 text-xs font-semibold text-texto-2`}>
+                  <span>Producto</span><span className="text-right">Stock</span><span>Estado</span><span className="text-right">Acciones</span>
                 </div>
-                <div className="flex items-center justify-between gap-3 flex-wrap mt-3">
-                  <p className="text-texto text-sm"><span className="font-bold text-lg">{p.stock}</span> <span className="text-texto-2">{p.unidad} · mín. {p.stock_minimo}</span></p>
-                  <div className="flex gap-2">
-                    <Link href={`/admin/inventario/${p.id}`} className={`${claseBotonSecundario} !px-3 !py-2 text-sm`}>Kardex</Link>
-                    <button onClick={() => abrir(p)} className={`${claseBotonPrimario} !px-3 !py-2 text-sm`}>Movimiento</button>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+                <ul className="flex flex-col gap-3 md:gap-0 md:divide-y md:divide-borde">
+                  {visibles.map((p) => (
+                    <li key={p.id} className={`${claseTarjeta} p-4 md:grid ${COLUMNAS} md:items-center md:rounded-none md:border-0 md:shadow-none md:py-3`}>
+                      <div className="flex items-start justify-between gap-3 md:block min-w-0">
+                        <div className="min-w-0">
+                          <p className="text-texto font-semibold break-words">{p.nombre}</p>
+                          <p className="text-texto-2 text-xs">{p.sku ?? 'Sin SKU'} · {p.categorias?.nombre}</p>
+                        </div>
+                        <span className="md:hidden"><Insignia info={INFO_NIVEL[nivelStock(p.stock, p.stock_minimo)]} /></span>
+                      </div>
+                      <p className="mt-3 text-texto-2 text-sm md:mt-0 md:text-right">
+                        <span className="font-titulo text-xl font-bold text-texto tabular-nums">{p.stock}</span> {p.unidad}
+                        <span className="block text-xs">mínimo {p.stock_minimo}</span>
+                      </p>
+                      <span className="hidden md:block"><Insignia info={INFO_NIVEL[nivelStock(p.stock, p.stock_minimo)]} /></span>
+                      <div className="mt-3 grid grid-cols-2 gap-2 md:mt-0 md:flex md:justify-end">
+                        <Link href={`/admin/inventario/${p.id}`} className={claseBoton('secundario', 'chico')}>Kardex</Link>
+                        <button onClick={() => abrir(p)} className={claseBoton('primario', 'chico')}>Movimiento</button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -134,7 +157,7 @@ export default function AdminInventarioPage() {
             </div>
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
               <button type="button" disabled={guardando} onClick={cerrar} className={claseBotonSecundario}>Cancelar</button>
-              <button type="submit" disabled={guardando} className={claseBotonPrimario}>{guardando ? 'Guardando...' : 'Registrar'}</button>
+              <button type="submit" disabled={guardando} className={claseBotonPrimario}>{guardando ? 'Guardando…' : 'Registrar'}</button>
             </div>
           </form>
         </Modal>

@@ -122,7 +122,7 @@ export default function ModalProducto({ producto, categorias, onCerrar, onGuarda
 
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
           <button type="button" disabled={guardando} onClick={onCerrar} className={claseBotonSecundario}>Cancelar</button>
-          <button type="submit" disabled={guardando || subiendo} className={claseBotonPrimario}>{guardando ? 'Guardando...' : 'Guardar'}</button>
+          <button type="submit" disabled={guardando || subiendo} className={claseBotonPrimario}>{guardando ? 'Guardando…' : 'Guardar'}</button>
         </div>
       </form>
     </Modal>

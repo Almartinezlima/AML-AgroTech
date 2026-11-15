@@ -1,18 +1,25 @@
 'use client'
 import { useCallback, useState } from 'react'
-import Link from 'next/link'
+import EncabezadoAdmin from '@/components/admin/EncabezadoAdmin'
 import InterruptorPruebas, { conPruebas, useMostrarPruebas } from '@/components/admin/InterruptorPruebas'
+import TarjetasResumen from '@/components/admin/TarjetasResumen'
 import { AvisoError, BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
-import Insignia from '@/components/ui/Insignia'
 import Modal from '@/components/ui/Modal'
 import ModalConfirmacion from '@/components/ui/ModalConfirmacion'
-import { claseBotonPeligro, claseBotonPrimario, claseBotonSecundario, claseEtiqueta, claseInput, clasePagina, claseTarjeta } from '@/components/ui/estilos'
+import { claseBotonPeligro, claseBotonSecundario, claseEtiqueta, claseFilaFiltros, claseFiltro, claseInput, clasePagina } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
-import { ETIQUETA_METODO, INFO_ESTADO_PAGO } from '@/lib/ecommerce/presentacion'
+import { INFO_ESTADO_PAGO } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import { ESTADOS_PAGO, type EstadoPago, type PagoAdmin } from '@/types/comercio'
-import { LuCreditCard } from 'react-icons/lu'
+import { LuCreditCard, LuReceipt, LuWallet } from 'react-icons/lu'
+import TarjetaPago from './_components/TarjetaPago'
+
+// Filtros por estado del pago: "Todos" y cada estado
+const OPCIONES_FILTRO: Array<{ valor: EstadoPago | ''; texto: string }> = [
+  { valor: '', texto: 'Todos' },
+  ...ESTADOS_PAGO.map((e) => ({ valor: e, texto: INFO_ESTADO_PAGO[e].etiqueta })),
+]
 
 export default function AdminPagosPage() {
   const [estado, setEstado] = useState<EstadoPago | ''>('en_revision')
@@ -65,62 +72,57 @@ export default function AdminPagosPage() {
     }
   }
 
+  // Cifras de la lista que se ve (solo suma lo ya cargado)
+  const lista = datos ?? []
+  const monto = lista.reduce((suma, p) => suma + Number(p.monto), 0)
+  const conComprobante = lista.filter((p) => p.comprobante_url).length
+  const textoFiltro = estado ? INFO_ESTADO_PAGO[estado].etiqueta.toLowerCase() : 'todos los estados'
+
   return (
     <div className={clasePagina}>
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
-          <h1 className="text-3xl font-bold text-texto">Pagos</h1>
-          <div className="flex items-center gap-4 flex-wrap">
-            <InterruptorPruebas mostrar={mostrar} onCambiar={setMostrar} />
-            <select value={estado} aria-label="Filtrar por estado" onChange={(e) => setEstado(e.target.value as EstadoPago | '')}
-              className="bg-tarjeta border border-borde text-texto rounded-xl px-4 py-3 outline-none focus:border-acento">
-              <option value="">Todos</option>
-              {ESTADOS_PAGO.map((e) => <option key={e} value={e}>{INFO_ESTADO_PAGO[e].etiqueta}</option>)}
-            </select>
-          </div>
+        <EncabezadoAdmin
+          titulo="Pagos"
+          descripcion="Revisa los comprobantes, aprueba o rechaza, y marca los reembolsos."
+          acciones={<InterruptorPruebas mostrar={mostrar} onCambiar={setMostrar} />}
+        />
+
+        <div role="group" aria-label="Filtrar por estado del pago" className={`${claseFilaFiltros} mb-5`}>
+          {OPCIONES_FILTRO.map((o) => (
+            <button key={o.valor || 'todos'} onClick={() => setEstado(o.valor)} aria-pressed={estado === o.valor} className={claseFiltro(estado === o.valor)}>
+              {o.texto}
+            </button>
+          ))}
         </div>
 
         {cargando || !listo ? (
           <BloqueCarga />
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
-        ) : datos.length === 0 ? (
-          <BloqueVacio icono={LuCreditCard} mensaje="No hay pagos con ese estado" />
         ) : (
-          <ul className="flex flex-col gap-3">
-            {datos.map((pago) => (
-              <li key={pago.id} className={`${claseTarjeta} p-4`}>
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="min-w-0">
-                    <Link href={`/pedidos/${pago.pedido_id}`} className="text-acento font-mono font-bold hover:underline">{pago.pedidos?.codigo}</Link>
-                    <p className="text-texto text-sm break-words">{pago.cliente?.nombre ?? 'Cliente'}</p>
-                    <p className="text-texto-2 text-xs">{ETIQUETA_METODO[pago.metodo]}</p>
-                    {pago.motivo_rechazo && <p className="text-red-700 text-xs break-words">Motivo: {pago.motivo_rechazo}</p>}
-                    {pago.pedidos?.estado === 'cancelado' && <p className="text-texto-2 text-xs">Pedido cancelado</p>}
-                  </div>
-                  <Insignia info={INFO_ESTADO_PAGO[pago.estado]} />
-                </div>
+          <>
+            <TarjetasResumen etiqueta={`Resumen de pagos: ${textoFiltro}`} cifras={[
+              { titulo: 'Pagos', valor: String(lista.length), detalle: `En ${textoFiltro}`, icono: LuCreditCard, tono: 'acento' },
+              { titulo: 'Con comprobante', valor: String(conComprobante), detalle: 'Foto o captura subida', icono: LuReceipt },
+              { titulo: 'Monto', valor: formatoBs(monto), detalle: 'Suma de la lista', icono: LuWallet, tono: 'acento', ancha: true },
+            ]} />
 
-                <div className="flex items-center justify-between gap-3 flex-wrap mt-3">
-                  <span className="text-texto font-bold">{formatoBs(pago.monto)}</span>
-                  <div className="flex gap-2 flex-wrap items-center">
-                    {pago.comprobante_url && (
-                      <a href={pago.comprobante_url} target="_blank" rel="noopener noreferrer" className="text-acento text-sm hover:underline">Ver comprobante</a>
-                    )}
-                    {pago.estado === 'reembolso_pendiente' && (
-                      <button onClick={() => { setErrorAccion(''); setReembolsando(pago) }} className={`${claseBotonPrimario} !px-3 !py-2 text-sm`}>Marcar como reembolsado</button>
-                    )}
-                    {pago.estado === 'en_revision' && (
-                      <>
-                        <button onClick={() => { setErrorAccion(''); setRechazando(pago) }} className={`${claseBotonPeligro} !px-3 !py-2 text-sm`}>Rechazar</button>
-                        <button onClick={() => { setErrorAccion(''); setAprobando(pago) }} className={`${claseBotonPrimario} !px-3 !py-2 text-sm`}>Aprobar</button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+            {datos.length === 0 ? (
+              <BloqueVacio icono={LuCreditCard} mensaje="No hay pagos con ese estado" />
+            ) : (
+              <ul className="flex flex-col gap-3">
+                {datos.map((pago) => (
+                  <TarjetaPago
+                    key={pago.id}
+                    pago={pago}
+                    onAprobar={() => { setErrorAccion(''); setAprobando(pago) }}
+                    onRechazar={() => { setErrorAccion(''); setRechazando(pago) }}
+                    onReembolsar={() => { setErrorAccion(''); setReembolsando(pago) }}
+                  />
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </div>
 
@@ -159,7 +161,7 @@ export default function AdminPagosPage() {
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
               <button disabled={procesando} onClick={cerrar} className={claseBotonSecundario}>Volver</button>
               <button disabled={procesando} onClick={() => void verificar(rechazando, false)} className={claseBotonPeligro}>
-                {procesando ? 'Guardando...' : 'Rechazar pago'}
+                {procesando ? 'Guardando…' : 'Rechazar pago'}
               </button>
             </div>
           </div>

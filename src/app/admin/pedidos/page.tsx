@@ -1,8 +1,9 @@
 'use client'
 import { useState } from 'react'
+import EncabezadoAdmin from '@/components/admin/EncabezadoAdmin'
 import InterruptorPruebas, { conPruebas, useMostrarPruebas } from '@/components/admin/InterruptorPruebas'
 import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
-import { clasePagina } from '@/components/ui/estilos'
+import { claseInput, clasePagina } from '@/components/ui/estilos'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import { INFO_ESTADO_PEDIDO } from '@/lib/ecommerce/presentacion'
 import { ESTADOS_PEDIDO, type EstadoPedido, type PedidoResumen } from '@/types/comercio'
@@ -18,21 +19,24 @@ export default function AdminPedidosPage() {
   return (
     <div className={clasePagina}>
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
-          <h1 className="text-3xl font-bold text-texto">Pedidos</h1>
-          <div className="flex items-center gap-4 flex-wrap">
-            <InterruptorPruebas mostrar={mostrar} onCambiar={setMostrar} />
-            <select
-              value={estado}
-              aria-label="Filtrar por estado"
-              onChange={(e) => setEstado(e.target.value as EstadoPedido | '')}
-              className="bg-tarjeta border border-borde text-texto rounded-xl px-4 py-3 outline-none focus:border-acento"
-            >
-              <option value="">Todos los estados</option>
-              {ESTADOS_PEDIDO.map((e) => <option key={e} value={e}>{INFO_ESTADO_PEDIDO[e].etiqueta}</option>)}
-            </select>
-          </div>
-        </div>
+        <EncabezadoAdmin
+          titulo="Pedidos"
+          descripcion="Todos los pedidos de la tienda, del más nuevo al más viejo."
+          acciones={
+            <>
+              <InterruptorPruebas mostrar={mostrar} onCambiar={setMostrar} />
+              <select
+                value={estado}
+                aria-label="Filtrar por estado"
+                onChange={(e) => setEstado(e.target.value as EstadoPedido | '')}
+                className={`${claseInput} !w-auto !bg-tarjeta`}
+              >
+                <option value="">Todos los estados</option>
+                {ESTADOS_PEDIDO.map((e) => <option key={e} value={e}>{INFO_ESTADO_PEDIDO[e].etiqueta}</option>)}
+              </select>
+            </>
+          }
+        />
 
         {cargando || !listo ? (
           <BloqueCarga />

@@ -2,15 +2,16 @@
 import { useCallback, useState } from 'react'
 import ImagenProducto from '@/components/ImagenProducto'
 import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
-import Insignia from '@/components/ui/Insignia'
+import EncabezadoAdmin from '@/components/admin/EncabezadoAdmin'
+import Insignia, { INSIGNIA_ACTIVO, INSIGNIA_INACTIVO } from '@/components/ui/Insignia'
 import ModalConfirmacion from '@/components/ui/ModalConfirmacion'
-import { claseBotonPrimario, claseBotonSecundario, claseInput, clasePagina, claseTarjeta } from '@/components/ui/estilos'
+import { claseBoton, claseBotonPrimario, claseInput, clasePagina, claseTarjeta } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import { formatoBs } from '@/lib/utils'
 import type { Categoria, Producto } from '@/types/comercio'
 import ModalProducto from './_components/ModalProducto'
-import { LuPackage } from 'react-icons/lu'
+import { LuPackage, LuPlus } from 'react-icons/lu'
 
 export default function AdminProductosPage() {
   const { datos, cargando, error, recargar } = useDatosApi<Producto[]>('/api/productos?alcance=todos')
@@ -45,13 +46,11 @@ export default function AdminProductosPage() {
   return (
     <div className={clasePagina}>
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-texto">Productos</h1>
-            <p className="text-texto-2 mt-1">{datos?.length ?? 0} registrados</p>
-          </div>
-          <button onClick={() => setEditando('nuevo')} className={claseBotonPrimario}>+ Nuevo producto</button>
-        </div>
+        <EncabezadoAdmin
+          titulo="Productos"
+          descripcion={`${datos?.length ?? 0} registrados. Edita precios, fotos y fichas, o desactiva lo que ya no vendes.`}
+          acciones={<button onClick={() => setEditando('nuevo')} className={claseBotonPrimario}><LuPlus className="h-5 w-5" aria-hidden="true" /> Nuevo producto</button>}
+        />
 
         <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar por nombre o SKU" aria-label="Buscar producto" className={`${claseInput} mb-6`} />
 
@@ -69,15 +68,15 @@ export default function AdminProductosPage() {
                   className="w-14 h-14 rounded-lg shrink-0" sizes="56px" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 flex-wrap">
-                    <p className="text-texto font-semibold text-sm min-w-0 break-words">{p.nombre}</p>
-                    <Insignia info={p.activo ? { etiqueta: 'Activo', color: '#22c55e' } : { etiqueta: 'Inactivo', color: '#ef4444' }} />
+                    <p className="text-texto font-semibold min-w-0 break-words">{p.nombre}</p>
+                    <Insignia info={p.activo ? INSIGNIA_ACTIVO : INSIGNIA_INACTIVO} />
                   </div>
                   <p className="text-texto-2 text-xs">{p.sku ?? 'Sin SKU'} · {p.categorias?.nombre} · Stock: {p.stock} · {p.unidad}</p>
                   <div className="flex items-center justify-between gap-2 flex-wrap mt-2">
-                    <span className="text-acento font-bold">{formatoBs(p.precio)}</span>
+                    <span className="font-titulo text-lg font-bold text-acento tabular-nums">{formatoBs(p.precio)}</span>
                     <div className="flex gap-2">
-                      <button onClick={() => { setErrorEstado(''); setCambiandoEstado(p) }} className={`${claseBotonSecundario} !px-3 !py-2 text-sm`}>{p.activo ? 'Desactivar' : 'Activar'}</button>
-                      <button onClick={() => setEditando(p)} className={`${claseBotonSecundario} !px-3 !py-2 text-sm`}>Editar</button>
+                      <button onClick={() => { setErrorEstado(''); setCambiandoEstado(p) }} className={claseBoton('secundario', 'chico')}>{p.activo ? 'Desactivar' : 'Activar'}</button>
+                      <button onClick={() => setEditando(p)} className={claseBoton('secundario', 'chico')}>Editar</button>
                     </div>
                   </div>
                 </div>

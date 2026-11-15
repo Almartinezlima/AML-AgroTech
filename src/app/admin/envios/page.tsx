@@ -1,18 +1,21 @@
 'use client'
 import { useState } from 'react'
+import type { IconType } from 'react-icons'
+import EncabezadoAdmin from '@/components/admin/EncabezadoAdmin'
 import InterruptorPruebas, { conPruebas, useMostrarPruebas } from '@/components/admin/InterruptorPruebas'
+import TarjetasResumen, { type TonoCifra } from '@/components/admin/TarjetasResumen'
 import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import { clasePagina } from '@/components/ui/estilos'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import type { EstadoPedido, PedidoResumen } from '@/types/comercio'
 import ListaPedidosAdmin from '../_components/ListaPedidosAdmin'
-import { LuTruck } from 'react-icons/lu'
+import { LuPackageCheck, LuPackageOpen, LuStore, LuTruck } from 'react-icons/lu'
 
-const GRUPOS: Array<{ estado: EstadoPedido; titulo: string; vacio: string }> = [
-  { estado: 'confirmado', titulo: 'Por preparar', vacio: 'No hay pedidos por preparar' },
-  { estado: 'preparando', titulo: 'En preparación', vacio: 'No hay pedidos en preparación' },
-  { estado: 'listo_para_recoger', titulo: 'Para recoger en tienda', vacio: 'No hay pedidos esperando en tienda' },
-  { estado: 'despachado', titulo: 'En camino', vacio: 'No hay pedidos en camino' },
+const GRUPOS: Array<{ estado: EstadoPedido; titulo: string; vacio: string; icono: IconType; tono: TonoCifra }> = [
+  { estado: 'confirmado', titulo: 'Por preparar', vacio: 'No hay pedidos por preparar', icono: LuPackageOpen, tono: 'pendiente' },
+  { estado: 'preparando', titulo: 'En preparación', vacio: 'No hay pedidos en preparación', icono: LuPackageCheck, tono: 'acento' },
+  { estado: 'listo_para_recoger', titulo: 'Para recoger en tienda', vacio: 'No hay pedidos esperando en tienda', icono: LuStore, tono: 'acento' },
+  { estado: 'despachado', titulo: 'En camino', vacio: 'No hay pedidos en camino', icono: LuTruck, tono: 'camino' },
 ]
 
 export default function AdminEnviosPage() {
@@ -25,34 +28,42 @@ export default function AdminEnviosPage() {
   return (
     <div className={clasePagina}>
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
-          <h1 className="text-3xl font-bold text-texto">Envíos</h1>
-          <InterruptorPruebas mostrar={mostrar} onCambiar={setMostrar} />
-        </div>
-
-        <div className="flex flex-wrap gap-2 mb-6">
-          {GRUPOS.map((g) => (
-            <button
-              key={g.estado}
-              onClick={() => setActivo(g.estado)}
-              aria-pressed={g.estado === activo}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                g.estado === activo ? 'bg-acento text-white' : 'bg-tarjeta border border-borde text-texto-2 hover:border-acento'
-              }`}
-            >
-              {g.titulo} ({delGrupo(g.estado).length})
-            </button>
-          ))}
-        </div>
+        <EncabezadoAdmin
+          titulo="Envíos"
+          descripcion="Pedidos pagados en camino al cliente. Elige un grupo y pásalo al siguiente paso."
+          acciones={<InterruptorPruebas mostrar={mostrar} onCambiar={setMostrar} />}
+        />
 
         {cargando || !listo ? (
           <BloqueCarga />
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
-        ) : delGrupo(activo).length === 0 ? (
-          <BloqueVacio icono={LuTruck} mensaje={grupo.vacio} />
         ) : (
-          <ListaPedidosAdmin pedidos={delGrupo(activo)} onActualizado={() => void recargar()} />
+          <>
+            {/* Cada cifra es también el filtro de la lista */}
+            <TarjetasResumen
+              etiqueta="Grupos de envío"
+              cifras={GRUPOS.map((g) => {
+                const cantidad = delGrupo(g.estado).length
+                return {
+                  titulo: g.titulo,
+                  valor: String(cantidad),
+                  detalle: g.estado === activo ? 'Mostrando' : 'Ver lista',
+                  icono: g.icono,
+                  tono: cantidad > 0 ? g.tono : 'neutro',
+                  activa: g.estado === activo,
+                  onClick: () => setActivo(g.estado),
+                }
+              })}
+            />
+
+            <h2 className="mb-3 font-titulo text-lg font-bold text-texto">{grupo.titulo}</h2>
+            {delGrupo(activo).length === 0 ? (
+              <BloqueVacio icono={LuTruck} mensaje={grupo.vacio} />
+            ) : (
+              <ListaPedidosAdmin pedidos={delGrupo(activo)} onActualizado={() => void recargar()} />
+            )}
+          </>
         )}
       </div>
     </div>

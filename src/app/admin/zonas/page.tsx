@@ -1,15 +1,16 @@
 'use client'
 import { useCallback, useState } from 'react'
 import { AvisoError, BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
-import Insignia from '@/components/ui/Insignia'
+import EncabezadoAdmin from '@/components/admin/EncabezadoAdmin'
+import Insignia, { INSIGNIA_ACTIVO, INSIGNIA_INACTIVO } from '@/components/ui/Insignia'
 import Modal from '@/components/ui/Modal'
-import { claseBotonPrimario, claseBotonSecundario, claseEtiqueta, claseInput, clasePagina, claseTarjeta } from '@/components/ui/estilos'
+import { claseBoton, claseBotonPrimario, claseBotonSecundario, claseEtiqueta, claseInput, clasePagina, claseTarjeta } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import { ETIQUETA_TIPO_ZONA, tiempoEntrega } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import { TIPOS_ZONA, type TipoZona, type ZonaEnvio } from '@/types/comercio'
-import { LuMapPin } from 'react-icons/lu'
+import { LuMapPin, LuPlus } from 'react-icons/lu'
 
 const VACIO = { nombre: '', tipo: 'provincia' as TipoZona, costo: '0', dias_min: '1', dias_max: '2', permite_contra_entrega: false, orden: '10', activo: true }
 
@@ -59,10 +60,11 @@ export default function AdminZonasPage() {
   return (
     <div className={clasePagina}>
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
-          <h1 className="text-3xl font-bold text-texto">Zonas de envío</h1>
-          <button onClick={() => abrir('nueva')} className={claseBotonPrimario}>+ Nueva zona</button>
-        </div>
+        <EncabezadoAdmin
+          titulo="Zonas de envío"
+          descripcion="Dónde entregamos, cuánto cuesta y en cuánto tiempo llega."
+          acciones={<button onClick={() => abrir('nueva')} className={claseBotonPrimario}><LuPlus className="h-5 w-5" aria-hidden="true" /> Nueva zona</button>}
+        />
 
         {cargando ? (
           <BloqueCarga />
@@ -81,9 +83,9 @@ export default function AdminZonasPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
-                  <span className="text-acento font-bold">{formatoBs(zona.costo)}</span>
-                  <Insignia info={zona.activo ? { etiqueta: 'Activa', color: '#22c55e' } : { etiqueta: 'Inactiva', color: '#ef4444' }} />
-                  <button onClick={() => abrir(zona)} className={`${claseBotonSecundario} !px-3 !py-2 text-sm`}>Editar</button>
+                  <span className="font-titulo text-lg font-bold text-acento tabular-nums">{formatoBs(zona.costo)}</span>
+                  <Insignia info={zona.activo ? { ...INSIGNIA_ACTIVO, etiqueta: 'Activa' } : { ...INSIGNIA_INACTIVO, etiqueta: 'Inactiva' }} />
+                  <button onClick={() => abrir(zona)} className={claseBoton('secundario', 'chico')}>Editar</button>
                 </div>
               </li>
             ))}
@@ -113,7 +115,7 @@ export default function AdminZonasPage() {
             )}
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
               <button type="button" disabled={guardando} onClick={cerrar} className={claseBotonSecundario}>Cancelar</button>
-              <button type="submit" disabled={guardando} className={claseBotonPrimario}>{guardando ? 'Guardando...' : 'Guardar'}</button>
+              <button type="submit" disabled={guardando} className={claseBotonPrimario}>{guardando ? 'Guardando…' : 'Guardar'}</button>
             </div>
           </form>
         </Modal>
