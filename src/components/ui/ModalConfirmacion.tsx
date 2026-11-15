@@ -1,6 +1,7 @@
 'use client'
 import { useEffect } from 'react'
 import { Aviso } from '@/components/ui/Estados'
+import { claseBoton } from '@/components/ui/estilos'
 
 interface ModalConfirmacionProps {
   titulo: string
@@ -34,7 +35,7 @@ export default function ModalConfirmacion({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-texto/60 backdrop-blur-sm px-4"
       onClick={() => { if (!procesando) onCancelar() }}
     >
       <div
@@ -42,7 +43,7 @@ export default function ModalConfirmacion({
         aria-modal="true"
         aria-labelledby="modal-titulo"
         aria-describedby="modal-mensaje"
-        className="w-full max-w-md bg-tarjeta border border-borde rounded-2xl p-6 shadow-2xl shadow-black/10 animate-entrada"
+        className="w-full max-w-md bg-tarjeta border border-borde rounded-2xl p-5 sm:p-6 shadow-flotante animate-entrada"
         onClick={(evento) => evento.stopPropagation()}
       >
         <h2 id="modal-titulo" className="font-titulo text-xl font-bold text-texto mb-2">{titulo}</h2>
@@ -58,7 +59,7 @@ export default function ModalConfirmacion({
             autoFocus
             disabled={procesando}
             onClick={onCancelar}
-            className="border border-borde hover:border-acento disabled:opacity-60 text-texto font-semibold px-5 py-2.5 rounded-xl transition-colors"
+            className={claseBoton('secundario')}
           >
             Cancelar
           </button>
@@ -66,13 +67,9 @@ export default function ModalConfirmacion({
             type="button"
             disabled={procesando}
             onClick={onConfirmar}
-            className={`font-bold px-5 py-2.5 rounded-xl transition-colors disabled:opacity-60 ${
-              peligro
-                ? 'bg-red-600 hover:bg-red-700 text-white'
-                : 'bg-acento hover:bg-acento-hover text-white'
-            }`}
+            className={claseBoton(peligro ? 'peligro-lleno' : 'primario')}
           >
-            {procesando ? 'Guardando...' : textoConfirmar}
+            {procesando ? 'Guardando…' : textoConfirmar}
           </button>
         </div>
       </div>

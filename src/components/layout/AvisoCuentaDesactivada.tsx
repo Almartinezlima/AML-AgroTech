@@ -12,7 +12,7 @@ export default function AvisoCuentaDesactivada() {
   if (perfil?.activo !== false || ruta === '/cuenta-desactivada') return null
 
   return (
-    <div role="alert" className="flex items-center justify-center gap-2 bg-red-50 border-b border-red-300 px-4 py-3 text-center text-sm text-red-800">
+    <div role="alert" className="flex items-center justify-center gap-2 bg-estado-error/5 border-b border-estado-error/40 px-4 py-3 text-center text-sm text-estado-error-texto">
       <LuLock className="h-4 w-4 shrink-0" aria-hidden="true" /> Tu cuenta está desactivada.{' '}
       <Link href="/cuenta-desactivada" className="font-semibold underline">Ver más</Link>
     </div>

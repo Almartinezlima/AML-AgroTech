@@ -23,6 +23,13 @@ Cada corrida de las E2E registraba cuentas nuevas `e2e+<fecha>@amlagrotech.test`
 - Capturas del panel: no se sacaron. `/admin/*` exige sesión y la skill `verificar` prohíbe crear sesiones por script; las revisa Aldo, y la corrida E2E mide el panel en 360 px.
 - **Las E2E no se corrieron** (se corren una vez con el OK de Aldo).
 
+## Resultado de la corrida (14 nov 2026)
+
+Con el PR #11 unido, la `0011` corrida y la cuenta cliente creada, se corrieron las E2E una sola vez:
+
+- **31/31 en verde** (barrido + 30 pruebas) en 6,4 min.
+- **Base intacta**: stock idéntico antes y después, 0 pedidos de prueba abiertos, la cuenta de registro quedó desactivada y los pedidos AML-000052 a AML-000055 quedaron cancelados por la limpieza.
+
 ## Pasos de Aldo, en orden
 
 1. Unir el PR (lo une Claude del chat) y esperar a que Render publique.

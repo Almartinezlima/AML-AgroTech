@@ -11,7 +11,7 @@ export default function ComoComprar() {
   return (
     <ol className="grid gap-5 md:grid-cols-3">
       {PASOS.map(({ icono: Icono, titulo, texto }, i) => (
-        <li key={titulo} className="relative h-full overflow-hidden rounded-2xl border border-borde bg-gradient-to-br from-tarjeta to-[#f3f7ee] p-6 shadow-lg shadow-black/5">
+        <li key={titulo} className="relative h-full overflow-hidden rounded-2xl border border-borde bg-gradient-to-br from-tarjeta to-tarjeta-hover/60 p-5 sm:p-6 shadow-tarjeta">
           <span className="pointer-events-none absolute right-4 top-3 font-titulo text-7xl font-extrabold leading-none text-trigo-suave/40 select-none" aria-hidden="true">{i + 1}</span>
           <span className="grid h-12 w-12 place-items-center rounded-xl bg-acento/15 text-acento ring-1 ring-acento/30">
             <Icono className="h-6 w-6" aria-hidden="true" />

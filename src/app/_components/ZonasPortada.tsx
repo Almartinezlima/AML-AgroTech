@@ -23,7 +23,7 @@ export default function ZonasPortada() {
   return (
     <ul className="grid auto-rows-fr grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       {datos.map((z) => (
-        <li key={z.id} className={`flex h-full flex-col rounded-2xl border p-5 shadow-sm transition hover:-translate-y-0.5 ${z.tipo === 'provincia' ? 'border-trigo/30 bg-gradient-to-br from-[#fbf4e2] to-tarjeta' : 'border-borde bg-tarjeta'}`}>
+        <li key={z.id} className={`flex h-full flex-col rounded-2xl border p-5 shadow-tarjeta transition hover:-translate-y-0.5 hover:shadow-tarjeta-hover ${z.tipo === 'provincia' ? 'border-trigo/30 bg-gradient-to-br from-[#fbf4e2] to-tarjeta' : 'border-borde bg-tarjeta'}`}>
           <p className={`inline-flex items-center gap-1.5 text-xs font-semibold ${z.tipo === 'provincia' ? 'text-trigo' : 'text-texto-2'}`}>
             <LuMapPin className="h-3.5 w-3.5" aria-hidden="true" /> {ETIQUETA_TIPO_ZONA[z.tipo]}
           </p>

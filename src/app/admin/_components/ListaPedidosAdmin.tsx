@@ -5,11 +5,22 @@ import { AvisoError } from '@/components/ui/Estados'
 import Insignia from '@/components/ui/Insignia'
 import Modal from '@/components/ui/Modal'
 import ModalConfirmacion from '@/components/ui/ModalConfirmacion'
-import { claseBotonPeligro, claseBotonPrimario, claseBotonSecundario, claseEtiqueta, claseInput, claseTarjeta } from '@/components/ui/estilos'
+import { claseBoton, claseBotonPrimario, claseBotonSecundario, claseEnlace, claseEtiqueta, claseInput, claseTarjeta, claseTextoPendiente } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { ETIQUETA_METODO, INFO_ESTADO_PAGO, INFO_ESTADO_PEDIDO, fechaHora, siguienteEstado } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import type { PedidoResumen } from '@/types/comercio'
+import { LuHourglass } from 'react-icons/lu'
+
+// Un dato del pedido: "Entrega: Distrito Pucara"
+function Dato({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <div className="flex min-w-0 gap-1.5">
+      <dt className="shrink-0 text-texto-2">{titulo}:</dt>
+      <dd className="min-w-0 break-words text-texto">{children}</dd>
+    </div>
+  )
+}
 
 interface ListaPedidosAdminProps {
   pedidos: PedidoResumen[]
@@ -62,31 +73,39 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
           const proximo = siguienteEstado(pedido.estado, pedido.zonas_envio?.tipo)
           const esperaPago = pedido.metodo_pago !== 'contra_entrega' && pedido.estado_pago !== 'verificado'
           return (
-            <li key={pedido.id} className={`${claseTarjeta} p-4`}>
-              <div className="flex items-start justify-between gap-3 flex-wrap">
+            <li key={pedido.id} className={claseTarjeta}>
+              <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2 p-4 pb-2">
                 <div className="min-w-0">
-                  <Link href={`/pedidos/${pedido.id}`} className="text-acento font-mono font-bold hover:underline">{pedido.codigo}</Link>
-                  <p className="text-texto text-sm break-words">{pedido.cliente?.nombre ?? 'Cliente'} · {pedido.telefono_contacto}</p>
-                  <p className="text-texto-2 text-xs">{fechaHora(pedido.created_at)} · {pedido.zonas_envio?.nombre} · {ETIQUETA_METODO[pedido.metodo_pago]}</p>
-                  {pedido.recoge_nombre && <p className="text-texto-2 text-sm">Recoge: <span className="text-texto font-medium">{pedido.recoge_nombre}</span> · CI {pedido.recoge_ci}</p>}
-                  {pedido.envios?.transportista && <p className="text-texto-2 text-sm">Flota: {pedido.envios.transportista} · Guía: {pedido.envios.numero_guia}</p>}
+                  <Link href={`/pedidos/${pedido.id}`} className={`${claseEnlace} font-titulo text-lg`}>{pedido.codigo}</Link>
+                  <p className="text-texto font-medium break-words">{pedido.cliente?.nombre ?? 'Cliente'}</p>
                 </div>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex flex-wrap gap-2">
                   <Insignia info={INFO_ESTADO_PEDIDO[pedido.estado]} />
                   <Insignia info={INFO_ESTADO_PAGO[pedido.estado_pago]} />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-3 flex-wrap mt-3">
-                <span className="text-texto font-bold">{formatoBs(pedido.total)}</span>
-                <div className="flex gap-2 flex-wrap">
+              <dl className="grid grid-cols-1 gap-x-6 gap-y-1 px-4 pb-3 text-sm sm:grid-cols-2">
+                <Dato titulo="Fecha">{fechaHora(pedido.created_at)}</Dato>
+                <Dato titulo="Teléfono">{pedido.telefono_contacto}</Dato>
+                <Dato titulo="Entrega">{pedido.zonas_envio?.nombre}</Dato>
+                <Dato titulo="Pago">{ETIQUETA_METODO[pedido.metodo_pago]}</Dato>
+                {pedido.recoge_nombre && <Dato titulo="Recoge">{pedido.recoge_nombre} · CI {pedido.recoge_ci}</Dato>}
+                {pedido.envios?.transportista && <Dato titulo="Flota">{pedido.envios.transportista} · Guía {pedido.envios.numero_guia}</Dato>}
+              </dl>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-b-2xl border-t border-borde bg-tarjeta-hover/40 px-4 py-3">
+                <span className="font-titulo text-xl font-bold tabular-nums text-texto">{formatoBs(pedido.total)}</span>
+                <div className="flex flex-wrap items-center justify-end gap-2">
                   {(pedido.estado === 'pendiente' || pedido.estado === 'confirmado') && (
-                    <button onClick={() => { setError(''); setCancelando(pedido) }} className={`${claseBotonPeligro} !px-3 !py-2 text-sm`}>Cancelar</button>
+                    <button onClick={() => { setError(''); setCancelando(pedido) }} className={claseBoton('peligro', 'chico')}>Cancelar</button>
                   )}
                   {proximo && (esperaPago && proximo !== 'entregado' ? (
-                    <span className="text-amber-800 text-sm self-center">Esperando pago</span>
+                    <span className={`${claseTextoPendiente} inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold`}>
+                      <LuHourglass className="h-4 w-4" aria-hidden="true" /> Esperando pago
+                    </span>
                   ) : (
-                    <button onClick={() => abrirAvance(pedido)} className={`${claseBotonPrimario} !px-3 !py-2 text-sm`}>
+                    <button onClick={() => abrirAvance(pedido)} className={claseBoton('primario', 'chico')}>
                       Pasar a {INFO_ESTADO_PEDIDO[proximo].etiqueta}
                     </button>
                   ))}
@@ -129,7 +148,7 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
                 }))}
                 className={claseBotonPrimario}
               >
-                {procesando ? 'Guardando...' : 'Confirmar'}
+                {procesando ? 'Guardando…' : 'Confirmar'}
               </button>
             </div>
           </div>

@@ -103,7 +103,7 @@ Navegador (React) ──fetch──▶ API REST propia  src/app/api/**  (valida 
 
 ## Diseño (no cambiar sin pedido de Aldo)
 
-Tema **claro** agrícola (desde la fase 6B), mobile-first. Tokens en `tailwind.config.ts`:
+Tema **claro** agrícola (desde la fase 6B), mobile-first. **Una sola fuente de tokens** (fase 3): valores en `src/app/globals.css` (`--color-*`, `--letra-*`), expuestos como clases en `tailwind.config.ts`, y clases comunes en `src/components/ui/estilos.ts` (`claseBoton`, `claseTarjeta`, `claseFiltro`…). Sin hex sueltos ni `red-700`/`amber-800`: tokens `estado-*`. Detalle en `docs/DISENO.md`.
 
 | Uso | Token | Color |
 |---|---|---|
@@ -121,7 +121,8 @@ Tema **claro** agrícola (desde la fase 6B), mobile-first. Tokens en `tailwind.c
 Contrastes medidos (WCAG AA): texto 15:1, texto-2 7:1, acento 5,3:1, trigo 5,1:1; blanco sobre `acento` 5,8:1.
 
 - **Trigo**: solo para detalles (pasos de "Cómo comprar", sellos, zonas por flota, créditos). Nunca para estados: el ámbar `#f59e0b` sigue siendo "pendiente".
-- **Letra**: ningún texto de contenido por debajo de 14 px (la escala `text-xs` de Tailwind vale 14 px y `text-sm` 15 px); el menú en 16 px. Botones táctiles de 44 px como mínimo.
+- **Letra**: `text-xs` vale 15 px en celular y 14 px desde 640 px; `text-sm` 16 px en celular y 15 px desde 640 px (fase 3). Los títulos no cambian. Ningún texto de contenido por debajo de 14 px; el menú en 16 px. Botones táctiles de 44 px como mínimo.
+- **Sombras**: solo `shadow-tarjeta`, `shadow-tarjeta-hover` y `shadow-flotante`. **Tablas** debajo de 768 px: tarjetas apiladas, nunca scroll de la página.
 - **Portada**: la foto propia de Villa Charcas a pantalla completa, **original**: sin capas, velos, filtros, brillo ni opacidad encima. El texto se lee solo con sombra doble en las letras (`text-shadow`), sin cajas detrás. Encuadre `object-[90%_50%]` para que en celular el título caiga sobre las nubes oscuras.
 - **Tipografía**: Bricolage Grotesque (títulos) + Figtree (texto), con `next/font`.
 - **Imágenes**: fotos reales siempre (los 36 productos en `public/productos/<sku>.webp`, categorías en `public/categorias/`, portada en `public/portada/`). Fuente de cada una en `docs/CREDITOS_IMAGENES.md`. Nunca íconos como imagen de producto.

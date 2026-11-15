@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import ModalConfirmacion from '@/components/ui/ModalConfirmacion'
 import { BloqueCarga, BloqueError } from '@/components/ui/Estados'
 import Insignia from '@/components/ui/Insignia'
-import { claseBotonPeligro, clasePagina, claseTarjeta } from '@/components/ui/estilos'
+import { claseBoton, claseBotonPeligro, clasePagina, claseTarjeta } from '@/components/ui/estilos'
 import { useAuth } from '@/context/AuthContext'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
@@ -57,7 +57,7 @@ export default function PedidoDetallePage() {
 
       <div className="flex items-start justify-between gap-3 flex-wrap mt-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-acento font-mono">{pedido.codigo}</h1>
+          <h1 className="font-titulo text-2xl font-bold tracking-tight text-acento">{pedido.codigo}</h1>
           <p className="text-texto-2 text-sm">{fechaHora(pedido.created_at)}</p>
           {pedido.cliente && <p className="text-texto text-sm mt-1">Cliente: {pedido.cliente.nombre}</p>}
         </div>
@@ -105,9 +105,9 @@ export default function PedidoDetallePage() {
                 href={`https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(`Hola, consulto por mi pedido ${pedido.codigo}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 block text-center bg-tarjeta-hover border border-acento text-acento font-semibold py-3 rounded-xl hover:bg-borde transition-colors"
+                className={`${claseBoton('suave')} mt-4 w-full`}
               >
-                <LuMessageCircle className="inline h-5 w-5 mr-1.5 -mt-0.5" aria-hidden="true" /> Coordinar por WhatsApp
+                <LuMessageCircle className="h-5 w-5" aria-hidden="true" /> Coordinar por WhatsApp
               </a>
             )}
           </section>

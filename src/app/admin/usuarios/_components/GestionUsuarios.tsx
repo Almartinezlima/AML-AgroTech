@@ -9,6 +9,7 @@ import ListaUsuarios from './ListaUsuarios'
 import ResumenUsuarios from './ResumenUsuarios'
 import SkeletonUsuarios from './SkeletonUsuarios'
 import { LuTriangleAlert, LuUsers } from 'react-icons/lu'
+import { claseBotonPrimario } from '@/components/ui/estilos'
 
 interface AccionPendiente {
   usuario: UsuarioAdmin
@@ -111,12 +112,12 @@ export default function GestionUsuarios() {
 
   if (errorCarga) {
     return (
-      <div role="alert" className="bg-tarjeta border border-red-300 rounded-xl p-8 text-center">
-        <LuTriangleAlert className="mx-auto mb-3 h-10 w-10 text-red-700" aria-hidden="true" />
+      <div role="alert" className="bg-tarjeta border border-estado-error/40 rounded-2xl shadow-tarjeta p-6 sm:p-8 text-center">
+        <LuTriangleAlert className="mx-auto mb-3 h-10 w-10 text-estado-error-texto" aria-hidden="true" />
         <p className="text-texto font-semibold mb-1">No se pudieron cargar los usuarios</p>
         <p className="text-texto-2 text-sm mb-5">{errorCarga}</p>
         <button onClick={() => void cargar()}
-          className="bg-acento hover:bg-acento-hover text-white font-bold px-6 py-2.5 rounded-xl transition-colors">
+          className={claseBotonPrimario}>
           Reintentar
         </button>
       </div>

@@ -5,14 +5,13 @@ import { LuArrowLeft, LuMinus, LuPlus, LuShoppingCart, LuTrash2, LuUndo2 } from 
 import EtiquetaCategoria from '@/components/EtiquetaCategoria'
 import ImagenProducto from '@/components/ImagenProducto'
 import { BloqueCarga, BloqueVacio } from '@/components/ui/Estados'
-import { claseBotonPrimario, claseBotonSecundario, clasePagina, claseTituloPagina } from '@/components/ui/estilos'
+import { claseBotonCantidad, claseBotonPrimario, claseBotonSecundario, clasePagina, claseTarjeta, claseTituloPagina } from '@/components/ui/estilos'
 import { useAuth } from '@/context/AuthContext'
 import { type ItemCarrito, useCarrito } from '@/context/CarritoContext'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import { formatoBs } from '@/lib/utils'
 import type { ZonaEnvio } from '@/types/comercio'
 
-const claseCantidad = 'grid h-11 w-11 place-items-center rounded-xl border border-borde bg-tarjeta text-texto transition hover:border-acento disabled:opacity-40'
 const SEGUNDOS_DESHACER = 6
 
 export default function CarritoPage() {
@@ -82,7 +81,7 @@ export default function CarritoPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <ul className="lg:col-span-2 flex flex-col gap-4">
             {items.map((item) => (
-              <li key={item.id} className="flex gap-4 rounded-2xl border border-borde bg-tarjeta p-4 shadow-sm sm:p-5">
+              <li key={item.id} className={`${claseTarjeta} flex gap-3 p-4 sm:gap-4 sm:p-5`}>
                 <ImagenProducto nombre={item.nombre} imagen={item.imagen_url} categoria={item.categoria}
                   className="h-20 w-20 shrink-0 rounded-xl border border-borde sm:h-24 sm:w-24" sizes="96px" />
                 <div className="min-w-0 flex-1">
@@ -91,17 +90,17 @@ export default function CarritoPage() {
                   <p className="text-texto-2 text-sm">{formatoBs(item.precio)} por {item.unidad} · Disponibles: {item.stock}</p>
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <button aria-label={`Quitar uno de ${item.nombre}`} disabled={item.cantidad <= 1} onClick={() => actualizarCantidad(item.id, item.cantidad - 1)} className={claseCantidad}>
+                      <button aria-label={`Quitar uno de ${item.nombre}`} disabled={item.cantidad <= 1} onClick={() => actualizarCantidad(item.id, item.cantidad - 1)} className={claseBotonCantidad}>
                         <LuMinus className="h-4 w-4" aria-hidden="true" />
                       </button>
                       <span className="w-10 text-center text-lg font-semibold tabular-nums text-texto" aria-label={`Cantidad: ${item.cantidad}`}>{item.cantidad}</span>
-                      <button aria-label={`Agregar uno de ${item.nombre}`} disabled={item.cantidad >= item.stock} onClick={() => actualizarCantidad(item.id, item.cantidad + 1)} className={claseCantidad}>
+                      <button aria-label={`Agregar uno de ${item.nombre}`} disabled={item.cantidad >= item.stock} onClick={() => actualizarCantidad(item.id, item.cantidad + 1)} className={claseBotonCantidad}>
                         <LuPlus className="h-4 w-4" aria-hidden="true" />
                       </button>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-titulo text-lg font-bold tabular-nums text-texto">{formatoBs(item.precio * item.cantidad)}</span>
-                      <button onClick={() => quitar(item)} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-red-700 transition hover:bg-red-50">
+                      <button onClick={() => quitar(item)} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-estado-error-texto transition hover:bg-estado-error/5">
                         <LuTrash2 className="h-4 w-4" aria-hidden="true" /> Quitar
                       </button>
                     </div>
@@ -116,7 +115,7 @@ export default function CarritoPage() {
             </li>
           </ul>
 
-          <aside className="h-fit rounded-2xl border border-borde bg-tarjeta p-6 shadow-sm lg:sticky lg:top-24">
+          <aside className={`${claseTarjeta} h-fit p-5 sm:p-6 lg:sticky lg:top-24`}>
             <h2 className="font-titulo text-xl font-bold text-texto">Resumen</h2>
             <div className="mt-4 flex justify-between text-lg font-bold">
               <span className="text-texto">Subtotal</span>

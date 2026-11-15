@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { createClient } from '@/lib/supabase'
 import { Aviso, AvisoError } from '@/components/ui/Estados'
+import { claseBotonPrimario, claseInput, claseTarjeta } from '@/components/ui/estilos'
 
-const claseInput = 'w-full bg-tarjeta-hover border border-borde focus:border-acento text-texto rounded-xl px-4 py-3 outline-none transition-colors'
 
 export default function CuentaPage() {
   const { user, perfil, cargando, recargarPerfil } = useAuth()
@@ -62,7 +62,7 @@ export default function CuentaPage() {
         <h1 className="text-3xl font-bold text-texto">Mi cuenta</h1>
         <p className="text-texto-2 mt-1 mb-6 break-all">{perfil?.email ?? user?.email}</p>
 
-        <form onSubmit={guardar} className="bg-tarjeta border border-borde rounded-2xl p-6 sm:p-8 flex flex-col gap-5">
+        <form onSubmit={guardar} className={`${claseTarjeta} p-5 sm:p-8 flex flex-col gap-5`}>
           {error && (
             <AvisoError mensaje={error} />
           )}
@@ -81,8 +81,8 @@ export default function CuentaPage() {
           </div>
 
           <button type="submit" disabled={guardando || !perfil}
-            className="w-full bg-acento hover:bg-acento-hover disabled:opacity-60 text-white font-bold py-3 rounded-xl transition-colors">
-            {guardando ? 'Guardando...' : 'Guardar cambios'}
+            className={`${claseBotonPrimario} w-full`}>
+            {guardando ? 'Guardando…' : 'Guardar cambios'}
           </button>
         </form>
       </div>

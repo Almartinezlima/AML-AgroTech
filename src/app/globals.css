@@ -8,26 +8,74 @@
   --fuente-texto: "Figtree Variable";
 }
 
+/* ───── Tokens de diseño (docs/DISENO.md): única fuente de colores y tamaños chicos ─────
+   Los colores van como canales RGB para que Tailwind pueda aplicar opacidad (bg-acento/10). */
 :root {
-  --bg-primary: #f6f4ee;
-  --bg-card: #ffffff;
-  --bg-card-hover: #eef3ea;
-  --accent-green: #15753a;
-  --accent-green-dark: #166534;
-  --text-primary: #17251b;
-  --text-secondary: #4a5a4e;
-  --border-color: #dfe5d8;
+  --color-fondo: 246 244 238;          /* #f6f4ee crema */
+  --color-tarjeta: 255 255 255;        /* #ffffff */
+  --color-tarjeta-hover: 238 243 234;  /* #eef3ea hover y campos */
+  --color-borde: 223 229 216;          /* #dfe5d8 */
+  --color-borde-fuerte: 185 199 178;   /* #b9c7b2 borde al pasar */
+  --color-acento: 21 117 58;           /* #15753a verde de la marca */
+  --color-acento-hover: 22 101 52;     /* #166534 */
+  --color-acento-suave: 34 197 94;     /* #22c55e */
+  --color-texto: 23 37 27;             /* #17251b */
+  --color-texto-2: 74 90 78;           /* #4a5a4e secundario */
+  --color-texto-3: 107 122 111;        /* #6b7a6f placeholder */
+  --color-trigo: 131 98 25;            /* #836219 */
+  --color-trigo-suave: 212 178 106;    /* #d4b26a decorativo */
+
+  /* Estados: el color para punto y fondo, el "-texto" para leer sobre claro (AA) */
+  --color-estado-pendiente: 245 158 11;      /* #f59e0b */
+  --color-estado-pendiente-texto: 146 64 14; /* #92400e */
+  --color-estado-ok: 34 197 94;              /* #22c55e */
+  --color-estado-ok-texto: 22 101 52;        /* #166534 */
+  --color-estado-camino: 59 130 246;         /* #3b82f6 */
+  --color-estado-camino-texto: 29 78 216;    /* #1d4ed8 */
+  --color-estado-error: 239 68 68;           /* #ef4444 */
+  --color-estado-error-texto: 185 28 28;     /* #b91c1c */
+
+  /* Letra chica: más grande en celular (fase 3). Los títulos no cambian. */
+  --letra-xs: 0.9375rem;      /* 15 px */
+  --interlinea-xs: 1.375rem;
+  --letra-sm: 1rem;           /* 16 px */
+  --interlinea-sm: 1.5rem;
+
   color-scheme: light;
 }
 
+@media (min-width: 640px) {
+  :root {
+    --letra-xs: 0.875rem;     /* 14 px */
+    --interlinea-xs: 1.25rem;
+    --letra-sm: 0.9375rem;    /* 15 px */
+    --interlinea-sm: 1.375rem;
+  }
+}
+
+html,
 body {
-  background-color: #f6f4ee;
-  color: #17251b;
+  /* Red de seguridad: un desborde nunca mueve la página de costado (igual se mide en 360 px) */
+  overflow-x: clip;
+}
+
+/* Toques en celular: sin la demora del doble toque y con un resaltado del color de la marca */
+a, button, input, select, textarea, label, summary {
+  touch-action: manipulation;
+}
+
+html {
+  -webkit-tap-highlight-color: rgb(var(--color-acento) / 0.12);
+}
+
+body {
+  background-color: rgb(var(--color-fondo));
+  color: rgb(var(--color-texto));
   -webkit-font-smoothing: antialiased;
 }
 
 * {
-  border-color: #dfe5d8;
+  border-color: rgb(var(--color-borde));
 }
 
 @layer base {
@@ -38,7 +86,7 @@ body {
 
   /* Foco visible en todo lo interactivo (teclado) */
   :focus-visible {
-    outline: 3px solid #15753a;
+    outline: 3px solid rgb(var(--color-acento));
     outline-offset: 2px;
     border-radius: 0.5rem;
   }
@@ -46,13 +94,13 @@ body {
   /* El placeholder es ayuda, no etiqueta: más tenue que el texto secundario */
   input::placeholder,
   textarea::placeholder {
-    color: #6b7a6f;
+    color: rgb(var(--color-texto-3));
     opacity: 1;
   }
 
   ::selection {
     background: #bbf7d0;
-    color: #17251b;
+    color: rgb(var(--color-texto));
   }
 }
 
