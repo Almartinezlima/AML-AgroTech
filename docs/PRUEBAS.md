@@ -56,7 +56,7 @@ Reporte: `npx playwright show-report` (abre `playwright-report/`). Si algo falla
 
 | Archivo | Prueba |
 |---|---|
-| `barrido.setup.ts` | Corre **antes** de todo: anula los pedidos que el cliente fijo dejó abiertos en una corrida cortada y desactiva las cuentas `e2e+registro-…` que quedaron activas |
+| `barrido.setup.ts` | Corre **antes** de todo: anula los pedidos que el cliente fijo dejó abiertos en una corrida cortada, anula las órdenes de compra de los distribuidores de prueba que no estén canceladas ni rechazadas (de la más nueva a la más vieja) y desactiva las cuentas `e2e+registro-…` que quedaron activas. Ojo: también anula las órdenes que alguien haya armado a mano con los distribuidores `.test` |
 | `seguridad.spec.ts` | Sin sesión `/admin`, `/pedidos`, `/checkout` → login con `?siguiente=`; API sin sesión → 401; cliente en `/admin` → `/`; cliente en `/api/usuarios` → 403; contraseña mala → "Correo o contraseña incorrectos"; `/auth/restablecer` con sesión normal o `code` falso → "Enlace inválido o vencido" sin formulario; vuelve a donde iba tras el login (e ignora destinos externos); el carrito del cliente no lo ve el admin en el mismo navegador |
 | `registro.spec.ts` | Registro por la pantalla → entra directo al catálogo → al terminar el admin desactiva la cuenta, el panel no la lista y si intenta entrar ve "cuenta desactivada" |
 | `compra.spec.ts` | Catálogo → 2 productos → recarga (el carrito sigue) → checkout a Culpina (pide quién recoge, sin contra entrega, total = subtotal + Bs. 25) → código `AML-…` → aparece en Mis pedidos |
@@ -64,6 +64,7 @@ Reporte: `npx playwright show-report` (abre `playwright-report/`). Si algo falla
 | `inventario.spec.ts` | El stock baja al comprar y vuelve al cancelar; el kardex muestra "Venta AML-…" y "Cancelación AML-…"; el admin registra una entrada (+5) y luego un ajuste (−5) para dejar el stock como estaba |
 | `fase-6b.spec.ts` | Búsqueda sin tildes, carrito sin cuenta, deshacer, sincronía entre pestañas, comprobante que bloquea la cancelación del cliente, páginas inexistentes |
 | `distribuidor.spec.ts` | Fase 6A, no crea nada: el registro ya no ofrece la cuenta de distribuidor; un cliente no entra a `/distribuidor` (→ `/`) y su API le da 403; el distribuidor 1 ve solo sus presentaciones, no puede editar una del 2 (404), no lee `/api/distribuidores` (403) ni entra a `/admin`; «Marcar sin stock» se ve en el panel del admin y se revierte |
+| `abastecimiento.spec.ts` | Fase 6B, con los 2 distribuidores de prueba: **circuito completo** (el admin arma por la pantalla con «Pedir otro producto» Glifosato 3 × Bidón 20 L y Bravonil 2 × Caja 12 × 1 L → envía con el aviso de WhatsApp armado → el distribuidor 1 acepta con fecha y despacha → una despachada no se cancela (409) → **recepción parcial**: 3 de 3 y 1 de 2, con la vista previa «= 60 litros · costo Bs. 82,00/litro · stock X → X+60» → stock +60 y +12, kardex «Compra OC-…: 3 Bidón 20 L = 60 litros», costo promedio ponderado → la limpieza devuelve stock y costo a como estaban); **rechazo** del distribuidor 2 con motivo que ve el admin, sin tocar stock; **cancelación** del admin con motivo y el distribuidor ya no puede aceptarla (409); **seguridad entre distribuidores** (el borrador no lo ve ni su dueño, la orden del 1 da 404 al 2 en GET y en cada acción, las acciones del admin dan 403 al proveedor, el proveedor no recibe stock, costos ni datos internos); **cliente sin acceso** (redirige y 403); **360 px** sin scroll en abastecimiento, la orden, margen, panel y el lado del proveedor |
 | `responsive.spec.ts` | Inicio, catálogo, auth, carrito, checkout, pedidos y panel admin (dashboard, pedidos, pagos, envíos, usuarios, inventario) en **360 px** sin scroll horizontal |
 
 ## 4. Limpieza: qué queda en la base después de una corrida
@@ -72,6 +73,7 @@ Las pruebas importan `test` desde `utilidades.ts`, que trae un fixture automáti
 
 - **Anula** cada pedido que la prueba creó (`POST /api/pedidos/{id}/anular-prueba`, migración 0011): lo cancela en cualquier estado (también entregado), devuelve el stock con una "devolución" en el kardex (`Limpieza E2E AML-…`) y cierra el pago como reembolsado si hubo comprobante. Si ya estaba cancelado no devuelve stock dos veces.
 - **Desactiva** la cuenta que creó la prueba de registro.
+- **Anula** cada orden de compra que la prueba creó (`POST /api/ordenes-compra/{id}/anular-prueba`, migración 0015), de la más nueva a la más vieja. Si se recibió, saca lo que entró con un ajuste `Limpieza E2E OC-…` en el kardex y restaura el costo anterior; si era la primera recepción del producto, borra su fila de `costos_producto` (única excepción a "nunca hard-delete": es un dato calculado y el rastro queda en el kardex). No se puede anular si después entró otra compra del mismo producto o si ya se vendió lo recibido.
 
 Resultado: **el stock queda igual, no queda ningún pedido abierto ni nada por cobrar**, y el panel no cuenta nada de esto. Como no se borra nada (regla del proyecto), sí quedan rastros históricos, marcados para filtrarlos:
 
@@ -80,6 +82,7 @@ Resultado: **el stock queda igual, no queda ningún pedido abierto ni nada por c
 - El archivo del comprobante (PNG de 1×1 px) en el bucket privado: no hay política para borrarlo.
 - 1 cuenta `e2e+registro-<marca de tiempo>@amlagrotech.test` **desactivada** por corrida.
 - Motivos de inventario "E2E: entrada de prueba" y "E2E: revierte la entrada de prueba".
+- Unas 6 órdenes de compra **canceladas o rechazadas** por corrida de los distribuidores de prueba, con su línea de tiempo, y en el kardex los pares «Compra OC-…» + «Limpieza E2E OC-…» por la misma cantidad.
 
 ### En el panel
 

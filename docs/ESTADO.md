@@ -27,6 +27,14 @@
 - Datos (conteo del 14 nov): 36 productos, 8 zonas activas (Sucre inactiva), 126 cuentas de prueba viejas `e2e+…@amlagrotech.test` con 49 pedidos (26 pendientes, 13 entregados, 10 cancelados). Se ocultan en el panel y se ordenan en la fase de cierre.
 - "Confirm email" apagado (para la feria).
 
+## Excepción a "nunca hard-delete" (0015)
+
+`anular_orden_compra_prueba` es **la única función que borra una fila**: si la orden de prueba que anula fue la **primera recepción** de un producto, borra la fila de ese producto en `costos_producto`, para que el producto vuelva a no tener costo (y el margen vuelva a "estimado"). Se acepta porque:
+
+- `costos_producto` es un **dato calculado** (el promedio ponderado de las recepciones), no un registro de negocio;
+- el **rastro queda completo en el kardex**: la entrada «Compra OC-…» con su costo y el ajuste «Limpieza E2E OC-…»;
+- solo pasa en la **limpieza de pruebas**: la función es solo del admin y solo acepta órdenes de proveedores `@amlagrotech.test`. La API (`authenticated`) sigue **sin `delete`** sobre `costos_producto`, y un FRENO de la 0015 lo verifica.
+
 ## Plan de fases
 
 | Fase | Rama | Pilar |
@@ -41,7 +49,7 @@
 | 4 | `fase/4-compra-facil` | Compra fácil: botones que dicen adónde llevan ("Ir a pagar" / "Seguir comprando"), pasos visibles, mensajes simples, datos recordados de la última compra, QR de demostración con el monto exacto y estados simples para el cliente. Sin migración ([sesión](sesiones/2026-11-14_fase-4-compra-facil.md)) ✅ (PR #13) |
 | 5 | `fase/5-telegram` | Avisos por Telegram al admin: pedido nuevo, comprobante por revisar, stock en el mínimo o agotado (sin repetir) y resumen diario a las 20:00 de Bolivia, desde la base con pg_net + pg_cron y secretos en Vault; las cuentas de prueba no avisan. Comprobante desde la galería con la foto achicada a JPG. Migración 0012 ([sesión](sesiones/2026-11-14_fase-5-telegram.md)) ✅ (PR #14) |
 | 6A | `fase/6a-distribuidor` | Distribuidor = proveedor mayorista: rol asignado solo por el admin (registro solo de clientes), fichas de proveedores y presentaciones con fraccionamiento (unidades de venta que trae) y precio mayorista; panel `/distribuidor` y `/admin/abastecimiento/distribuidores`; costos en tabla solo del admin; 2 proveedores de demostración `.test`. Migraciones 0013 y 0014 ([sesión](sesiones/2026-11-14_fase-6a-distribuidor.md)) — corridas, E2E 35/35, en revisión |
-| 6B | `fase/6b-abastecimiento` | Órdenes de compra (borrador → enviada → aceptada → despachada → recibida, o rechazada/cancelada), recepción con fraccionamiento al kardex, costo promedio ponderado, margen y avisos de Telegram de las órdenes — pendiente |
+| 6B | `fase/6b-abastecimiento` | Órdenes de compra (borrador → enviada → aceptada → despachada → recibida, o rechazada/cancelada), recepción con fraccionamiento al kardex, costo promedio ponderado, margen y avisos de Telegram de las órdenes. Migración 0015 ([sesión](sesiones/2026-11-14_fase-6b-abastecimiento.md)) — programada; 0015 por correr |
 | 6 | `fase/6-diseno` | Diseño de feria: fotos reales, color por categoría, tipografía y portada ✅ |
 | 6B | `fase/6-diseno` | Correcciones de la auditoría + tema claro ✅ (unida a `master`, PR #5) |
 | 6 | `fase/6-pulido` | Cuentas demo, README, celular |
