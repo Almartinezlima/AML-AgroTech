@@ -50,4 +50,27 @@ El distribuidor deja de ser "un cliente que compra al por mayor" y pasa a ser el
 ## Evidencia
 
 - `npx tsc --noEmit`, `npm run lint` y `npm run build` sin errores.
-- Capturas y E2E: después de correr la 0013 y la 0014 (ver abajo).
+- **Migraciones**: el chat del Proyecto corrió la 0013 y la 0014 el 14 nov 2026, y Aldo creó las 2 cuentas en Auth con las contraseñas de `.env.test.local`. Comprobado en la base:
+  - las 2 cuentas confirmadas, con rol distribuidor;
+  - las 2 fichas y 22 presentaciones (11 por proveedor);
+  - `costos_producto` vacía;
+  - la cuenta admin de las E2E cuenta como prueba.
+
+  En un primer intento, la base no tenía las cuentas ni la 0014. Se paró hasta que estuvieron.
+- **Capturas** (`tests/capturas/distribuidor-6a.spec.ts`, `test-results/capturas/fase6a-*`): registro, sección de proveedores de la portada, `/distribuidor`, formulario de nueva presentación (con «= Bs. 68,00 por litro») y `/admin/abastecimiento/distribuidores`, a 1280, 412 y 360 px. **0 scroll horizontal** en los 15 casos. El primer intento falló por un error de Chromium al sacar la captura completa (`Unable to capture screenshot`, ajeno a la página); el segundo salió entero.
+- **E2E, primera corrida: 14/35.** El servidor de pruebas (`next start` en el 3210) se cayó sin dejar error en medio de `pagos-distribucion` (después de subir el comprobante). Desde ahí las 21 pruebas siguientes dieron `ERR_CONNECTION_REFUSED`. Las 4 de `distribuidor.spec.ts` ya habían pasado. Como la limpieza tampoco pudo correr, quedó abierto el pedido de prueba AML-000075 (stock −1).
+- **E2E, segunda corrida: 35/35 en 5,1 min** (las 31 de siempre + las 4 de `distribuidor.spec.ts`). El barrido inicial anuló el AML-000075.
+- **Base intacta**:
+  - la misma huella de stock que antes de todo (total 3179);
+  - la misma huella de fichas y de las 22 presentaciones, porque «Marcar sin stock» se revirtió;
+  - `costos_producto` vacía;
+  - los 8 pedidos de las dos corridas, cancelados, todos de cuentas de prueba y sin pagos abiertos;
+  - `pg_net` con 1 sola respuesta (el resumen de prueba de la fase 5): ningún aviso de prueba.
+
+  Perfiles: +1, la cuenta temporal de `registro.spec.ts`, que queda desactivada como siempre.
+
+## Pendiente
+
+- Detalle de texto: «trae 20 litro» o «trae 50 unidad» usan la unidad de venta tal cual está en el producto (singular). Se puede pluralizar en la 6B.
+- La caída del servidor de pruebas no se repitió. Si vuelve a pasar, hay que mirar la memoria de `next start` en Windows.
+- Fase 6B: órdenes de compra, recepción con fraccionamiento, costo promedio, margen y E2E del circuito.
