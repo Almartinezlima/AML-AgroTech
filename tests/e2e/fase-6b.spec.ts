@@ -32,7 +32,7 @@ test.describe('Fase 6B', () => {
     await page.goto('/carrito')
     await expect(page).toHaveURL(/\/carrito$/)
     await expect(page.getByText(PRODUCTO_A)).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Iniciar sesión y comprar' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Iniciar sesión para pagar' })).toBeVisible()
 
     await page.goto('/checkout')
     await expect(page).toHaveURL(/\/auth\/login\?siguiente=%2Fcheckout/)
