@@ -42,14 +42,14 @@ Pruebas de punta a punta que usan la app **como un usuario de verdad**: el clien
 
 | Comando | Qué hace | Cuándo |
 |---|---|---|
-| `npm run test:e2e:prod` | Compila en `.next-e2e`, levanta producción en el **3210** y lo apaga al terminar | **Recomendado.** Rápido (~2–3 min) y estable; no toca el `.next` de `npm run dev` |
+| `npm run test:e2e:prod` | Compila **antes** en `.next-e2e` (`pretest:e2e:prod` → `scripts/compilar-e2e.mjs`), levanta producción en el **3210** (solo `next start`, con su salida en la terminal) y lo apaga al terminar | **Recomendado.** No toca el `.next` de `npm run dev` |
 | `npm run test:e2e` | Usa el `npm run dev` del **3000** (o lo levanta si no hay) | Mientras programás, con UN solo `npm run dev` abierto |
 | `npm run test:e2e:ui` | Modo visual de Playwright para ver cada paso | Para depurar una prueba |
 | `E2E_BASE_URL=http://localhost:3210 npx playwright test` | Prueba contra un servidor ya levantado, sin levantar nada | **Si `test:e2e:prod` corta a la mitad con `ERR_CONNECTION_REFUSED`.** Primero `npx next build` con `NEXT_DIST_DIR=.next-e2e` y después, en otra terminal, `NEXT_DIST_DIR=.next-e2e npx next start -p 3210` (en PowerShell: `$env:NEXT_DIST_DIR='.next-e2e'`). Así fue la corrida de la 6B, 41/41 |
 
-Una sola prueba: `npx playwright test seguridad` (o `compra`, `pagos`, `inventario`, `registro`, `responsive`, `distribuidor`, `abastecimiento`).
+Una sola prueba: `npx playwright test seguridad` (o `compra`, `pagos`, `inventario`, `registro`, `responsive`, `distribuidor`, `abastecimiento`, `nota-venta`).
 
-> ⚠️ En Windows, el `next start` que levanta Playwright con `test:e2e:prod` se cayó 2 veces sin dejar error (6A y 6B, siempre en la primera corrida). Levantado aparte no se cayó nunca. Si pasa, las pruebas siguientes dan `ERR_CONNECTION_REFUSED` y lo que quedó abierto lo anula el barrido de la corrida siguiente.
+> ⚠️ En Windows, el `next start` que levantaba Playwright con `build && start` se cayó 2 veces sin dejar error (6A y 6B). Desde la fase 7 la compilación va aparte y la salida del servidor se ve en la terminal: si vuelve a caerse, queda el error. Si pasa, las pruebas siguientes dan `ERR_CONNECTION_REFUSED` y lo que quedó abierto lo anula el barrido de la corrida siguiente.
 
 Reporte: `npx playwright show-report` (abre `playwright-report/`). Si algo falla quedan captura, video y traza en `test-results/`.
 
@@ -68,6 +68,7 @@ Reporte: `npx playwright show-report` (abre `playwright-report/`). Si algo falla
 | `fase-6b.spec.ts` | Búsqueda sin tildes, carrito sin cuenta, deshacer, sincronía entre pestañas, comprobante que bloquea la cancelación del cliente, páginas inexistentes |
 | `distribuidor.spec.ts` | Fase 6A, no crea nada: el registro ya no ofrece la cuenta de distribuidor; un cliente no entra a `/distribuidor` (→ `/`) y su API le da 403; el distribuidor 1 ve solo sus presentaciones, no puede editar una del 2 (404), no lee `/api/distribuidores` (403) ni entra a `/admin`; «Marcar sin stock» se ve en el panel del admin y se revierte |
 | `abastecimiento.spec.ts` | Fase 6B, con los 2 distribuidores de prueba: **circuito completo** (el admin arma por la pantalla con «Pedir otro producto» Glifosato 3 × Bidón 20 L y Bravonil 2 × Caja 12 × 1 L → envía con el aviso de WhatsApp armado → el distribuidor 1 acepta con fecha y despacha → una despachada no se cancela (409) → **recepción parcial**: 3 de 3 y 1 de 2, con la vista previa «= 60 litros · costo Bs. 82,00/litro · stock X → X+60» → stock +60 y +12, kardex «Compra OC-…: 3 Bidón 20 L = 60 litros», costo promedio ponderado → la limpieza devuelve stock y costo a como estaban); **rechazo** del distribuidor 2 con motivo que ve el admin, sin tocar stock; **cancelación** del admin con motivo y el distribuidor ya no puede aceptarla (409); **seguridad entre distribuidores** (el borrador no lo ve ni su dueño, la orden del 1 da 404 al 2 en GET y en cada acción, las acciones del admin dan 403 al proveedor, el proveedor no recibe stock, costos ni datos internos); **cliente sin acceso** (redirige y 403); **360 px** sin scroll en abastecimiento, la orden, margen, panel y el lado del proveedor |
+| `nota-venta.spec.ts` | Fase 7: **contra entrega** pendiente → 409 y aviso en el detalle → el admin confirma → el cliente baja el PDF con el botón (`Nota-AML-….pdf`, «sin valor fiscal», «Se paga al recibir») y el admin con «Nota PDF» del panel; **QR** en revisión → 409 → aprobado → PDF con «Pago verificado»; id inventado 404, sin sesión 401, pedido ajeno (distribuidor de prueba) 404; al anularse, el PDF dice **ANULADA**. Deja los 3 PDF y capturas a 360 y 1280 px en `test-results/notas/` |
 | `responsive.spec.ts` | Inicio, catálogo, auth, carrito, checkout, pedidos y panel admin (dashboard, pedidos, pagos, envíos, usuarios, inventario) en **360 px** sin scroll horizontal |
 
 ## 4. Limpieza: qué queda en la base después de una corrida

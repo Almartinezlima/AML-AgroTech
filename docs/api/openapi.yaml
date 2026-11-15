@@ -434,6 +434,23 @@ paths:
         '200': { description: Pedido }
         '401': { $ref: '#/components/responses/Error' }
         '404': { $ref: '#/components/responses/Error' }
+  /pedidos/{id}/nota:
+    get:
+      tags: [Pedidos]
+      summary: Nota de venta en PDF (dueño o admin)
+      description: 'Documento sin valor fiscal, tamaño carta, generado en el servidor con pdfkit (fase 7). Disponible desde que el pedido se confirma (pago verificado o contra entrega confirmado). Un pedido cancelado que se llegó a confirmar devuelve la nota con la marca ANULADA; uno pendiente o cancelado sin confirmar responde 409 NOTA_NO_DISPONIBLE. Un pedido ajeno o inexistente da 404. Se descarga como Nota-AML-000123.pdf, sin caché.'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200':
+          description: PDF de la nota de venta
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
   /pedidos/{id}/cancelar:
     post:
       tags: [Pedidos]
