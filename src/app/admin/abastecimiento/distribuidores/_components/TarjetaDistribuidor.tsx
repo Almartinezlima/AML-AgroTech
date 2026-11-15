@@ -2,16 +2,10 @@ import { LuMessageCircle, LuPencil } from 'react-icons/lu'
 import TarjetaPresentacion from '@/components/abastecimiento/TarjetaPresentacion'
 import Insignia, { INSIGNIA_ACTIVO, INSIGNIA_INACTIVO } from '@/components/ui/Insignia'
 import { claseBoton, claseEnlace, claseTarjeta } from '@/components/ui/estilos'
+import { numeroWhatsApp } from '@/lib/abastecimiento/ordenes'
 import type { DistribuidorAdmin } from '@/types/abastecimiento'
 
 const INSIGNIA_PRUEBA = { etiqueta: 'Cuenta de prueba', color: '#3b82f6' }
-
-// Número para wa.me: solo dígitos; los de 8 cifras son celulares de Bolivia (+591)
-function numeroWhatsApp(telefono: string | null) {
-  const digitos = (telefono ?? '').replace(/\D/g, '')
-  if (!digitos) return null
-  return digitos.length === 8 ? `591${digitos}` : digitos
-}
 
 interface TarjetaDistribuidorProps {
   distribuidor: DistribuidorAdmin

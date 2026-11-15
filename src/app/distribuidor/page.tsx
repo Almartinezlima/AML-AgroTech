@@ -7,6 +7,7 @@ import { claseBotonPrimario, claseFilaFiltros, claseFiltro, clasePagina, claseTi
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import type { Distribuidor, Presentacion } from '@/types/abastecimiento'
 import ListaPresentaciones from './_components/ListaPresentaciones'
+import OrdenesProveedor from './_components/OrdenesProveedor'
 import ModalPresentacion, { type ProductoTienda } from './_components/ModalPresentacion'
 
 type Filtro = 'activas' | 'inactivas'
@@ -69,6 +70,8 @@ export default function DistribuidorPage() {
             { titulo: 'Entrega', valor: `${f.dias_entrega} día${f.dias_entrega === 1 ? '' : 's'}`, detalle: 'si no indicas otro plazo', icono: LuClock },
           ]}
         />
+
+        <OrdenesProveedor />
 
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-titulo text-xl font-bold text-texto">Mis presentaciones</h2>

@@ -77,9 +77,24 @@ export function exigirDistribuidor(numero: 1 | 2) {
 // Lo que crea cada prueba se anota aquí y se cierra al terminar, pase o falle (fixture `limpieza`)
 const pedidosCreados = new Set<string>()
 const cuentasCreadas = new Set<string>()
+const ordenesCreadas = new Set<string>()
 
 export function anotarPedido(id: string) {
   pedidosCreados.add(id)
+}
+
+// Órdenes de compra a los distribuidores de prueba (fase 6B)
+export function anotarOrden(id: string) {
+  ordenesCreadas.add(id)
+}
+
+// Anula una orden de compra de un distribuidor de prueba (migración 0015): si se recibió,
+// saca el stock con un ajuste "Limpieza E2E OC-…" y restaura el costo; la deja cancelada.
+export async function anularOrdenPrueba(admin: Page, id: string) {
+  const respuesta = await admin.request.post(`/api/ordenes-compra/${id}/anular-prueba`)
+  if (!respuesta.ok()) {
+    throw new Error(`No se pudo anular la orden de prueba ${id}: ${respuesta.status()} ${await respuesta.text()}`)
+  }
 }
 
 // Anula un pedido de prueba con la cuenta admin: cancela en cualquier estado, devuelve el stock
@@ -113,10 +128,17 @@ export async function desactivarCuenta(admin: Page, usuario: UsuarioListado) {
 // Cierra todo lo anotado. Se llama sola al final de cada prueba; también se puede llamar a mano
 // para comprobar dentro de la prueba que la base quedó como estaba.
 export async function limpiarDatosDePrueba(browser: Browser) {
-  if (pedidosCreados.size === 0 && cuentasCreadas.size === 0) return
+  if (pedidosCreados.size === 0 && cuentasCreadas.size === 0 && ordenesCreadas.size === 0) return
 
   const admin = await paginaAdmin(browser)
   try {
+    // Las órdenes primero, de la más nueva a la más vieja: la limpieza de una recepción no
+    // se puede hacer si después entró otra compra del mismo producto
+    for (const id of Array.from(ordenesCreadas).reverse()) {
+      await anularOrdenPrueba(admin, id)
+      ordenesCreadas.delete(id)
+    }
+
     for (const id of Array.from(pedidosCreados)) {
       await anularPedidoPrueba(admin, id)
       pedidosCreados.delete(id)

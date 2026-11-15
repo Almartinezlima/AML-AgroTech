@@ -12,9 +12,19 @@ export function textoCostoPorUnidad(presentacion: Pick<Presentacion, 'precio_may
   return `${formatoBs(costoPorUnidad(presentacion.precio_mayorista, presentacion.unidades_por_presentacion))} por ${unidad}`
 }
 
-// "trae 20 litro"
+// "1 litro", "60 litros", "50 unidades", "3 sacos 50kg": se pluraliza la primera palabra.
+// La misma regla que aml_plural_unidad de la migración 0015 (motivo del kardex).
+export function cantidadConUnidad(cantidad: number, unidad: string | null | undefined) {
+  const texto = unidad?.trim() || 'unidad'
+  if (cantidad === 1) return `${cantidad} ${texto}`
+  const [palabra, ...resto] = texto.split(' ')
+  const plural = /[aeiouáéíóú]$/i.test(palabra) ? `${palabra}s` : /z$/i.test(palabra) ? `${palabra.slice(0, -1)}ces` : `${palabra}es`
+  return [`${cantidad} ${plural}`, ...resto].join(' ')
+}
+
+// "trae 20 litros"
 export function textoUnidades(unidades: number, unidad: string | undefined) {
-  return `trae ${unidades} ${unidad ?? 'unidad'}`
+  return `trae ${cantidadConUnidad(unidades, unidad)}`
 }
 
 // Días que tarda: el de la presentación o, si no tiene, el de la ficha

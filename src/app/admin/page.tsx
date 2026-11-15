@@ -9,6 +9,7 @@ import { useDatosApi } from '@/lib/api/useDatosApi'
 import { formatoBs } from '@/lib/utils'
 import type { Dashboard } from '@/types/comercio'
 import { GraficoPedidosEstado, GraficoVentas } from './_components/Graficos'
+import TarjetaMargen from './_components/TarjetaMargen'
 import { LuBanknote, LuCalendarDays, LuCreditCard, LuHandCoins, LuTrendingUp, LuTriangleAlert, LuUndo2, LuWarehouse } from 'react-icons/lu'
 
 const textoPedidos = (cantidad: number) => `${cantidad} pedido${cantidad === 1 ? '' : 's'}`
@@ -56,7 +57,8 @@ export default function AdminPage() {
               </section>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <TarjetaMargen />
               <section className={`${claseTarjeta} p-5`}>
                 <h2 className={`${claseTituloSeccion} mb-4`}>Productos más vendidos</h2>
                 {d.top_productos.length === 0 ? (

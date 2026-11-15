@@ -16,7 +16,7 @@ tags:
   - name: Inventario
   - name: Panel
   - name: Abastecimiento
-    description: Proveedores mayoristas (rol distribuidor) y sus presentaciones
+    description: Proveedores mayoristas (rol distribuidor), sus presentaciones, órdenes de compra, recepción y margen
 components:
   securitySchemes:
     sesion:
@@ -167,6 +167,38 @@ components:
         disponible: { type: boolean }
         dias_entrega: { type: integer, nullable: true, minimum: 0, maximum: 60, description: 'null = los de la ficha' }
         activo: { type: boolean, description: 'Solo al editar: false = dejar de venderla (no se borra)' }
+    LineasOrdenEntrada:
+      type: object
+      required: [lineas]
+      properties:
+        lineas:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [presentacion_id, cantidad]
+            properties:
+              presentacion_id: { type: string, format: uuid }
+              cantidad: { type: integer, minimum: 1, example: 3, description: 'En presentaciones (3 bidones)' }
+    MotivoEntrada:
+      type: object
+      required: [motivo]
+      properties:
+        motivo: { type: string, minLength: 3, maxLength: 300 }
+    RecepcionEntrada:
+      type: object
+      required: [lineas]
+      properties:
+        lineas:
+          type: array
+          description: Una por cada línea de la orden. Todas en 0 = no llegó nada (todo queda como faltante)
+          items:
+            type: object
+            required: [item_id, cantidad_recibida]
+            properties:
+              item_id: { type: string, format: uuid }
+              cantidad_recibida: { type: integer, minimum: 0, description: 'De 0 a lo pedido, en presentaciones' }
+        nota: { type: string, maxLength: 300 }
 security: []
 paths:
   /salud:
@@ -650,3 +682,203 @@ paths:
         '403': { $ref: '#/components/responses/Error' }
         '404': { $ref: '#/components/responses/Error' }
         '409': { $ref: '#/components/responses/Error' }
+  /abastecimiento/reponer:
+    get:
+      tags: [Abastecimiento]
+      summary: Productos activos con las presentaciones que se les pueden pedir, de la más barata por unidad a la más cara (admin)
+      description: '`para_reponer` = stock en el mínimo o hasta 1,5× el mínimo.'
+      security: [{ sesion: [] }]
+      responses:
+        '200': { description: Lista de productos con sus opciones }
+        '403': { $ref: '#/components/responses/Error' }
+  /ordenes-compra:
+    get:
+      tags: [Abastecimiento]
+      summary: Órdenes de compra, sin las de proveedores de prueba salvo ?pruebas=1 (admin)
+      security: [{ sesion: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/Pruebas' }
+        - name: estado
+          in: query
+          schema: { type: string, enum: [borrador, enviada, aceptada, despachada, recibida, rechazada, cancelada] }
+      responses:
+        '200': { description: Lista de órdenes }
+        '403': { $ref: '#/components/responses/Error' }
+    post:
+      tags: [Abastecimiento]
+      summary: Armar orden — junta las líneas por proveedor en su borrador (admin)
+      security: [{ sesion: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LineasOrdenEntrada' }
+      responses:
+        '201': { description: 'Borradores tocados: [{ id, codigo, distribuidor_id }]' }
+        '403': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /ordenes-compra/{id}:
+    get:
+      tags: [Abastecimiento]
+      summary: Una orden con sus líneas y su línea de tiempo (admin, o el proveedor dueño desde que se envía; sin stock ni costos)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Orden }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /ordenes-compra/{id}/lineas:
+    patch:
+      tags: [Abastecimiento]
+      summary: Cambiar o sumar una línea del borrador; cantidad 0 la quita (admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [presentacion_id, cantidad]
+              properties:
+                presentacion_id: { type: string, format: uuid }
+                cantidad: { type: integer, minimum: 0 }
+      responses:
+        '200': { description: '{ id, total }' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /ordenes-compra/{id}/enviar:
+    post:
+      tags: [Abastecimiento]
+      summary: Enviar el borrador; copia nombre, unidades y precio de cada línea (admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Orden actualizada }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /ordenes-compra/{id}/cancelar:
+    post:
+      tags: [Abastecimiento]
+      summary: Cancelar con motivo (solo borrador, enviada o aceptada) (admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MotivoEntrada' }
+      responses:
+        '200': { description: Orden actualizada }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /ordenes-compra/{id}/recibir:
+    post:
+      tags: [Abastecimiento]
+      summary: Recepción única de una orden despachada; entrada al kardex fraccionada, costo promedio ponderado y faltantes (admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RecepcionEntrada' }
+      responses:
+        '200': { description: Orden actualizada }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /ordenes-compra/{id}/anular-prueba:
+    post:
+      tags: [Abastecimiento]
+      summary: Limpieza E2E de órdenes de proveedores @amlagrotech.test; saca el stock recibido, restaura el costo y cancela (admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Orden actualizada }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+  /ordenes-compra/{id}/aceptar:
+    post:
+      tags: [Abastecimiento]
+      summary: Aceptar una orden enviada con la fecha estimada de entrega (proveedor dueño)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fecha_estimada]
+              properties:
+                fecha_estimada: { type: string, format: date, description: 'Desde hoy (hora de Bolivia) y dentro de 6 meses' }
+      responses:
+        '200': { description: Orden actualizada }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /ordenes-compra/{id}/rechazar:
+    post:
+      tags: [Abastecimiento]
+      summary: Rechazar con motivo una orden enviada o aceptada (proveedor dueño)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MotivoEntrada' }
+      responses:
+        '200': { description: Orden actualizada }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /ordenes-compra/{id}/despachar:
+    post:
+      tags: [Abastecimiento]
+      summary: Despachar una orden aceptada con transportista y guía (proveedor dueño)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [transportista, guia]
+              properties:
+                transportista: { type: string, minLength: 2, maxLength: 80 }
+                guia: { type: string, minLength: 1, maxLength: 60 }
+      responses:
+        '200': { description: Orden actualizada }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /distribuidor/ordenes:
+    get:
+      tags: [Abastecimiento]
+      summary: Las órdenes del proveedor de la sesión desde que se envían (nunca los borradores)
+      security: [{ sesion: [] }]
+      responses:
+        '200': { description: Lista de órdenes }
+        '403': { $ref: '#/components/responses/Error' }
+  /margen:
+    get:
+      tags: [Abastecimiento]
+      summary: Precio, costo y margen de cada producto activo (admin)
+      description: 'Costo real = promedio ponderado de las recepciones; hasta la primera, estimado con el proveedor más barato por unidad.'
+      security: [{ sesion: [] }]
+      responses:
+        '200': { description: '{ productos, margen_promedio, con_costo, estimados, sin_costo, menores }' }
+        '403': { $ref: '#/components/responses/Error' }
