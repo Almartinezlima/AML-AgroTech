@@ -176,6 +176,15 @@ export interface Cotizacion {
   items: Array<{ producto_id: string; nombre: string; precio: number; cantidad: number; subtotal: number }>
 }
 
+// Datos de entrega del último pedido, para rellenar el checkout (GET /api/pedidos/ultima-entrega)
+export interface UltimaEntrega {
+  zona_id: string | null
+  direccion: string | null
+  telefono: string | null
+  recoge_nombre: string | null
+  recoge_ci: string | null
+}
+
 export interface PedidoCreado {
   id: string
   codigo: string

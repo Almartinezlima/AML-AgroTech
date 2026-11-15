@@ -6,7 +6,8 @@ import base from '../../playwright.config'
 export default defineConfig({
   ...base,
   testDir: '.',
-  testMatch: 'capturas.spec.ts',
+  // CAPTURAS_SPEC=compra-facil.spec.ts para las de la fase 4 (crean un pedido de prueba que se anula solo)
+  testMatch: process.env.CAPTURAS_SPEC ?? 'capturas.spec.ts',
   reporter: 'line',
   outputDir: '../../test-results/capturas-salida',
   webServer: undefined,

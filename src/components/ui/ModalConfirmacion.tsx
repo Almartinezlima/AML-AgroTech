@@ -7,6 +7,8 @@ interface ModalConfirmacionProps {
   titulo: string
   mensaje: string
   textoConfirmar: string
+  // Texto del botón que cierra sin hacer nada (por defecto "Cancelar")
+  textoCancelar?: string
   peligro?: boolean
   procesando?: boolean
   error?: string
@@ -19,6 +21,7 @@ export default function ModalConfirmacion({
   titulo,
   mensaje,
   textoConfirmar,
+  textoCancelar = 'Cancelar',
   peligro = false,
   procesando = false,
   error,
@@ -61,7 +64,7 @@ export default function ModalConfirmacion({
             onClick={onCancelar}
             className={claseBoton('secundario')}
           >
-            Cancelar
+            {textoCancelar}
           </button>
           <button
             type="button"

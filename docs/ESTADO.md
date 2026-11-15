@@ -18,7 +18,7 @@
 | Distribución | ✅ Probada E2E | Zonas editables, flota y guía, panel de envíos, recojo "Listo para recoger", WhatsApp | Definir `NEXT_PUBLIC_WHATSAPP_TIENDA`; confirmar los costos de referencia |
 | Almacenamiento | ✅ Probado E2E | Kardex, entradas y ajustes, stock protegido, niveles, alertas, CSV, valor del inventario | — |
 | API REST | 🟢 Programada | `src/app/api/**`, OpenAPI en `docs/api/openapi.yaml`, Swagger en `/api-docs` | — |
-| Pruebas | ✅ 31/31 en verde (14 nov) | Playwright: seguridad, registro, compra, pagos, distribución, inventario, admin, 360 px. Desde la fase 2B solo usan 2 cuentas fijas (admin y cliente `@amlagrotech.test`) y cada prueba anula lo que crea; el panel oculta los datos de prueba con el interruptor "Mostrar datos de prueba" ([`PRUEBAS.md`](PRUEBAS.md)). Corrida del 14 nov: 31/31 en 6,4 min y base intacta (stock idéntico, 0 pedidos de prueba abiertos) | Ordenar las 126 cuentas viejas en la fase de cierre; GitHub Actions |
+| Pruebas | ✅ 31/31 en verde (14 nov) | Playwright: seguridad, registro, compra, pagos, distribución, inventario, admin, 360 px. Desde la fase 2B solo usan 2 cuentas fijas (admin y cliente `@amlagrotech.test`) y cada prueba anula lo que crea; el panel oculta los datos de prueba con el interruptor "Mostrar datos de prueba" ([`PRUEBAS.md`](PRUEBAS.md)). Corrida de la fase 4 (14 nov): 31/31 en 3,4 min y base intacta (huella de stock idéntica, los 6 pedidos de la corrida cancelados, 0 abiertos del cliente fijo) | Ordenar las 126 cuentas viejas en la fase de cierre; GitHub Actions |
 | Deploy | ✅ Activo | Render: https://aml-agrotech.onrender.com | Next 14.2.35 es el último 14.2.x y `npm audit` aún marca una crítica en `next`: solo se arregla con Next 16 (cambio mayor), después de la feria |
 
 ## Base de datos real (14 nov 2026)
@@ -37,7 +37,8 @@
 | 2B | `fase/2b-calidad` | Arreglos de autenticación + pruebas E2E con Playwright ✅ |
 | 2A | `fase/2a-zonas` | Zonas: distritos de Villa Charcas, Incahuasi y Culpina; Sucre inactiva ✅ (PR #10) |
 | 2B | `fase/2b-pruebas-limpias` | Pruebas E2E sin basura: 2 cuentas fijas, limpieza al terminar, interruptor de datos de prueba en el panel (migración 0011) ✅ (PR #11; E2E 31/31) |
-| 3 | `fase/3-diseno` | Diseño unificado: tokens en una sola fuente, letra chica más grande en celular, panel admin con cifras y filtros, 0 scroll horizontal en 360 px ([sesión](sesiones/2026-11-14_fase-3-diseno.md)) — en revisión |
+| 3 | `fase/3-diseno` | Diseño unificado: tokens en una sola fuente, letra chica más grande en celular, panel admin con cifras y filtros, 0 scroll horizontal en 360 px ([sesión](sesiones/2026-11-14_fase-3-diseno.md)) ✅ (PR #12) |
+| 4 | `fase/4-compra-facil` | Compra fácil: botones que dicen adónde llevan ("Ir a pagar" / "Seguir comprando"), pasos visibles, mensajes simples, datos recordados de la última compra, QR de demostración con el monto exacto y estados simples para el cliente. Sin migración ([sesión](sesiones/2026-11-14_fase-4-compra-facil.md)) — en revisión |
 | 6 | `fase/6-diseno` | Diseño de feria: fotos reales, color por categoría, tipografía y portada ✅ |
 | 6B | `fase/6-diseno` | Correcciones de la auditoría + tema claro ✅ (unida a `master`, PR #5) |
 | 6 | `fase/6-pulido` | Cuentas demo, README, celular |

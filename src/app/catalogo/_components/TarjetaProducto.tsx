@@ -80,7 +80,7 @@ export default function TarjetaProducto({ producto, agregado, onAgregar, priorid
             {agregado ? (
               <><LuCheck className="h-4 w-4" aria-hidden="true" /> Agregado</>
             ) : agotado ? 'Sin stock' : (
-              <><LuShoppingCart className="h-4 w-4" aria-hidden="true" /> {compacta ? 'Agregar' : 'Agregar al carrito'}</>
+              <><LuShoppingCart className="h-4 w-4" aria-hidden="true" /> Agregar al carrito</>
             )}
           </button>
         </div>

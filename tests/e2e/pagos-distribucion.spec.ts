@@ -66,8 +66,9 @@ test.describe('Pagos y distribución', () => {
     // Cliente: ve la línea de tiempo completa con flota y guía
     await page.reload()
     const seguimiento = page.locator('section', { has: page.getByRole('heading', { name: 'Seguimiento' }) })
-    for (const estado of ['Pendiente', 'Confirmado', 'Preparando', 'Despachado', 'Entregado']) {
-      // "Pendiente" aparece dos veces: al crear el pedido y al subir el comprobante
+    // Nombres para el cliente (fase 4): Pendiente → Pedido recibido, Despachado → En camino
+    for (const estado of ['Pedido recibido', 'Confirmado', 'Preparando', 'En camino', 'Entregado']) {
+      // "Pedido recibido" aparece dos veces: al crear el pedido y al subir el comprobante
       await expect(seguimiento.getByText(estado, { exact: true }).first()).toBeVisible()
     }
     await expect(page.getByText('Trans Copacabana (E2E)')).toBeVisible()

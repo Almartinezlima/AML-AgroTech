@@ -3,39 +3,54 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import ModalConfirmacion from '@/components/ui/ModalConfirmacion'
-import { BloqueCarga, BloqueError } from '@/components/ui/Estados'
+import { Aviso, BloqueCarga, BloqueError } from '@/components/ui/Estados'
 import Insignia from '@/components/ui/Insignia'
-import { claseBoton, claseBotonPeligro, clasePagina, claseTarjeta } from '@/components/ui/estilos'
+import { claseBoton, claseBotonPeligro, claseBotonSecundario, clasePagina, claseTarjeta } from '@/components/ui/estilos'
 import { useAuth } from '@/context/AuthContext'
-import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
+import { ErrorPedidoApi, enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
-import { INFO_ESTADO_ENVIO, INFO_ESTADO_PEDIDO, fechaHora, puedeCancelarCliente } from '@/lib/ecommerce/presentacion'
+import { INFO_ESTADO_ENVIO, estadoCliente, fechaHora, puedeCancelarCliente } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import type { PedidoDetalle } from '@/types/comercio'
 import BloquePago from './_components/BloquePago'
 import LineaTiempo from './_components/LineaTiempo'
-import { LuMessageCircle } from 'react-icons/lu'
+import { LuArrowLeft, LuMessageCircle } from 'react-icons/lu'
 
 const NUMERO_WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA
 
 export default function PedidoDetallePage() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
-  const { datos: pedido, cargando, error, recargar } = useDatosApi<PedidoDetalle>(`/api/pedidos/${id}`)
+  const { datos: pedido, cargando, error, estadoError, recargar } = useDatosApi<PedidoDetalle>(`/api/pedidos/${id}`)
   const [cancelando, setCancelando] = useState(false)
   const [procesando, setProcesando] = useState(false)
   const [errorCancelar, setErrorCancelar] = useState('')
+  const [cancelado, setCancelado] = useState(false)
 
   const envoltura = (contenido: React.ReactNode) => (
     <div className={clasePagina}><div className="max-w-4xl mx-auto">{contenido}</div></div>
   )
 
   if (cargando && !pedido) return envoltura(<BloqueCarga filas={3} alto="h-40" />)
-  if (error || !pedido) return envoltura(<BloqueError mensaje={error || 'El pedido no existe.'} onReintentar={() => void recargar()} />)
+  if (error || !pedido) {
+    const verPedidos = <Link href="/pedidos" className={claseBotonSecundario}>Ver mis pedidos</Link>
+    // Id mal escrito o pedido ajeno: no tiene sentido reintentar
+    if (estadoError === 400 || estadoError === 404) {
+      return envoltura(<BloqueError titulo="No encontramos ese pedido" mensaje="Puede que el enlace esté incompleto. Busca tu compra en «Mis pedidos».">{verPedidos}</BloqueError>)
+    }
+    return envoltura(<BloqueError mensaje={error || 'No encontramos el pedido.'} onReintentar={() => void recargar()}>{verPedidos}</BloqueError>)
+  }
 
   const esDueno = user?.id === pedido.usuario_id
   // Si ya mandó el comprobante, la cancelación la hace la tienda (y genera el reembolso)
   const puedeCancelar = esDueno && puedeCancelarCliente(pedido.estado, pedido.estado_pago)
+  const estado = estadoCliente({
+    estado: pedido.estado,
+    estado_pago: pedido.estado_pago,
+    metodo_pago: pedido.metodo_pago,
+    tipoZona: pedido.zonas_envio?.tipo,
+    monto: pedido.total,
+  })
 
   const confirmarCancelacion = async () => {
     setProcesando(true)
@@ -43,9 +58,12 @@ export default function PedidoDetallePage() {
     try {
       await enviarJson(`/api/pedidos/${pedido.id}/cancelar`, 'POST', {})
       setCancelando(false)
+      setCancelado(true)
       await recargar()
     } catch (causa) {
-      setErrorCancelar(mensajeDeError(causa))
+      setErrorCancelar(causa instanceof ErrorPedidoApi && causa.codigo === 'ESTADO_NO_PERMITIDO'
+        ? 'Este pedido ya no se puede cancelar desde aquí porque la tienda ya lo está atendiendo. Comunícate con la tienda.'
+        : mensajeDeError(causa))
     } finally {
       setProcesando(false)
     }
@@ -53,15 +71,24 @@ export default function PedidoDetallePage() {
 
   return envoltura(
     <>
-      <Link href="/pedidos" className="text-acento hover:text-acento-hover text-sm">← Mis pedidos</Link>
+      <Link href="/pedidos" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-acento hover:text-acento-hover">
+        <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Volver a mis pedidos
+      </Link>
 
-      <div className="flex items-start justify-between gap-3 flex-wrap mt-4 mb-6">
+      <div className="flex items-start justify-between gap-3 flex-wrap mt-2 mb-4">
         <div>
           <h1 className="font-titulo text-2xl font-bold tracking-tight text-acento">{pedido.codigo}</h1>
           <p className="text-texto-2 text-sm">{fechaHora(pedido.created_at)}</p>
           {pedido.cliente && <p className="text-texto text-sm mt-1">Cliente: {pedido.cliente.nombre}</p>}
         </div>
-        <Insignia info={INFO_ESTADO_PEDIDO[pedido.estado]} />
+        <Insignia info={estado} />
+      </div>
+
+      <div className="mb-6 flex flex-col gap-3">
+        {cancelado && <Aviso tipo="ok">Cancelaste el pedido {pedido.codigo}.</Aviso>}
+        <p className="rounded-2xl border border-borde bg-tarjeta-hover px-4 py-3 text-texto">
+          <span className="font-semibold">Qué sigue: </span>{estado.queSigue}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -107,7 +134,7 @@ export default function PedidoDetallePage() {
                 rel="noopener noreferrer"
                 className={`${claseBoton('suave')} mt-4 w-full`}
               >
-                <LuMessageCircle className="h-5 w-5" aria-hidden="true" /> Coordinar por WhatsApp
+                <LuMessageCircle className="h-5 w-5" aria-hidden="true" /> Escribir a la tienda por WhatsApp
               </a>
             )}
           </section>
@@ -122,7 +149,7 @@ export default function PedidoDetallePage() {
           )}
           {esDueno && pedido.estado === 'pendiente' && !puedeCancelar && (
             <p className="rounded-2xl bg-tarjeta-hover px-4 py-3 text-sm text-texto">
-              Ya enviaste tu comprobante. Si necesitas cancelar el pedido, escríbenos por WhatsApp y la tienda te devuelve el pago.
+              Ya enviaste tu comprobante, así que la cancelación la hace la tienda. Si necesitas cancelar, comunícate con la tienda{NUMERO_WHATSAPP ? ' por WhatsApp' : ''}: te devuelve lo que pagaste.
             </p>
           )}
         </div>
@@ -130,9 +157,10 @@ export default function PedidoDetallePage() {
 
       {cancelando && (
         <ModalConfirmacion
-          titulo="Cancelar pedido"
-          mensaje={`El pedido ${pedido.codigo} se cancelará y los productos volverán al inventario.`}
-          textoConfirmar="Sí, cancelar"
+          titulo="¿Cancelar el pedido?"
+          mensaje={`El pedido ${pedido.codigo} se cancelará y no se te cobrará nada. Esto no se puede deshacer.`}
+          textoConfirmar="Sí, cancelar pedido"
+          textoCancelar="No, volver"
           peligro
           procesando={procesando}
           error={errorCancelar}

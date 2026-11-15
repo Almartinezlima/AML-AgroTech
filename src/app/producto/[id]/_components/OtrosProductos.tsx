@@ -30,7 +30,7 @@ export default function OtrosProductos({ productoId, categoria }: { productoId: 
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <h2 id="otros-titulo" className="font-titulo text-2xl font-bold tracking-tight text-texto">Otros productos de {categoria}</h2>
         <Link href={`/catalogo?categoria=${encodeURIComponent(categoria)}`} className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-acento hover:text-acento-hover">
-          Ver todos <LuArrowRight className="h-4 w-4" aria-hidden="true" />
+          Ver todos en {categoria} <LuArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       </div>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">

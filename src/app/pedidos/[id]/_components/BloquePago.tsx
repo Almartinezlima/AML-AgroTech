@@ -32,12 +32,12 @@ export default function BloquePago({ pedido, esDueno, onActualizado }: BloquePag
       </div>
 
       {pago.estado === 'rechazado' && pago.motivo_rechazo && (
-        <Aviso tipo="error">Motivo del rechazo: {pago.motivo_rechazo}. Puedes subir otro comprobante.</Aviso>
+        <Aviso tipo="error">La tienda rechazó tu comprobante. Motivo: {pago.motivo_rechazo}. Sube otro comprobante aquí abajo.</Aviso>
       )}
 
       {pago.estado === 'reembolso_pendiente' && (
         <Aviso tipo="advertencia">
-          El pedido se canceló después de tu pago. La tienda te devolverá {formatoBs(pago.monto)} y te avisará por WhatsApp.
+          El pedido se canceló después de tu pago. La tienda te devolverá {formatoBs(pago.monto)}. Mira aquí cuando esté hecho.
         </Aviso>
       )}
       {pago.estado === 'reembolsado' && (
@@ -45,7 +45,7 @@ export default function BloquePago({ pedido, esDueno, onActualizado }: BloquePag
       )}
 
       {pago.estado === 'en_revision' && esDueno && (
-        <p className="text-sm text-texto-2">Recibimos tu comprobante. Lo revisamos y te confirmamos el pedido.</p>
+        <Aviso tipo="ok">Recibimos tu comprobante. La tienda lo está revisando; mira aquí el estado.</Aviso>
       )}
 
       {puedeSubir && <InstruccionesPago metodo={pago.metodo} monto={pago.monto} codigo={pedido.codigo} />}

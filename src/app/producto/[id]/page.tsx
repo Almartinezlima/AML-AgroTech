@@ -2,12 +2,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { LuArrowLeft, LuCheck, LuMinus, LuPackageX, LuPlus, LuShieldCheck, LuShoppingCart, LuTruck } from 'react-icons/lu'
+import { LuArrowLeft, LuArrowRight, LuCheck, LuMinus, LuPackageX, LuPlus, LuShieldCheck, LuShoppingCart, LuTruck } from 'react-icons/lu'
 import EtiquetaCategoria from '@/components/EtiquetaCategoria'
 import ImagenProducto from '@/components/ImagenProducto'
 import { BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import Insignia from '@/components/ui/Insignia'
-import { claseBotonCantidad, claseBotonPrimario, clasePagina, claseTarjeta } from '@/components/ui/estilos'
+import { claseBotonCantidad, claseBotonPrimario, claseBotonSecundario, clasePagina, claseTarjeta } from '@/components/ui/estilos'
 import FichaTecnica from './_components/FichaTecnica'
 import OtrosProductos from './_components/OtrosProductos'
 import PrecioMercado from './_components/PrecioMercado'
@@ -22,7 +22,7 @@ import type { Producto } from '@/types/comercio'
 export default function ProductoPage() {
   const { id } = useParams<{ id: string }>()
   const { datos: producto, cargando, error, estadoError, recargar } = useDatosApi<Producto>(`/api/productos/${id}`)
-  const { agregarItem } = useCarrito()
+  const { agregarItem, items } = useCarrito()
   const [cantidad, setCantidad] = useState(1)
   const [agregado, setAgregado] = useState(false)
 
@@ -56,6 +56,7 @@ export default function ProductoPage() {
   }
 
   const agotado = producto.stock === 0
+  const yaEnCarrito = items.some((i) => i.id === producto.id)
   const nivel = INFO_NIVEL[nivelStock(producto.stock, producto.stock_minimo)]
   const categoria = producto.categorias?.nombre
   const color = estiloCategoria(categoria).color
@@ -68,7 +69,7 @@ export default function ProductoPage() {
 
   return envoltura(
     <>
-      <Link href="/catalogo" className="inline-flex items-center gap-1.5 text-sm text-texto-2 hover:text-acento">
+      <Link href="/catalogo" className="inline-flex min-h-11 items-center gap-1.5 text-sm text-texto-2 hover:text-acento">
         <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Volver al catálogo
       </Link>
 
@@ -126,6 +127,11 @@ export default function ProductoPage() {
               <><LuShoppingCart className="h-5 w-5" aria-hidden="true" /> Agregar al carrito</>
             )}
           </button>
+          {yaEnCarrito && (
+            <Link href="/carrito" className={`${claseBotonSecundario} -mt-2 w-full`}>
+              Ver mi carrito <LuArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          )}
 
           <ul className={`${claseTarjeta} grid gap-3 p-4 text-sm sm:grid-cols-2`}>
             <li className="flex items-start gap-3">

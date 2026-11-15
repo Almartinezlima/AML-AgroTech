@@ -39,6 +39,77 @@ export const INFO_MOVIMIENTO: Record<TipoMovimiento, { etiqueta: string; color: 
   devolucion: { etiqueta: 'Devolución', color: VERDE },
 }
 
+// ───── Estado para el cliente (fase 4) ─────
+// Una sola insignia con nombre corto y una línea de "qué sigue". El panel admin usa los mapas de arriba.
+// Ningún texto promete avisos automáticos: la tienda no los envía.
+export interface EstadoCliente {
+  etiqueta: string
+  color: string
+  queSigue: string
+}
+
+interface DatosEstadoCliente {
+  estado: EstadoPedido
+  estado_pago: EstadoPago
+  metodo_pago: MetodoPago
+  tipoZona?: TipoZona | null
+  monto?: number
+}
+
+const bs = (monto?: number) =>
+  monto === undefined ? 'tu dinero' : `Bs. ${monto.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+
+export function estadoCliente({ estado, estado_pago, metodo_pago, tipoZona, monto }: DatosEstadoCliente): EstadoCliente {
+  switch (estado) {
+    case 'pendiente':
+      if (estado_pago === 'en_revision') {
+        return { etiqueta: 'Revisando tu pago', color: AZUL, queSigue: 'La tienda está revisando tu comprobante. Mira aquí el estado.' }
+      }
+      if (estado_pago === 'rechazado') {
+        return { etiqueta: 'Pago rechazado', color: ROJO, queSigue: 'La tienda no pudo validar tu comprobante. Sube otro comprobante.' }
+      }
+      if (metodo_pago === 'contra_entrega') {
+        return { etiqueta: 'Recibido', color: AMBAR, queSigue: 'La tienda revisará tu pedido para confirmarlo. Pagas en efectivo al recibirlo.' }
+      }
+      return { etiqueta: 'Falta pagar', color: AMBAR, queSigue: `Paga con ${metodo_pago === 'qr' ? 'el QR' : 'transferencia'} y sube la foto de tu comprobante.` }
+    case 'confirmado':
+      return { etiqueta: 'Confirmado', color: VERDE, queSigue: 'Tu pedido está confirmado. El siguiente paso es prepararlo.' }
+    case 'preparando':
+      return { etiqueta: 'Preparando', color: AZUL, queSigue: 'Estamos alistando tus productos.' }
+    case 'listo_para_recoger':
+      return { etiqueta: 'Listo para recoger', color: AZUL, queSigue: 'Pasa por la tienda de Villa Charcas con el código de tu pedido.' }
+    case 'despachado':
+      return {
+        etiqueta: 'En camino',
+        color: AZUL,
+        queSigue: tipoZona === 'provincia'
+          ? 'Va en la flota. Recógelo en la terminal con el carnet de quien indicaste.'
+          : 'Va hacia la dirección que indicaste.',
+      }
+    case 'entregado':
+      return { etiqueta: 'Entregado', color: VERDE, queSigue: '¡Gracias por tu compra!' }
+    case 'cancelado':
+      if (estado_pago === 'reembolso_pendiente') {
+        return { etiqueta: 'Cancelado', color: ROJO, queSigue: `La tienda te devolverá ${bs(monto)}.` }
+      }
+      if (estado_pago === 'reembolsado') {
+        return { etiqueta: 'Cancelado', color: ROJO, queSigue: `La tienda ya te devolvió ${bs(monto)}.` }
+      }
+      return { etiqueta: 'Cancelado', color: ROJO, queSigue: 'Este pedido se canceló. No se te cobró nada.' }
+  }
+}
+
+// Nombres de la línea de tiempo para el cliente (el admin ve los de INFO_ESTADO_PEDIDO)
+export const ETIQUETA_SEGUIMIENTO_CLIENTE: Record<EstadoPedido, string> = {
+  pendiente: 'Pedido recibido',
+  confirmado: 'Confirmado',
+  preparando: 'Preparando',
+  listo_para_recoger: 'Listo para recoger',
+  despachado: 'En camino',
+  entregado: 'Entregado',
+  cancelado: 'Cancelado',
+}
+
 export const ETIQUETA_METODO: Record<MetodoPago, string> = {
   qr: 'QR',
   transferencia: 'Transferencia',

@@ -2,12 +2,12 @@
 import Link from 'next/link'
 import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import Insignia from '@/components/ui/Insignia'
-import { claseBotonPrimario, clasePagina, claseTarjeta } from '@/components/ui/estilos'
+import { claseBotonPrimario, clasePagina, claseTarjeta, claseTituloPagina } from '@/components/ui/estilos'
 import { useDatosApi } from '@/lib/api/useDatosApi'
-import { ETIQUETA_METODO, INFO_ESTADO_PAGO, INFO_ESTADO_PEDIDO, fechaHora } from '@/lib/ecommerce/presentacion'
+import { ETIQUETA_METODO, estadoCliente, fechaHora } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import type { PedidoResumen } from '@/types/comercio'
-import { LuPackage } from 'react-icons/lu'
+import { LuArrowRight, LuPackage } from 'react-icons/lu'
 
 export default function PedidosPage() {
   const { datos: pedidos, cargando, error, recargar } = useDatosApi<PedidoResumen[]>('/api/pedidos')
@@ -15,8 +15,8 @@ export default function PedidosPage() {
   return (
     <div className={clasePagina}>
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-texto mb-2">Mis pedidos</h1>
-        <p className="text-texto-2 mb-8">Revisa el estado, el pago y el envío de tus compras</p>
+        <h1 className={`${claseTituloPagina} mb-2`}>Mis pedidos</h1>
+        <p className="text-texto-2 mb-8">Mira en qué va cada compra y qué tienes que hacer</p>
 
         {cargando ? (
           <BloqueCarga />
@@ -28,28 +28,38 @@ export default function PedidosPage() {
           </BloqueVacio>
         ) : (
           <ul className="flex flex-col gap-3">
-            {pedidos.map((pedido) => (
-              <li key={pedido.id}>
-                <Link href={`/pedidos/${pedido.id}`} className={`${claseTarjeta} block p-4 sm:p-5 hover:border-acento transition-colors`}>
-                  <div className="flex items-start justify-between gap-3 flex-wrap">
-                    <div>
-                      <p className="text-acento font-titulo text-lg font-bold">{pedido.codigo}</p>
-                      <p className="text-texto-2 text-xs mt-1">{fechaHora(pedido.created_at)}</p>
+            {pedidos.map((pedido) => {
+              const estado = estadoCliente({
+                estado: pedido.estado,
+                estado_pago: pedido.estado_pago,
+                metodo_pago: pedido.metodo_pago,
+                tipoZona: pedido.zonas_envio?.tipo,
+                monto: pedido.total,
+              })
+              return (
+                <li key={pedido.id}>
+                  <Link href={`/pedidos/${pedido.id}`} className={`${claseTarjeta} block p-4 sm:p-5 hover:border-acento transition-colors`}>
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div>
+                        <p className="text-acento font-titulo text-lg font-bold">{pedido.codigo}</p>
+                        <p className="text-texto-2 text-xs mt-1">{fechaHora(pedido.created_at)}</p>
+                      </div>
+                      <Insignia info={estado} />
                     </div>
-                    <div className="flex gap-2 flex-wrap">
-                      <Insignia info={INFO_ESTADO_PEDIDO[pedido.estado]} />
-                      <Insignia info={INFO_ESTADO_PAGO[pedido.estado_pago]} />
+                    <p className="mt-3 text-sm text-texto">{estado.queSigue}</p>
+                    <div className="flex items-end justify-between gap-3 mt-3">
+                      <p className="text-texto-2 text-sm min-w-0">
+                        {pedido.zonas_envio?.nombre} · {ETIQUETA_METODO[pedido.metodo_pago]}
+                      </p>
+                      <p className="text-texto font-bold whitespace-nowrap tabular-nums">{formatoBs(pedido.total)}</p>
                     </div>
-                  </div>
-                  <div className="flex items-end justify-between gap-3 mt-3">
-                    <p className="text-texto-2 text-sm min-w-0">
-                      {pedido.zonas_envio?.nombre} · {ETIQUETA_METODO[pedido.metodo_pago]}
-                    </p>
-                    <p className="text-texto font-bold whitespace-nowrap">{formatoBs(pedido.total)}</p>
-                  </div>
-                </Link>
-              </li>
-            ))}
+                    <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-acento">
+                      Ver detalle <LuArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                  </Link>
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>
