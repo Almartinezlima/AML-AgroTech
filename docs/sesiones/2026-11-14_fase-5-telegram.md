@@ -32,7 +32,11 @@ El admin tiene que enterarse al momento de lo que pasa en la tienda sin estar mi
 - Telegram: los 4 avisos de ejemplo (con el texto de la 0012 y datos inventados) llegaron al chat del admin.
 - Base intacta: la misma huella de pedidos, pagos, kardex, seguimiento y stock antes y después de las capturas.
 
-## Pendiente
+## Migración y E2E (14 nov 2026)
 
-- Aldo: correr la 0012 y cargar los 2 secretos en Vault (Integrations → Vault).
-- Después: E2E completas para comprobar que los triggers no rompen la compra y que no llega ningún aviso de prueba. Probar `select public.aml_aviso_resumen_diario();`.
+- Aldo corrió la 0012 y cargó los 2 secretos en Vault. El resumen de prueba (`select public.aml_aviso_resumen_diario();`) le llegó a Telegram.
+- Comprobado en la base: 3 triggers `aml_aviso_*`, el trabajo `aml-resumen-diario` con `0 0 * * *` y `pg_net` con 1 sola respuesta (la del resumen de prueba).
+- **Primera corrida: 29/31.** Fallaron `fase-6b` (comprobante que bloquea la cancelación) y `pagos-distribucion`, porque buscaban el botón viejo «Subir foto del comprobante». No era una falla de la app. Se cambiaron para elegir la foto con «Elegir foto del comprobante de la galería», que además prueba el camino nuevo con la compresión a JPG. Aun con las 2 fallas, la limpieza cerró todo: 4 pedidos cancelados y la misma huella de stock.
+- **Segunda corrida: 31/31 en 6,6 min** (`npm run test:e2e:prod`).
+- **Sin avisos de prueba:** entre las dos corridas se crearon 8 pedidos y 12 bajas de stock, todas de cuentas `@amlagrotech.test`, con comprobantes y aprobaciones. `pg_net` siguió con 1 sola respuesta y 0 en cola, así que ningún aviso salió a Telegram. Los triggers no rompieron ni la compra ni la subida del comprobante.
+- **Base intacta:** la misma huella de stock (total 3179). Los 8 pedidos de las corridas quedaron cancelados, ninguno de una cuenta real y ningún pago abierto.
