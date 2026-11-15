@@ -33,7 +33,7 @@ export interface Cuenta {
   password: string
 }
 
-function cuentaDeEntorno(prefijo: 'ADMIN' | 'CLIENTE'): Cuenta | null {
+function cuentaDeEntorno(prefijo: 'ADMIN' | 'CLIENTE' | 'DIST1' | 'DIST2'): Cuenta | null {
   const email = process.env[`E2E_${prefijo}_EMAIL`]
   const password = process.env[`E2E_${prefijo}_PASSWORD`]
   return email && password ? { email, password } : null
@@ -58,6 +58,16 @@ export function exigirCliente() {
   exigirAdmin()
   if (!credenciales!.email.toLowerCase().endsWith(DOMINIO_PRUEBAS)) {
     throw new Error(`E2E_CLIENTE_EMAIL debe terminar en ${DOMINIO_PRUEBAS} para que sus pedidos se puedan limpiar`)
+  }
+  return credenciales!
+}
+
+// Los 2 distribuidores de demostración (migración 0014): Sucre (1) y Santa Cruz (2)
+export function exigirDistribuidor(numero: 1 | 2) {
+  const credenciales = cuentaDeEntorno(numero === 1 ? 'DIST1' : 'DIST2')
+  test.skip(!credenciales, `Faltan E2E_DIST${numero}_EMAIL y E2E_DIST${numero}_PASSWORD en .env.test.local`)
+  if (!credenciales!.email.toLowerCase().endsWith(DOMINIO_PRUEBAS)) {
+    throw new Error(`E2E_DIST${numero}_EMAIL debe terminar en ${DOMINIO_PRUEBAS}`)
   }
   return credenciales!
 }
@@ -204,6 +214,16 @@ export async function paginaAdmin(browser: Browser): Promise<Page> {
   const pagina = await contexto.newPage()
   await iniciarSesion(pagina, credenciales, '/admin')
   await expect(pagina).toHaveURL(/\/admin/)
+  return pagina
+}
+
+// Un distribuidor en su propio navegador, ya en su panel
+export async function paginaDistribuidor(browser: Browser, numero: 1 | 2): Promise<Page> {
+  const credenciales = exigirDistribuidor(numero)
+  const contexto = await browser.newContext()
+  const pagina = await contexto.newPage()
+  await iniciarSesion(pagina, credenciales)
+  await expect(pagina).toHaveURL(/\/distribuidor/)
   return pagina
 }
 
