@@ -22,7 +22,7 @@ const NEXT = 'node node_modules/next/dist/bin/next'
 
 // Tres formas de correr (ver docs/PRUEBAS.md):
 // - npm run test:e2e       → usa el `npm run dev` del puerto 3000 (o lo levanta si no hay)
-// - npm run test:e2e:prod  → compila aparte en .next-e2e y levanta producción en el 3210
+// - npm run test:e2e:prod  → compila antes en .next-e2e (pretest) y levanta producción en el 3210
 //                            (más rápido y estable; no toca el .next del `npm run dev`)
 // - E2E_BASE_URL=…         → prueba contra un servidor ya levantado, sin levantar nada
 const MODO_PRODUCCION = process.env.npm_lifecycle_event === 'test:e2e:prod' || process.env.E2E_PRODUCCION === '1'
@@ -32,11 +32,15 @@ const URL_BASE = URL_EXTERNA ?? `http://localhost:${PUERTO}`
 
 const servidor = MODO_PRODUCCION
   ? {
-      command: `${NEXT} build && ${NEXT} start -p ${PUERTO}`,
+      // La compilación ya la hizo `pretest:e2e:prod` (scripts/compilar-e2e.mjs): aquí solo se
+      // levanta el servidor. Su salida va a la terminal, para que si se cae quede el error.
+      command: `${NEXT} start -p ${PUERTO}`,
       env: { NEXT_DIST_DIR: '.next-e2e' },
       url: URL_BASE,
       reuseExistingServer: false,
-      timeout: 600_000,
+      timeout: 120_000,
+      stdout: 'pipe' as const,
+      stderr: 'pipe' as const,
     }
   : {
       // UN solo servidor en el 3000: si ya corre se reutiliza; con -p fijo, si el puerto
