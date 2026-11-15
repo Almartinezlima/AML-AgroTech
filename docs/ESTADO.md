@@ -38,7 +38,8 @@
 | 2A | `fase/2a-zonas` | Zonas: distritos de Villa Charcas, Incahuasi y Culpina; Sucre inactiva ✅ (PR #10) |
 | 2B | `fase/2b-pruebas-limpias` | Pruebas E2E sin basura: 2 cuentas fijas, limpieza al terminar, interruptor de datos de prueba en el panel (migración 0011) ✅ (PR #11; E2E 31/31) |
 | 3 | `fase/3-diseno` | Diseño unificado: tokens en una sola fuente, letra chica más grande en celular, panel admin con cifras y filtros, 0 scroll horizontal en 360 px ([sesión](sesiones/2026-11-14_fase-3-diseno.md)) ✅ (PR #12) |
-| 4 | `fase/4-compra-facil` | Compra fácil: botones que dicen adónde llevan ("Ir a pagar" / "Seguir comprando"), pasos visibles, mensajes simples, datos recordados de la última compra, QR de demostración con el monto exacto y estados simples para el cliente. Sin migración ([sesión](sesiones/2026-11-14_fase-4-compra-facil.md)) — en revisión |
+| 4 | `fase/4-compra-facil` | Compra fácil: botones que dicen adónde llevan ("Ir a pagar" / "Seguir comprando"), pasos visibles, mensajes simples, datos recordados de la última compra, QR de demostración con el monto exacto y estados simples para el cliente. Sin migración ([sesión](sesiones/2026-11-14_fase-4-compra-facil.md)) ✅ (PR #13) |
+| 5 | `fase/5-telegram` | Avisos por Telegram al admin: pedido nuevo, comprobante por revisar, stock en el mínimo o agotado (sin repetir) y resumen diario a las 20:00 de Bolivia, desde la base con pg_net + pg_cron y secretos en Vault; las cuentas de prueba no avisan. Comprobante desde la galería con la foto achicada a JPG. Migración 0012 ([sesión](sesiones/2026-11-14_fase-5-telegram.md)) — en revisión |
 | 6 | `fase/6-diseno` | Diseño de feria: fotos reales, color por categoría, tipografía y portada ✅ |
 | 6B | `fase/6-diseno` | Correcciones de la auditoría + tema claro ✅ (unida a `master`, PR #5) |
 | 6 | `fase/6-pulido` | Cuentas demo, README, celular |
