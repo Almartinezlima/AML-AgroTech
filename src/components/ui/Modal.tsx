@@ -20,14 +20,14 @@ export default function Modal({ titulo, bloqueado = false, onCerrar, children }:
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-texto/60 backdrop-blur-sm px-4"
       onClick={() => { if (!bloqueado) onCerrar() }}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto overscroll-contain bg-tarjeta border border-borde rounded-2xl p-6 shadow-2xl shadow-black/10 animate-entrada"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto overscroll-contain bg-tarjeta border border-borde rounded-2xl p-5 sm:p-6 shadow-flotante animate-entrada"
         onClick={(evento) => evento.stopPropagation()}
       >
         <h2 className="font-titulo text-xl font-bold text-texto mb-4">{titulo}</h2>

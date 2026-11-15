@@ -17,11 +17,11 @@ export function BloqueCarga({ filas = 4, alto = 'h-20' }: { filas?: number; alto
 
 export function BloqueVacio({ icono: Icono = LuInbox, mensaje, children }: { icono?: IconType; mensaje: string; children?: ReactNode }) {
   return (
-    <div className={`${claseTarjeta} text-center py-16 px-4`}>
+    <div className={`${claseTarjeta} text-center py-12 sm:py-16 px-4`}>
       <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-tarjeta-hover text-texto-2">
         <Icono className="h-8 w-8" aria-hidden="true" />
       </span>
-      <p className="text-texto-2 mt-4 text-lg">{mensaje}</p>
+      <p className="text-texto-2 mt-4 text-lg text-balance">{mensaje}</p>
       {children && <div className="mt-6">{children}</div>}
     </div>
   )
@@ -29,8 +29,8 @@ export function BloqueVacio({ icono: Icono = LuInbox, mensaje, children }: { ico
 
 export function BloqueError({ mensaje, onReintentar }: { mensaje: string; onReintentar?: () => void }) {
   return (
-    <div role="alert" className="bg-tarjeta border border-red-300 rounded-2xl p-8 text-center">
-      <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-red-50 text-red-700">
+    <div role="alert" className="bg-tarjeta border border-estado-error/40 rounded-2xl shadow-tarjeta p-6 sm:p-8 text-center">
+      <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-estado-error/5 text-estado-error-texto">
         <LuTriangleAlert className="h-7 w-7" aria-hidden="true" />
       </span>
       <p className="text-texto font-semibold mt-4 mb-1">No se pudo cargar</p>
@@ -52,9 +52,9 @@ export function AvisoError({ mensaje }: { mensaje: string }) {
 // Aviso en línea con ícono (errores de formularios, confirmaciones, advertencias)
 export function Aviso({ tipo, children }: { tipo: 'error' | 'ok' | 'advertencia'; children: ReactNode }) {
   const estilos = {
-    error: 'bg-red-50 border-red-300 text-red-800',
+    error: 'bg-estado-error/5 border-estado-error/40 text-estado-error-texto',
     ok: 'bg-tarjeta-hover border-acento text-texto-2',
-    advertencia: 'bg-amber-50 border-[#f59e0b] text-amber-900',
+    advertencia: 'bg-estado-pendiente/10 border-estado-pendiente text-estado-pendiente-texto',
   }[tipo]
   return (
     <div role={tipo === 'error' ? 'alert' : 'status'} className={`flex items-start gap-2 rounded-xl border px-4 py-3 text-sm ${estilos}`}>

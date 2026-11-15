@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import '@fontsource-variable/bricolage-grotesque'
 import '@fontsource-variable/figtree'
 import './globals.css'
@@ -14,6 +14,11 @@ import { AuthProvider } from '@/context/AuthContext'
 export const metadata: Metadata = {
   title: 'AML AgroTech — Insumos agrícolas en Chuquisaca',
   description: 'Agroquímicos, semillas, riego, cañerías y herramientas con precios en Bs. y envío a Villa Charcas y sus distritos, Incahuasi y Culpina.',
+}
+
+// Barra del navegador en celular del mismo crema que el fondo
+export const viewport: Viewport = {
+  themeColor: '#f6f4ee',
 }
 
 export default function RootLayout({
