@@ -63,9 +63,36 @@ En la 6A el distribuidor pasó a ser el proveedor mayorista. Ahora la tienda le 
 ## Evidencia
 
 - `npx tsc --noEmit`, `npm run lint` y `npm run build` sin errores.
-- Migración, E2E, capturas y huella de la base: _se completan cuando la 0015 esté corrida_.
+- **Migración**: el chat del Proyecto corrió la 0015 el **15 nov 2026** (pasaron todos los FRENOs). Antes ensayó el ciclo completo, que se deshizo solo: crear → enviar → aceptar → despachar → recibir con faltante → anular. Dio bien el stock, el costo promedio, el motivo del kardex y la limpieza.
+- **E2E, primera corrida (`npm run test:e2e:prod`): 1/41.** Hubo dos problemas:
+  - **El spec**: `getByText('OC-000001')` encontraba también el botón «Responder OC-000001». Se corrigió con `exact: true`.
+  - **El servidor**: en la prueba 2, el `next start` que levanta Playwright se cayó sin dejar error, igual que en la primera corrida de la 6A. Desde ahí todo dio `ERR_CONNECTION_REFUSED`. La OC-000002 quedó enviada y la anuló el barrido de la corrida siguiente.
+- **E2E, segunda corrida: 41/41 en 8,8 min** (el barrido, las 35 de siempre y las 6 de `abastecimiento.spec.ts`). Esta vez el servidor de producción (`.next-e2e`) se levantó aparte, con su salida a un archivo, y se usó `E2E_BASE_URL=http://localhost:3210`. No registró ningún error en toda la corrida ni en las capturas.
+- **Capturas** (`tests/capturas/abastecimiento-6b.spec.ts`, `test-results/capturas/fase6b-*`): 14 pantallas a 1280, 412 y 360 px (42 capturas) con **0 scroll horizontal**:
+  - abastecimiento con «Pedir otro producto»;
+  - una orden en cada estado: borrador, enviada, aceptada, despachada, recibida con faltante, rechazada y cancelada;
+  - el modal de recepción («= 60 litros · costo Bs. 82,00/litro · stock 150 → 210 · costo promedio sin costo → Bs. 82,00»);
+  - margen y la tarjeta del panel;
+  - el panel del proveedor y su orden enviada y aceptada.
+- **Huella de la base** (consultas de solo lectura):
+
+  | Dato | Antes (15 nov) | Después |
+  |---|---|---|
+  | Stock total | 3179 | **3179** |
+  | Huella de stock | `e6bd1cc8…` | **`e6bd1cc8…`** (idéntica) |
+  | `costos_producto` | vacía | **vacía** |
+  | Presentaciones | `6f2c9fa4…` | **`6f2c9fa4…`** (idéntica) |
+  | Pedidos | cancelado 37 · confirmado 1 · entregado 13 · pendiente 28 | cancelado **41** · confirmado 1 · entregado 13 · pendiente 28 |
+  | Órdenes de compra | 0 | 16 canceladas + 3 rechazadas, todas de proveedores de prueba (0 de proveedores reales) |
+  | Kardex | 181 filas | 205 filas: «Compra OC-…» 216 unidades = «Limpieza E2E OC-…» 216 unidades |
+  | `pg_net` | 1 respuesta | **1** (ningún aviso de Telegram de prueba) |
+  | Perfiles | 138 | 139 (la cuenta temporal de `registro.spec.ts`, desactivada como siempre) |
+
+  Los 4 pedidos nuevos son de las corridas y quedaron cancelados (0 pedidos de prueba abiertos). Las 216 unidades son 3 recepciones de 72 (60 litros de Glifosato + 12 de Bravonil): una en la prueba sola, una en la suite completa y una en las capturas.
 
 ## Pendiente
+
+- La caída del `next start` que lanza Playwright en Windows ya pasó 2 veces (6A y 6B), siempre en la primera corrida y sin dejar error. Mientras no se encuentre la causa, conviene correr con el servidor levantado aparte (`PRUEBAS.md`).
 
 - El kardex del producto todavía no muestra el costo unitario de cada entrada (la columna ya existe).
 - Los distribuidores de demostración son `.test`: sus órdenes no avisan por Telegram y quedan ocultas en la lista si el interruptor de datos de prueba está apagado. En la fase 8 se harán cuentas demo no-`.test` para la feria.

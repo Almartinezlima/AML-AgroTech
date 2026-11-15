@@ -45,8 +45,11 @@ Pruebas de punta a punta que usan la app **como un usuario de verdad**: el clien
 | `npm run test:e2e:prod` | Compila en `.next-e2e`, levanta producción en el **3210** y lo apaga al terminar | **Recomendado.** Rápido (~2–3 min) y estable; no toca el `.next` de `npm run dev` |
 | `npm run test:e2e` | Usa el `npm run dev` del **3000** (o lo levanta si no hay) | Mientras programás, con UN solo `npm run dev` abierto |
 | `npm run test:e2e:ui` | Modo visual de Playwright para ver cada paso | Para depurar una prueba |
+| `E2E_BASE_URL=http://localhost:3210 npx playwright test` | Prueba contra un servidor ya levantado, sin levantar nada | **Si `test:e2e:prod` corta a la mitad con `ERR_CONNECTION_REFUSED`.** Primero `npx next build` con `NEXT_DIST_DIR=.next-e2e` y después, en otra terminal, `NEXT_DIST_DIR=.next-e2e npx next start -p 3210` (en PowerShell: `$env:NEXT_DIST_DIR='.next-e2e'`). Así fue la corrida de la 6B, 41/41 |
 
-Una sola prueba: `npx playwright test seguridad` (o `compra`, `pagos`, `inventario`, `registro`, `responsive`).
+Una sola prueba: `npx playwright test seguridad` (o `compra`, `pagos`, `inventario`, `registro`, `responsive`, `distribuidor`, `abastecimiento`).
+
+> ⚠️ En Windows, el `next start` que levanta Playwright con `test:e2e:prod` se cayó 2 veces sin dejar error (6A y 6B, siempre en la primera corrida). Levantado aparte no se cayó nunca. Si pasa, las pruebas siguientes dan `ERR_CONNECTION_REFUSED` y lo que quedó abierto lo anula el barrido de la corrida siguiente.
 
 Reporte: `npx playwright show-report` (abre `playwright-report/`). Si algo falla quedan captura, video y traza en `test-results/`.
 

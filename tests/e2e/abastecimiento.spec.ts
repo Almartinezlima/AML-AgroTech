@@ -90,7 +90,7 @@ test.describe('Abastecimiento (órdenes de compra)', () => {
     // 3. El distribuidor la acepta con fecha y la despacha
     const dist = await paginaDistribuidor(browser, 1)
     await esperarCarga(dist)
-    await expect(dist.getByText(codigo)).toBeVisible()
+    await expect(dist.getByText(codigo, { exact: true })).toBeVisible()
     await dist.goto(`/distribuidor/ordenes/${id}`)
     await esperarCarga(dist)
     await dist.getByLabel('¿Qué día la entregas?').fill(fechaEnDias(3))
