@@ -50,3 +50,25 @@ export async function requerirAdmin(): Promise<SesionApi> {
 
   return sesion
 }
+
+// Exige rol distribuidor (proveedor) y una ficha activa. Devuelve el id de la ficha.
+export async function requerirDistribuidor(): Promise<SesionApi & { distribuidorId: string }> {
+  const sesion = await requerirSesion()
+
+  if (sesion.perfil.rol !== 'distribuidor') {
+    throw new ErrorApi(403, 'SIN_PERMISO', 'No tienes permiso para esta acción.')
+  }
+
+  const { data: ficha, error } = await sesion.supabase
+    .from('distribuidores')
+    .select('id, activo')
+    .eq('usuario_id', sesion.user.id)
+    .maybeSingle()
+
+  if (error) throw error
+  if (!ficha || !ficha.activo) {
+    throw new ErrorApi(403, 'SIN_FICHA', 'Tu cuenta de proveedor todavía no está habilitada. Pídele a la tienda que complete tu ficha.')
+  }
+
+  return { ...sesion, distribuidorId: ficha.id as string }
+}

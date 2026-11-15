@@ -15,6 +15,8 @@ tags:
   - name: Pagos
   - name: Inventario
   - name: Panel
+  - name: Abastecimiento
+    description: Proveedores mayoristas (rol distribuidor) y sus presentaciones
 components:
   securitySchemes:
     sesion:
@@ -143,6 +145,28 @@ components:
         telefono: { type: string, example: '70000000' }
         metodo_pago: { $ref: '#/components/schemas/MetodoPago' }
         notas: { type: string, nullable: true }
+    DistribuidorEntrada:
+      type: object
+      required: [usuario_id, nombre_comercial, ciudad, dias_entrega]
+      properties:
+        usuario_id: { type: string, format: uuid, description: 'Cuenta con rol distribuidor (solo al crear; no se cambia)' }
+        nombre_comercial: { type: string, minLength: 2, maxLength: 120 }
+        ciudad: { type: string, enum: [Sucre, Santa Cruz] }
+        telefono: { type: string, nullable: true, example: '70012345' }
+        nit: { type: string, nullable: true }
+        dias_entrega: { type: integer, minimum: 0, maximum: 60 }
+        activo: { type: boolean, description: Solo al editar }
+    PresentacionEntrada:
+      type: object
+      required: [producto_id, nombre, unidades_por_presentacion, precio_mayorista, disponible, dias_entrega]
+      properties:
+        producto_id: { type: string, format: uuid, description: 'Producto de la tienda (solo al crear; no se cambia)' }
+        nombre: { type: string, example: 'Bidón 20 L' }
+        unidades_por_presentacion: { type: integer, minimum: 1, example: 20, description: 'Unidades de venta de la tienda que trae (fraccionamiento)' }
+        precio_mayorista: { type: number, exclusiveMinimum: 0, example: 1640 }
+        disponible: { type: boolean }
+        dias_entrega: { type: integer, nullable: true, minimum: 0, maximum: 60, description: 'null = los de la ficha' }
+        activo: { type: boolean, description: 'Solo al editar: false = dejar de venderla (no se borra)' }
 security: []
 paths:
   /salud:
@@ -543,3 +567,86 @@ paths:
         '200': { description: Ventas, pedidos, stock bajo, pagos e inventario }
         '401': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Error' }
+  /distribuidores:
+    get:
+      tags: [Abastecimiento]
+      summary: Fichas de proveedores con sus presentaciones y cuentas sin ficha (admin)
+      security: [{ sesion: [] }]
+      responses:
+        '200': { description: '{ distribuidores, cuentas_sin_ficha }' }
+        '403': { $ref: '#/components/responses/Error' }
+    post:
+      tags: [Abastecimiento]
+      summary: Crear la ficha de una cuenta con rol distribuidor (admin)
+      security: [{ sesion: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DistribuidorEntrada' }
+      responses:
+        '201': { description: Ficha creada }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /distribuidores/{id}:
+    patch:
+      tags: [Abastecimiento]
+      summary: Editar o desactivar una ficha (admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DistribuidorEntrada' }
+      responses:
+        '200': { description: Ficha actualizada }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /distribuidor/ficha:
+    get:
+      tags: [Abastecimiento]
+      summary: La ficha del distribuidor de la sesión (null si la tienda aún no la cargó)
+      security: [{ sesion: [] }]
+      responses:
+        '200': { description: Ficha o null }
+        '403': { $ref: '#/components/responses/Error' }
+  /distribuidor/presentaciones:
+    get:
+      tags: [Abastecimiento]
+      summary: Las presentaciones del distribuidor de la sesión
+      security: [{ sesion: [] }]
+      responses:
+        '200': { description: Lista de presentaciones con su producto }
+        '403': { $ref: '#/components/responses/Error' }
+    post:
+      tags: [Abastecimiento]
+      summary: Crear una presentación (siempre en la ficha propia)
+      security: [{ sesion: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PresentacionEntrada' }
+      responses:
+        '201': { description: Presentación creada }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /distribuidor/presentaciones/{id}:
+    patch:
+      tags: [Abastecimiento]
+      summary: Editar, marcar sin stock o dejar de vender una presentación propia
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PresentacionEntrada' }
+      responses:
+        '200': { description: Presentación actualizada }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
