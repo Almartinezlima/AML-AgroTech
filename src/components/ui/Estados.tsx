@@ -27,19 +27,28 @@ export function BloqueVacio({ icono: Icono = LuInbox, mensaje, children }: { ico
   )
 }
 
-export function BloqueError({ mensaje, onReintentar }: { mensaje: string; onReintentar?: () => void }) {
+export function BloqueError({ mensaje, onReintentar, titulo = 'No se pudo cargar', children }: {
+  mensaje: string
+  onReintentar?: () => void
+  titulo?: string
+  // Otra salida además de reintentar (ej.: "Ver mis pedidos")
+  children?: ReactNode
+}) {
   return (
     <div role="alert" className="bg-tarjeta border border-estado-error/40 rounded-2xl shadow-tarjeta p-6 sm:p-8 text-center">
       <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-estado-error/5 text-estado-error-texto">
         <LuTriangleAlert className="h-7 w-7" aria-hidden="true" />
       </span>
-      <p className="text-texto font-semibold mt-4 mb-1">No se pudo cargar</p>
+      <p className="text-texto font-semibold mt-4 mb-1">{titulo}</p>
       <p className="text-texto-2 text-sm mb-5">{mensaje}</p>
-      {onReintentar && (
-        <button onClick={onReintentar} className={`${claseBotonPrimario} inline-flex items-center gap-2`}>
-          <LuRotateCw className="h-4 w-4" aria-hidden="true" /> Reintentar
-        </button>
-      )}
+      <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+        {onReintentar && (
+          <button onClick={onReintentar} className={`${claseBotonPrimario} inline-flex items-center gap-2`}>
+            <LuRotateCw className="h-4 w-4" aria-hidden="true" /> Volver a intentar
+          </button>
+        )}
+        {children}
+      </div>
     </div>
   )
 }

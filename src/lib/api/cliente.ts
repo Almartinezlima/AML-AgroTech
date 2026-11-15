@@ -17,13 +17,21 @@ export class ErrorPedidoApi extends Error {
   }
 }
 
+export const MENSAJE_SIN_CONEXION = 'No pudimos conectarnos. Revisa tu internet y vuelve a intentar.'
+
 export async function pedirApi<T>(url: string, opciones?: RequestInit): Promise<T> {
   // Con FormData el navegador pone su propio Content-Type
   const esFormulario = opciones?.body instanceof FormData
-  const respuesta = await fetch(url, {
-    ...opciones,
-    headers: esFormulario ? opciones?.headers : { 'Content-Type': 'application/json', ...opciones?.headers },
-  })
+  let respuesta: Response
+  try {
+    respuesta = await fetch(url, {
+      ...opciones,
+      headers: esFormulario ? opciones?.headers : { 'Content-Type': 'application/json', ...opciones?.headers },
+    })
+  } catch {
+    // Sin internet o el servidor no respondió: el navegador da un error técnico en inglés
+    throw new ErrorPedidoApi(MENSAJE_SIN_CONEXION, 0, 'SIN_CONEXION')
+  }
 
   const cuerpo = (await respuesta.json().catch(() => null)) as RespuestaApi<T> | null
 
