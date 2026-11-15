@@ -1,7 +1,15 @@
 import { test as setup } from '@playwright/test'
 import {
-  DOMINIO_PRUEBAS, anularPedidoPrueba, credencialesAdmin, credencialesCliente, desactivarCuenta, paginaAdmin, usuariosDePrueba,
+  DOMINIO_PRUEBAS, anularOrdenPrueba, anularPedidoPrueba, credencialesAdmin, credencialesCliente, desactivarCuenta, paginaAdmin, usuariosDePrueba,
 } from './utilidades'
+
+interface OrdenListada {
+  id: string
+  codigo: string
+  estado: string
+  es_prueba?: boolean
+  created_at: string
+}
 
 interface PedidoListado {
   id: string
@@ -32,6 +40,20 @@ setup('barrido de datos de prueba abiertos', async ({ browser }) => {
     for (const pedido of abiertos) {
       await anularPedidoPrueba(admin, pedido.id)
       console.log(`Barrido: anulado ${pedido.codigo} (${pedido.estado})`)
+    }
+
+    // Órdenes de compra de los distribuidores de prueba que quedaron abiertas o recibidas sin
+    // anular (fase 6B). De la más nueva a la más vieja, como la limpieza normal.
+    const ordenes = await admin.request.get('/api/ordenes-compra?pruebas=1')
+    if (ordenes.status() !== 503) {
+      if (!ordenes.ok()) throw new Error(`GET /api/ordenes-compra: ${ordenes.status()}`)
+      const abiertas = ((await ordenes.json()) as { data: OrdenListada[] }).data
+        .filter((o) => o.es_prueba && o.estado !== 'cancelada' && o.estado !== 'rechazada')
+        .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      for (const orden of abiertas) {
+        await anularOrdenPrueba(admin, orden.id)
+        console.log(`Barrido: anulada ${orden.codigo} (${orden.estado})`)
+      }
     }
 
     // Solo las cuentas que crea la prueba de registro desde la fase 2B

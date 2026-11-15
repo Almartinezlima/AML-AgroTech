@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 import Link from 'next/link'
 import { LuBuilding2, LuPackageOpen, LuPlus, LuTag, LuUserPlus } from 'react-icons/lu'
 import EncabezadoAdmin from '@/components/admin/EncabezadoAdmin'
+import PestanasAbastecimiento from '@/components/admin/PestanasAbastecimiento'
 import TarjetasResumen from '@/components/admin/TarjetasResumen'
 import { Aviso, BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import { claseBotonPrimario, claseEnlace, clasePagina } from '@/components/ui/estilos'
@@ -36,6 +37,7 @@ export default function AdminDistribuidoresPage() {
             </button>
           }
         />
+        <PestanasAbastecimiento />
 
         {cargando ? (
           <BloqueCarga />

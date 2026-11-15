@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { IconType } from 'react-icons'
 import {
-  LuBuilding2, LuChartColumn, LuCreditCard, LuMapPin, LuPackage, LuShoppingCart, LuTruck, LuUsers, LuWarehouse,
+  LuBuilding2, LuChartColumn, LuCreditCard, LuMapPin, LuPackage, LuPercent, LuShoppingCart, LuTruck, LuUsers, LuWarehouse,
 } from 'react-icons/lu'
 
 const OPCIONES: Array<{ href: string; texto: string; icono: IconType }> = [
@@ -14,7 +14,8 @@ const OPCIONES: Array<{ href: string; texto: string; icono: IconType }> = [
   { href: '/admin/envios', texto: 'Envíos', icono: LuTruck },
   { href: '/admin/productos', texto: 'Productos', icono: LuPackage },
   { href: '/admin/inventario', texto: 'Inventario', icono: LuWarehouse },
-  { href: '/admin/abastecimiento/distribuidores', texto: 'Distribuidores', icono: LuBuilding2 },
+  { href: '/admin/abastecimiento', texto: 'Abastecimiento', icono: LuBuilding2 },
+  { href: '/admin/margen', texto: 'Margen', icono: LuPercent },
   { href: '/admin/zonas', texto: 'Zonas', icono: LuMapPin },
   { href: '/admin/usuarios', texto: 'Usuarios', icono: LuUsers },
 ]
