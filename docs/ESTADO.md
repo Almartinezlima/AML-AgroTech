@@ -37,6 +37,7 @@
 | 2B | `fase/2b-calidad` | Arreglos de autenticación + pruebas E2E con Playwright ✅ |
 | 2A | `fase/2a-zonas` | Zonas: distritos de Villa Charcas, Incahuasi y Culpina; Sucre inactiva ✅ (PR #10) |
 | 2B | `fase/2b-pruebas-limpias` | Pruebas E2E sin basura: 2 cuentas fijas, limpieza al terminar, interruptor de datos de prueba en el panel (migración 0011) ✅ (PR #11; E2E 31/31) |
+| 3 | `fase/3-diseno` | Diseño unificado: tokens en una sola fuente, letra chica más grande en celular, panel admin con cifras y filtros, 0 scroll horizontal en 360 px ([sesión](sesiones/2026-11-14_fase-3-diseno.md)) — en revisión |
 | 6 | `fase/6-diseno` | Diseño de feria: fotos reales, color por categoría, tipografía y portada ✅ |
 | 6B | `fase/6-diseno` | Correcciones de la auditoría + tema claro ✅ (unida a `master`, PR #5) |
 | 6 | `fase/6-pulido` | Cuentas demo, README, celular |
