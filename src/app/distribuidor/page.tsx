@@ -6,6 +6,7 @@ import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import { claseBotonPrimario, claseFilaFiltros, claseFiltro, clasePagina, claseTituloAdmin } from '@/components/ui/estilos'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import type { Distribuidor, Presentacion } from '@/types/abastecimiento'
+import PasosAyuda from '@/components/ui/PasosAyuda'
 import ListaPresentaciones from './_components/ListaPresentaciones'
 import OrdenesProveedor from './_components/OrdenesProveedor'
 import ModalPresentacion, { type ProductoTienda } from './_components/ModalPresentacion'
@@ -50,16 +51,25 @@ export default function DistribuidorPage() {
   return (
     <div className={clasePagina}>
       <div className="mx-auto max-w-4xl">
-        <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-trigo">Panel del proveedor</p>
             <h1 className={`${claseTituloAdmin} break-words`}>{f.nombre_comercial}</h1>
             <p className="mt-1 text-texto-2">{f.ciudad} · entrega habitual en {f.dias_entrega} día{f.dias_entrega === 1 ? '' : 's'}</p>
           </div>
-          <button onClick={() => setEditando('nueva')} disabled={!productos.datos} className={claseBotonPrimario}>
+          <button onClick={() => setEditando('nueva')} disabled={!productos.datos} className={`${claseBotonPrimario} w-full justify-center sm:w-auto`}>
             <LuPlus className="h-5 w-5" aria-hidden="true" /> Nueva presentación
           </button>
         </header>
+
+        <PasosAyuda
+          pasos={[
+            <>Carga lo que le vendes a la tienda con «Nueva presentación»: producto, cuánto trae y tu precio mayorista.</>,
+            <>Cuando la tienda te mande una orden, aparece en «Órdenes de la tienda». Toca «Responder».</>,
+            <>Acéptala o recházala. Si la aceptas, indica la fecha en que entregas.</>,
+            <>Cuando la mandes, márcala como despachada. La tienda la recibe y suma el stock.</>,
+          ]}
+        />
 
         <TarjetasResumen
           etiqueta="Resumen de tus presentaciones"
@@ -87,7 +97,9 @@ export default function DistribuidorPage() {
           <BloqueError mensaje={lista.error} onReintentar={() => void recargar()} />
         ) : visibles.length === 0 ? (
           <BloqueVacio icono={LuPackageOpen} mensaje={filtro === 'activas' ? 'Todavía no cargaste presentaciones' : 'No hay presentaciones que dejaste de vender'}>
-            {filtro === 'activas' && <p className="text-sm text-texto-2">Toca «Nueva presentación»: elige el producto de la tienda, cuánto trae y tu precio mayorista.</p>}
+            {filtro === 'activas'
+              ? <p className="text-sm text-texto-2">Toca «Nueva presentación»: elige el producto de la tienda, cuánto trae y tu precio mayorista. Sin presentaciones, la tienda no puede pedirte nada.</p>
+              : <p className="text-sm text-texto-2">Cuando dejes de vender una presentación, aparece acá y puedes tocar «Volver a vender».</p>}
           </BloqueVacio>
         ) : (
           <ListaPresentaciones presentaciones={visibles} diasFicha={f.dias_entrega} onEditar={setEditando} onActualizado={() => void recargar()} />
