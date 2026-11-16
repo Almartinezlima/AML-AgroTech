@@ -1,6 +1,6 @@
 # 04 — Distribución
 
-Rama real: `fase/2-comercio`. ✅ Programado. Depende de correr la migración `0003` (pendiente) y de la prueba con sesión real.
+Rama real: `fase/2-comercio` (zonas: `fase/2a-zonas`). ✅ Programado. Migraciones corridas en la base real y probado E2E.
 
 ## Historias de usuario
 

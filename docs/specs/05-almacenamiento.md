@@ -1,6 +1,6 @@
 # 05 — Almacenamiento (inventario)
 
-Rama real: `fase/2-comercio`. ✅ Programado. Depende de correr la migración `0003` (pendiente) y de la prueba con sesión real.
+Rama real: `fase/2-comercio`. ✅ Programado. Migraciones corridas en la base real y probado E2E. Las compras a proveedores (órdenes de compra, recepción, costo y margen) están en [`08-abastecimiento.md`](08-abastecimiento.md).
 
 ## Historias de usuario
 
@@ -15,8 +15,8 @@ Rama real: `fase/2-comercio`. ✅ Programado. Depende de correr la migración `0
 
 ## Criterios de aceptación
 
-- Tabla `movimientos_inventario` (kardex): tipo `entrada | salida | ajuste | devolucion`, cantidad, stock anterior, stock nuevo, motivo, pedido (si aplica), usuario y fecha. **Solo se inserta, nunca se edita ni se borra.**
-- El stock de `productos` **solo cambia** mediante funciones SQL que registran el movimiento (`crear_pedido`, `cancelar_pedido`, `registrar_movimiento`). El admin no edita el número de stock a mano en el formulario de producto.
+- Tabla `movimientos_inventario` (kardex): tipo `entrada | salida | ajuste | devolucion`, cantidad, stock anterior, stock nuevo, motivo, pedido (si aplica), usuario y fecha. Desde la `0015`, las entradas de una orden de compra guardan además `costo_unitario`, `orden_compra_id` y `costo_promedio_anterior`. **Solo se inserta, nunca se edita ni se borra.**
+- El stock de `productos` **solo cambia** mediante funciones SQL que registran el movimiento (`crear_pedido`, `cancelar_pedido`, `registrar_movimiento`, `recibir_orden_compra`); el trigger `proteger_stock_producto` rechaza cualquier otro cambio. El admin no edita el número de stock a mano en el formulario de producto.
 - El stock nunca queda negativo (restricción `check (stock >= 0)` + bloqueo de fila al vender para evitar dos ventas simultáneas del último producto).
 - Niveles: agotado (0), bajo (≤ stock mínimo), normal.
 - Valor del inventario = Σ stock × precio.
