@@ -49,13 +49,31 @@ test.describe('Compra completa', () => {
     expect(pedido.total).toBeCloseTo(pedido.subtotal + ENVIO_CULPINA, 2)
     expect(pedido.codigo).toMatch(/^AML-/)
 
-    // El pedido aparece en Mis pedidos, con quién recoge en el detalle, y el carrito quedó vacío
-    await page.goto('/pedidos')
+    // Al confirmar, el carrito queda vacío: en el menú, tras recargar y al volver con Atrás
+    const contadorCarrito = page.locator('a[aria-label^="Carrito,"]:visible')
+    await expect(contadorCarrito).toHaveAttribute('aria-label', 'Carrito, 0 productos')
+    await page.reload()
+    await expect(page.getByRole('heading', { name: '¡Pedido registrado!' })).toBeVisible()
+    await expect(contadorCarrito).toHaveAttribute('aria-label', 'Carrito, 0 productos')
+    await page.goBack()
+    await expect(page).not.toHaveURL(/\/checkout\/exito/)
+    await expect(contadorCarrito).toHaveAttribute('aria-label', 'Carrito, 0 productos')
+    // Se entra con el enlace del menú (sin recargar): es la misma página que el navegador restauró
+    await contadorCarrito.click()
+    await expect(page).toHaveURL(/\/carrito$/)
+    await expect(page.getByText('Tu carrito está vacío')).toBeVisible()
+    await page.reload()
+    await expect(page.getByText('Tu carrito está vacío')).toBeVisible()
+
+    // La pantalla de éxito lleva a Mis pedidos
+    await page.goto(`/checkout/exito?id=${pedido.id}`)
+    await page.getByRole('link', { name: 'Mis pedidos', exact: true }).click()
+    await expect(page).toHaveURL(/\/pedidos$/)
+
+    // El pedido aparece en Mis pedidos, con quién recoge en el detalle
     await expect(page.getByText(pedido.codigo)).toBeVisible()
     await page.goto(`/pedidos/${pedido.id}`)
     await expect(page.getByText(/Juan Mamani E2E/)).toBeVisible()
-    await page.goto('/carrito')
-    await expect(page.getByText('Tu carrito está vacío')).toBeVisible()
 
     // En la siguiente compra el checkout recuerda la zona y quién recoge
     await agregarAlCarrito(page, PRODUCTO_A)
