@@ -1,10 +1,11 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { Aviso } from '@/components/ui/Estados'
 import { claseBotonPrimario, claseEtiqueta, claseInput } from '@/components/ui/estilos'
 import MarcoAcceso from '../_components/MarcoAcceso'
+import BotonGoogle, { SeparadorCorreo } from '../_components/BotonGoogle'
 import { mensajeErrorAuth } from '@/lib/auth/mensajes'
 import { rutaInterna } from '@/lib/auth/redireccion'
 import { useConsultaSiguiente } from '@/lib/auth/useSiguiente'
@@ -21,6 +22,13 @@ export default function LoginPage() {
   const [sinConfirmar, setSinConfirmar] = useState<string | null>(null)
   const [reenviando, setReenviando] = useState(false)
   const supabase = createClient()
+
+  // Vuelta fallida de "Continuar con Google" (/auth/callback?…→ ?error=google)
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('error') === 'google') {
+      setAviso({ tipo: 'error', texto: 'No se pudo entrar con Google. Intenta de nuevo o usa tu correo y contraseña.' })
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,6 +80,8 @@ export default function LoginPage() {
       subtitulo="Ingresa a tu cuenta para continuar"
       pie={<>¿No tienes cuenta?{' '}<Link href={`/auth/registro${consulta}`} className="text-acento font-semibold hover:underline">Regístrate gratis</Link></>}
     >
+      <BotonGoogle />
+      <SeparadorCorreo />
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {aviso && (
           <Aviso tipo={aviso.tipo}>
