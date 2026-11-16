@@ -8,7 +8,7 @@ interface InstruccionesPagoProps {
   codigo?: string
 }
 
-// El repo y el sitio son públicos: el QR y la cuenta son siempre de demostración.
+// QR: el de cobro real de la tienda (ver QrPago). Transferencia: cuenta de demostración.
 // Sin código (checkout, antes de confirmar) solo se explica qué pasa después: el QR
 // con el monto exacto se muestra cuando el pedido ya está registrado.
 export default function InstruccionesPago({ metodo, monto, codigo }: InstruccionesPagoProps) {
