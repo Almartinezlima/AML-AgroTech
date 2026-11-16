@@ -12,26 +12,19 @@ En Chuquisaca, el agricultor compra insumos viajando a Sucre sin saber antes qu�
 
 | Actor | Descripción |
 |---|---|
-| **Visitante** | Navega el catálogo sin cuenta |
-| **Cliente** | Agricultor registrado: compra, paga, sigue sus pedidos |
-| **Administrador** | Dueño de la tienda: productos, inventario, pagos, despachos, usuarios |
-| **Distribuidor** | Proveedor registrado (alcance futuro: publicar sus productos). En esta versión tiene cuenta y perfil, pero sus funciones de venta quedan fuera de alcance |
-| **Supabase (sistema externo)** | Autenticación, base de datos y archivos |
+| **Visitante** | Navega el catálogo y arma el carrito sin cuenta |
+| **Cliente** | Agricultor registrado: compra, paga, sigue sus pedidos y descarga la nota de venta |
+| **Administrador** | Dueño de la tienda: productos, inventario, pagos, despachos, usuarios, proveedores y órdenes de compra |
+| **Distribuidor** | Proveedor mayorista (Sucre o Santa Cruz) que le vende a la tienda: publica sus presentaciones y atiende las órdenes de compra. El rol lo asigna solo el admin |
+| **Supabase (sistema externo)** | Autenticación, base de datos, archivos, secretos (Vault) y tareas programadas (`pg_net`, `pg_cron`) |
+| **Telegram (sistema externo)** | Entrega los avisos al chat del administrador |
 
 ## Alcance de esta versión (feria)
 
-Dentro: los 5 pilares completos para Visitante, Cliente y Administrador; API REST documentada; despliegue en Render.
+Dentro: los 5 pilares (e-commerce, seguridad, pagos, distribución y almacenamiento) para Visitante, Cliente y Administrador; el abastecimiento con el Distribuidor (presentaciones, órdenes de compra, recepción y margen); nota de venta en PDF; avisos por Telegram al admin; API REST documentada con OpenAPI; despliegue en Render.
 
-Fuera: pasarela de pago real (el QR es de demostración), portal del distribuidor, facturación electrónica (SIAT), app móvil nativa.
+Fuera: pasarela de pago con confirmación automática (el admin verifica cada comprobante a mano), facturación electrónica (SIAT), avisos al cliente, app móvil nativa.
 
 ## Zonas de envío (tienda en Villa Charcas)
 
-Estado real de la base (migración `0005`, 10 nov 2026):
-
-| Zona | Tipo | Costo | Cómo llega | Contra entrega |
-|---|---|---|---|---|
-| Recojo en tienda (Villa Charcas) | recojo | Bs. 0 | El cliente recoge cuando el pedido está "Listo para recoger" | Sí |
-| Villa Charcas (entrega en el pueblo) | urbano ("En el pueblo") | Bs. 10 | Entrega propia a la dirección | Sí |
-| Culpina | provincia ("Por flota") | Bs. 10 | Flota, con guía; recoge la persona indicada (nombre y CI) | No |
-| Incahuasi | provincia ("Por flota") | Bs. 10 | Flota, con guía; recoge la persona indicada (nombre y CI) | No |
-| Sucre (recojo en la terminal de buses) | provincia ("Por flota") | Bs. 15 | Flota hasta la terminal; recoge la persona indicada | No |
+Las zonas vigentes (migración `0010`: recojo en tienda, Villa Charcas y sus distritos a domicilio, Incahuasi y Culpina por flota; Sucre inactiva) están en [`04-distribucion.md`](04-distribucion.md). El admin las edita en `/admin/zonas`.

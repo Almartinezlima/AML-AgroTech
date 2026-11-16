@@ -16,7 +16,7 @@ Pruebas de punta a punta que usan la app **como un usuario de verdad**: el clien
 
 2. Correr la migración **0011** en el SQL Editor de Supabase (crea `anular_pedido_prueba`, que usa la limpieza).
 
-3. Crear la **cuenta cliente de prueba** registrándose en la web con un correo **`@amlagrotech.test`** (por ejemplo `cliente@amlagrotech.test`). Ese dominio es obligatorio: solo los pedidos de esas cuentas se pueden anular, y el panel las oculta.
+3. Crear la **cuenta cliente de prueba** registrándose en la web con un correo **`@amlagrotech.test`** (por ejemplo `cliente@amlagrotech.test`). Ese dominio es obligatorio: solo los pedidos de esas cuentas se pueden anular, y no mandan avisos por Telegram.
 
 4. Copiar `.env.test.example` como `.env.test.local` y completar las **2 cuentas fijas**:
 
@@ -62,8 +62,8 @@ Reporte: `npx playwright show-report` (abre `playwright-report/`). Si algo falla
 | `barrido.setup.ts` | Corre **antes** de todo: anula los pedidos que el cliente fijo dejó abiertos en una corrida cortada, anula las órdenes de compra de los distribuidores de prueba que no estén canceladas ni rechazadas (de la más nueva a la más vieja) y desactiva las cuentas `e2e+registro-…` que quedaron activas. Ojo: también anula las órdenes que alguien haya armado a mano con los distribuidores `.test` |
 | `seguridad.spec.ts` | Sin sesión `/admin`, `/pedidos`, `/checkout` → login con `?siguiente=`; API sin sesión → 401; cliente en `/admin` → `/`; cliente en `/api/usuarios` → 403; contraseña mala → "Correo o contraseña incorrectos"; `/auth/restablecer` con sesión normal o `code` falso → "Enlace inválido o vencido" sin formulario; vuelve a donde iba tras el login (e ignora destinos externos); el carrito del cliente no lo ve el admin en el mismo navegador |
 | `registro.spec.ts` | Registro por la pantalla → entra directo al catálogo → al terminar el admin desactiva la cuenta, el panel no la lista y si intenta entrar ve "cuenta desactivada" |
-| `compra.spec.ts` | Catálogo → 2 productos → recarga (el carrito sigue) → checkout a Culpina (pide quién recoge, sin contra entrega, total = subtotal + Bs. 25) → código `AML-…` → aparece en Mis pedidos |
-| `pagos-distribucion.spec.ts` | Cliente sube comprobante (PNG generado en la prueba) → el pedido no aparece en el panel con el interruptor apagado y sí encendido → admin aprueba → confirmado → preparando → despachado con flota y guía → entregado → el cliente ve la línea de tiempo completa → se anula y el stock vuelve al valor inicial |
+| `compra.spec.ts` | Catálogo → 2 productos → recarga (el carrito sigue) → checkout a Culpina (pide quién recoge, sin contra entrega, total = subtotal + Bs. 25) → código `AML-…` → el carrito queda vacío (en el menú, al recargar y al volver con Atrás) → «Mis pedidos» desde la pantalla de éxito → aparece en Mis pedidos |
+| `pagos-distribucion.spec.ts` | Cliente sube comprobante (PNG generado en la prueba) → el pedido aparece en el panel (sin interruptor) → admin aprueba → confirmado → preparando → despachado con flota y guía → entregado → el cliente ve la línea de tiempo completa → se anula y el stock vuelve al valor inicial |
 | `inventario.spec.ts` | El stock baja al comprar y vuelve al cancelar; el kardex muestra "Venta AML-…" y "Cancelación AML-…"; el admin registra una entrada (+5) y luego un ajuste (−5) para dejar el stock como estaba |
 | `fase-6b.spec.ts` | Búsqueda sin tildes, carrito sin cuenta, deshacer, sincronía entre pestañas, comprobante que bloquea la cancelación del cliente, páginas inexistentes |
 | `distribuidor.spec.ts` | Fase 6A, no crea nada: el registro ya no ofrece la cuenta de distribuidor; un cliente no entra a `/distribuidor` (→ `/`) y su API le da 403; el distribuidor 1 ve solo sus presentaciones, no puede editar una del 2 (404), no lee `/api/distribuidores` (403) ni entra a `/admin`; «Marcar sin stock» se ve en el panel del admin y se revierte |
@@ -90,13 +90,11 @@ Resultado: **el stock queda igual, no queda ningún pedido abierto ni nada por c
 
 ### En el panel
 
-El panel admin **oculta por defecto** los pedidos, pagos y cuentas `@amlagrotech.test` (dashboard, pedidos, envíos, pagos y usuarios). El interruptor **"Mostrar datos de prueba"** los muestra; la preferencia se recuerda en ese navegador. El **kardex no se filtra**: es la historia real del stock, y las filas de prueba ya dicen "E2E" o "Limpieza E2E".
-
-Las APIs aceptan `?pruebas=1` para incluirlos (`/api/pedidos?alcance=todos`, `/api/pagos`, `/api/usuarios`, `/api/dashboard`).
+Desde la fase 8A-2 el panel admin muestra **siempre** los datos de todas las cuentas, también las `@amlagrotech.test` (ya no hay interruptor «Mostrar datos de prueba» ni parámetro `?pruebas=1`). Lo que deja una corrida se reconoce por los textos «E2E» y «Limpieza E2E» y porque queda cancelado. Los avisos de Telegram y el resumen de las 20:00 siguen sin contar las cuentas de prueba.
 
 ### Datos viejos
 
-Las 126 cuentas `e2e+<marca de tiempo>@amlagrotech.test` y sus pedidos de antes de la fase 2B **siguen en la base** (ocultos en el panel). Se ordenan en la fase de cierre. Consulta para verlos en el SQL Editor:
+Antes de la revisión del 16 nov la base quedó limpia: 0 pedidos y 0 órdenes de compra. Para ver si una corrida dejó algo de las cuentas de prueba, en el SQL Editor:
 
 ```sql
 select p.codigo, p.estado, p.total, u.email

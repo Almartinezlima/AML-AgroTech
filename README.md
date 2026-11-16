@@ -80,4 +80,4 @@ npm run test:e2e   # pruebas E2E (ver docs/PRUEBAS.md)
 
 ## Documentación
 
-Está en [`docs/`](docs/README.md): especificación por pilar, arquitectura, diseño, estado del proyecto y guía de pruebas.
+Está en [`docs/`](docs/README.md): especificación por pilar (historias de usuario y casos de uso), arquitectura, diagramas UML en [`docs/uml/`](docs/uml/README.md), contrato de la API en [`docs/api/openapi.yaml`](docs/api/openapi.yaml), diseño, estado del proyecto y guía de pruebas.

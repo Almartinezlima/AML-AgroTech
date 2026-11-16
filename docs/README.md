@@ -6,9 +6,10 @@
 
 1. [`../CLAUDE.md`](../CLAUDE.md) — reglas de trabajo y técnicas.
 2. [`ESTADO.md`](ESTADO.md) — dónde estamos hoy y qué sigue.
-3. [`ARQUITECTURA.md`](ARQUITECTURA.md) — arquitectura, modelo de datos y API REST.
-4. La especificación del pilar que se va a trabajar, en [`specs/`](specs/).
-5. [`PRUEBAS.md`](PRUEBAS.md) — cómo correr las pruebas E2E (Playwright).
+3. [`ARQUITECTURA.md`](ARQUITECTURA.md) — arquitectura, pila de desarrollo, modelo de datos y API REST.
+4. [`uml/`](uml/README.md) — diagramas UML: casos de uso, clases, componentes, despliegue, secuencia y estados.
+5. La especificación del pilar que se va a trabajar, en [`specs/`](specs/).
+6. [`PRUEBAS.md`](PRUEBAS.md) — cómo correr las pruebas E2E (Playwright).
 
 ## Especificación (SDD: especificar → planificar → tareas → implementar)
 
@@ -20,14 +21,16 @@
 | [`specs/03-pagos.md`](specs/03-pagos.md) | Pagos |
 | [`specs/04-distribucion.md`](specs/04-distribucion.md) | Distribución |
 | [`specs/05-almacenamiento.md`](specs/05-almacenamiento.md) | Almacenamiento (inventario) |
-| [`specs/06-casos-de-uso.md`](specs/06-casos-de-uso.md) | Catálogo de casos de uso (base para StarUML) |
+| [`specs/06-casos-de-uso.md`](specs/06-casos-de-uso.md) | Catálogo de casos de uso, con «include» y «extend» (diagramas en [`uml/casos-de-uso.md`](uml/casos-de-uso.md)) |
 | [`specs/07-reingenieria.md`](specs/07-reingenieria.md) | Reingeniería del catálogo: ficha técnica y precio de mercado |
+| [`specs/08-abastecimiento.md`](specs/08-abastecimiento.md) | Abastecimiento: proveedores, órdenes de compra, recepción y margen |
+| [`specs/09-avisos-telegram.md`](specs/09-avisos-telegram.md) | Avisos por Telegram al administrador |
 
 ## Carpetas
 
 | Carpeta | Qué hay |
 |---|---|
 | `specs/` | Historias de usuario, criterios de aceptación y casos de uso |
-| `api/` | Contrato OpenAPI de la API REST (desde la Fase 2) |
-| `uml/` | Diagramas UML exportados (al final) |
+| `api/` | Contrato OpenAPI de la API REST: 42 rutas, 50 operaciones |
+| [`uml/`](uml/README.md) | Diagramas UML en Mermaid (GitHub los dibuja) |
 | `sesiones/` | Qué se hizo en cada sesión, con fecha adelante |
