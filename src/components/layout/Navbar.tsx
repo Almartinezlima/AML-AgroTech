@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { LuLayoutDashboard, LuLogOut, LuMenu, LuShoppingCart, LuUser, LuX } from 'react-icons/lu'
+import { LuLayoutDashboard, LuLogOut, LuMenu, LuPackageCheck, LuShoppingCart, LuUser, LuX } from 'react-icons/lu'
 import Marca from '@/components/Marca'
 import { useCarrito } from '@/context/CarritoContext'
 import { useAuth } from '@/context/AuthContext'
@@ -17,6 +17,8 @@ export default function Navbar() {
   const ruta = usePathname()
   const esAdmin = user && perfil?.rol === 'admin'
   const esDistribuidor = user && perfil?.rol === 'distribuidor'
+  // El admin llega al almacén desde su panel; acá el enlace es para la cuenta de almacén
+  const esAlmacen = user && perfil?.rol === 'almacen'
 
   const handleCerrarSesion = async () => {
     await cerrarSesion()
@@ -34,7 +36,7 @@ export default function Navbar() {
   const cerrarMenu = () => setMenuAbierto(false)
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-borde bg-tarjeta/90 backdrop-blur supports-[backdrop-filter]:bg-tarjeta/75" aria-label="Principal">
+    <nav className="sticky top-0 z-50 print:hidden border-b border-borde bg-tarjeta/90 backdrop-blur supports-[backdrop-filter]:bg-tarjeta/75" aria-label="Principal">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           <Marca />
@@ -53,6 +55,11 @@ export default function Navbar() {
             {esDistribuidor && (
               <Link href="/distribuidor" className={`${claseEnlace(activo('/distribuidor'))} inline-flex items-center gap-1.5`}>
                 <LuLayoutDashboard className="h-4 w-4" aria-hidden="true" /> Panel del proveedor
+              </Link>
+            )}
+            {esAlmacen && (
+              <Link href="/almacen" className={`${claseEnlace(activo('/almacen'))} inline-flex items-center gap-1.5`}>
+                <LuPackageCheck className="h-4 w-4" aria-hidden="true" /> Almacén
               </Link>
             )}
           </div>
@@ -109,6 +116,7 @@ export default function Navbar() {
             ))}
             {esAdmin && <Link href="/admin" className={claseEnlace(activo('/admin'))} onClick={cerrarMenu}>Panel Admin</Link>}
             {esDistribuidor && <Link href="/distribuidor" className={claseEnlace(activo('/distribuidor'))} onClick={cerrarMenu}>Panel del proveedor</Link>}
+            {esAlmacen && <Link href="/almacen" className={claseEnlace(activo('/almacen'))} onClick={cerrarMenu}>Almacén</Link>}
             <Link href="/carrito" className={claseEnlace(activo('/carrito'))} onClick={cerrarMenu}>
               Mi carrito {totalItems > 0 && `(${totalItems})`}
             </Link>

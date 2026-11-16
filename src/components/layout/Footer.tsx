@@ -10,7 +10,7 @@ const claseEnlace = 'text-sm text-texto-2 hover:text-acento transition-colors'
 
 export default function Footer() {
   return (
-    <footer className="mt-auto border-t border-borde bg-tarjeta">
+    <footer className="mt-auto border-t border-borde bg-tarjeta print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
