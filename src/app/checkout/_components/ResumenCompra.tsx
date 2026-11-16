@@ -2,19 +2,25 @@ import { LuChevronDown } from 'react-icons/lu'
 import ImagenProducto from '@/components/ImagenProducto'
 import type { ItemCarrito } from '@/context/CarritoContext'
 import { formatoBs } from '@/lib/utils'
-import type { ZonaEnvio } from '@/types/comercio'
+import type { Cotizacion, ZonaEnvio } from '@/types/comercio'
 
 interface ResumenCompraProps {
   items: ItemCarrito[]
   zona?: ZonaEnvio
-  // Total confirmado por el servidor (paso 3); antes se muestra el estimado del carrito
-  totalServidor?: number
+  // Montos calculados por el servidor (paso Pago); antes se muestra el estimado del carrito
+  cotizacion?: Cotizacion
 }
 
-function Contenido({ items, zona, totalServidor }: ResumenCompraProps) {
+function montos({ items, zona, cotizacion }: ResumenCompraProps) {
+  if (cotizacion) return { subtotal: cotizacion.subtotal, envio: cotizacion.costo_envio as number | null, total: cotizacion.total }
   const subtotal = items.reduce((suma, i) => suma + i.precio * i.cantidad, 0)
   const envio = zona?.costo ?? null
-  const total = totalServidor ?? subtotal + (envio ?? 0)
+  return { subtotal, envio, total: subtotal + (envio ?? 0) }
+}
+
+function Contenido(props: ResumenCompraProps) {
+  const { items } = props
+  const { subtotal, envio, total } = montos(props)
 
   return (
     <>
@@ -30,14 +36,14 @@ function Contenido({ items, zona, totalServidor }: ResumenCompraProps) {
           </li>
         ))}
       </ul>
-      <dl className="mt-4 flex flex-col gap-2 border-t border-borde pt-4 text-sm">
-        <div className="flex justify-between"><dt className="text-texto-2">Subtotal</dt><dd className="tabular-nums text-texto">{formatoBs(subtotal)}</dd></div>
+      <dl data-montos className="mt-4 flex flex-col gap-2 border-t border-borde pt-4 text-sm">
+        <div className="flex justify-between"><dt className="text-texto-2">Subtotal</dt><dd data-monto="subtotal" className="tabular-nums text-texto">{formatoBs(subtotal)}</dd></div>
         <div className="flex justify-between gap-3">
           <dt className="text-texto-2">Envío</dt>
-          <dd className="text-right tabular-nums text-texto">{envio === null ? 'Elige la zona' : envio === 0 ? 'Gratis' : formatoBs(envio)}</dd>
+          <dd data-monto="envio" className="text-right tabular-nums text-texto">{envio === null ? 'Elige la zona' : envio === 0 ? 'Gratis' : formatoBs(envio)}</dd>
         </div>
         <div className="flex justify-between border-t border-borde pt-3 text-lg font-bold">
-          <dt className="text-texto">Total</dt><dd className="tabular-nums text-acento">{formatoBs(total)}</dd>
+          <dt className="text-texto">Total</dt><dd data-monto="total" className="tabular-nums text-acento">{formatoBs(total)}</dd>
         </div>
       </dl>
     </>
@@ -56,8 +62,7 @@ export function ResumenLateral(props: ResumenCompraProps) {
 
 // Celular: resumen plegable arriba del formulario
 export function ResumenPlegable(props: ResumenCompraProps) {
-  const subtotal = props.items.reduce((suma, i) => suma + i.precio * i.cantidad, 0)
-  const total = props.totalServidor ?? subtotal + (props.zona?.costo ?? 0)
+  const { total } = montos(props)
   return (
     <details className="group mb-5 rounded-2xl border border-borde bg-tarjeta shadow-tarjeta lg:hidden">
       <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-semibold text-texto">

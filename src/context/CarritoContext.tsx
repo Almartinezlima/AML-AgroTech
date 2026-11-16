@@ -64,13 +64,23 @@ export function productoParaCarrito(producto: Producto): Omit<ItemCarrito, 'cant
 
 const limitar = (cantidad: number, stock: number) => Math.max(1, Math.min(cantidad, stock))
 
-function leerCarrito(clave: string): ItemCarrito[] {
+// null = el navegador no deja leer (el carrito funciona solo en memoria)
+function leerGuardado(clave: string): ItemCarrito[] | null {
   try {
     const guardado = JSON.parse(localStorage.getItem(clave) ?? '[]') as unknown
     return Array.isArray(guardado) ? guardado.filter(esItemValido) : []
   } catch {
+    return null
+  }
+}
+
+const leerCarrito = (clave: string) => leerGuardado(clave) ?? []
+
+function guardarCarrito(clave: string, items: ItemCarrito[]) {
+  try {
+    localStorage.setItem(clave, JSON.stringify(items))
+  } catch {
     // Sin almacenamiento disponible, el carrito funciona solo en memoria
-    return []
   }
 }
 
@@ -123,33 +133,45 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     borrarCarrito(CLAVE_ANTIGUA)
 
     claveAnterior.current = clave
+    // Lo fusionado del invitado queda guardado en la cuenta
+    guardarCarrito(clave, cargados)
     setEstado({ clave, items: cargados })
   }, [userId, cargandoAuth])
 
-  // Otra pestaña cambió el carrito de esta cuenta: se relee para no pisar lo que agregó.
-  // (Guardar el mismo valor no vuelve a disparar el evento, así que no hay ida y vuelta.)
+  // Lo guardado en el navegador manda. Se relee cuando:
+  // - otra pestaña cambió el carrito de esta cuenta (evento storage);
+  // - la página vuelve con Atrás desde la memoria del navegador (pageshow persisted): sin esto
+  //   mostraría los productos de antes de comprar;
+  // - la pestaña vuelve a estar visible.
+  // Releer no guarda nada, así que una página vieja nunca reescribe un carrito ya comprado.
   useEffect(() => {
     if (!estado.clave) return
     const clave = estado.clave
-    const alCambiar = (evento: StorageEvent) => {
-      if (evento.key !== clave) return
-      setEstado({ clave, items: leerCarrito(clave) })
+    const releer = () => {
+      const guardado = leerGuardado(clave)
+      if (guardado) setEstado({ clave, items: guardado })
     }
+    const alCambiar = (evento: StorageEvent) => { if (evento.key === clave) releer() }
+    const alMostrar = (evento: PageTransitionEvent) => { if (evento.persisted) releer() }
+    const alVolver = () => { if (document.visibilityState === 'visible') releer() }
     window.addEventListener('storage', alCambiar)
-    return () => window.removeEventListener('storage', alCambiar)
+    window.addEventListener('pageshow', alMostrar)
+    document.addEventListener('visibilitychange', alVolver)
+    return () => {
+      window.removeEventListener('storage', alCambiar)
+      window.removeEventListener('pageshow', alMostrar)
+      document.removeEventListener('visibilitychange', alVolver)
+    }
   }, [estado.clave])
 
-  useEffect(() => {
-    if (!estado.clave) return
-    try {
-      localStorage.setItem(estado.clave, JSON.stringify(estado.items))
-    } catch {
-      // Sin almacenamiento disponible, el carrito funciona solo en memoria
-    }
-  }, [estado])
-
+  // Solo los cambios de la persona (agregar, quitar, cantidad, vaciar) se guardan, y en el
+  // mismo momento: no se espera a un efecto que podría correr tarde o desde una página vieja.
   const setItems = (cambio: (prev: ItemCarrito[]) => ItemCarrito[]) => {
-    setEstado((prev) => ({ ...prev, items: cambio(prev.items) }))
+    setEstado((prev) => {
+      const items = cambio(prev.items)
+      if (prev.clave) guardarCarrito(prev.clave, items)
+      return { ...prev, items }
+    })
   }
 
   const agregarItem = (producto: Omit<ItemCarrito, 'cantidad'>, cantidad = 1) => {
@@ -181,6 +203,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
       : prev.map(i => i.id === id ? { ...i, stock: disponible, cantidad: Math.min(i.cantidad, disponible) } : i))
   }
 
+  // Se llama solo cuando el pedido ya se creó: vacía la memoria y lo guardado a la vez
   const limpiarCarrito = () => setItems(() => [])
 
   const total = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)

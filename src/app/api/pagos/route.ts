@@ -4,20 +4,19 @@ import { manejarRuta, respuestaOk } from '@/lib/api/respuestas'
 import { requerirAdmin } from '@/lib/api/sesion'
 import { validarParametros } from '@/lib/api/validacion'
 import { buscarClientes, firmarComprobante } from '@/lib/ecommerce/consultas'
-import { esCorreoPrueba, parametroPruebas } from '@/lib/pruebas'
 import { ESTADOS_PAGO, type PagoAdmin } from '@/types/comercio'
 
 export const dynamic = 'force-dynamic'
 
 const ESTADOS_REEMBOLSO: string[] = ['reembolso_pendiente', 'reembolsado']
 
-const esquemaParametros = z.object({ estado: z.enum(ESTADOS_PAGO).optional(), pruebas: parametroPruebas })
+const esquemaParametros = z.object({ estado: z.enum(ESTADOS_PAGO).optional() })
 
 // GET /api/pagos — Solo admin. Los comprobantes van con URL firmada de corta duración.
-// Sin los pagos de cuentas de prueba (@amlagrotech.test) salvo ?pruebas=1.
+// Todos los pagos, de cualquier cuenta.
 export const GET = manejarRuta(async (request: NextRequest) => {
   const { supabase } = await requerirAdmin()
-  const { estado, pruebas } = validarParametros(request, esquemaParametros)
+  const { estado } = validarParametros(request, esquemaParametros)
 
   let consulta = supabase
     .from('pagos')
@@ -35,10 +34,9 @@ export const GET = manejarRuta(async (request: NextRequest) => {
   )
   const clientes = await buscarClientes(supabase, delNegocio.map((p) => p.pedidos?.usuario_id))
   const deCliente = (pago: (typeof delNegocio)[number]) => (pago.pedidos ? clientes.get(pago.pedidos.usuario_id) ?? null : null)
-  const pagos = pruebas ? delNegocio : delNegocio.filter((p) => !esCorreoPrueba(deCliente(p)?.email))
 
   const resultado = await Promise.all(
-    pagos.map(async (pago) => ({
+    delNegocio.map(async (pago) => ({
       ...pago,
       comprobante_url: await firmarComprobante(supabase, pago.comprobante_path),
       cliente: deCliente(pago),

@@ -113,8 +113,8 @@ export interface UsuarioListado {
 }
 
 export async function usuariosDePrueba(admin: Page): Promise<UsuarioListado[]> {
-  const respuesta = await admin.request.get('/api/usuarios?pruebas=1')
-  expect(respuesta.ok(), 'GET /api/usuarios?pruebas=1').toBeTruthy()
+  const respuesta = await admin.request.get('/api/usuarios')
+  expect(respuesta.ok(), 'GET /api/usuarios').toBeTruthy()
   return ((await respuesta.json()) as { data: UsuarioListado[] }).data
 }
 
@@ -254,19 +254,6 @@ export async function esperarCarga(page: Page) {
   await expect(page.getByRole('status', { name: 'Cargando' })).toHaveCount(0)
 }
 
-// Enciende o apaga "Mostrar datos de prueba" en la pantalla del panel donde está el admin.
-// La preferencia queda guardada en el navegador y vale para las demás pantallas del panel.
-export async function datosDePruebaEnPanel(admin: Page, mostrar: boolean) {
-  const interruptor = admin.getByRole('switch', { name: 'Mostrar datos de prueba' })
-  await esperarCarga(admin)
-  if ((await interruptor.isChecked()) !== mostrar) {
-    // El checkbox es invisible (sr-only): se toca la etiqueta, como una persona
-    await admin.getByText('Mostrar datos de prueba', { exact: true }).click()
-  }
-  await expect(interruptor).toBeChecked({ checked: mostrar })
-  await esperarCarga(admin)
-}
-
 export async function agregarAlCarrito(page: Page, nombre: string) {
   if (!page.url().includes('/catalogo')) await page.goto('/catalogo')
   await page.getByLabel('Buscar producto').fill(nombre)
@@ -321,13 +308,13 @@ export async function finalizarCompra(page: Page, opciones: OpcionesCompra): Pro
   // Paso Pago: el resumen con el total del servidor y la forma de pago en la misma pantalla
   await page.getByRole('radio', { name: new RegExp(opciones.metodo) }).check()
 
-  // Se lee el resumen del paso Pago (el lateral repite los montos)
-  const resumen = page.getByRole('region', { name: 'Resumen del pedido' })
-  const fila = (etiqueta: string) => resumen.locator('div.flex.justify-between', { has: page.getByText(etiqueta, { exact: true }) }).last()
-  await expect(fila('Total')).toBeVisible()
-  const subtotal = leerBs(await fila('Subtotal').locator('span').last().innerText())
-  const envio = leerBs(await fila('Envío').locator('span').last().innerText())
-  const total = leerBs(await fila('Total').locator('span').last().innerText())
+  // Los montos se ven una sola vez: en el resumen lateral (pantalla ancha) o en el del paso (celular)
+  const montos = page.locator('[data-montos]:visible')
+  await expect(montos).toHaveCount(1)
+  const monto = async (cual: string) => leerBs(await montos.locator(`[data-monto="${cual}"]`).innerText())
+  const subtotal = await monto('subtotal')
+  const envio = await monto('envio')
+  const total = await monto('total')
 
   await page.getByRole('button', { name: 'Confirmar pedido' }).click()
   await expect(page).toHaveURL(/\/checkout\/exito\?id=/)

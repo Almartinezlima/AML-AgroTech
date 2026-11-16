@@ -6,14 +6,13 @@ import { validarCuerpo, validarParametros } from '@/lib/api/validacion'
 import { COLUMNAS_ORDEN, migracionPendiente } from '@/lib/abastecimiento/consultas'
 import { esquemaArmarOrdenes } from '@/lib/abastecimiento/esquemas'
 import { llamarFuncionOrden } from '@/lib/abastecimiento/ordenesServidor'
-import { esCorreoPrueba, parametroPruebas } from '@/lib/pruebas'
+import { esCorreoPrueba } from '@/lib/pruebas'
 import { ESTADOS_ORDEN_COMPRA, type OrdenCompra, type OrdenCompraResumen } from '@/types/abastecimiento'
 
 export const dynamic = 'force-dynamic'
 
 const esquemaParametros = z.object({
   estado: z.enum(ESTADOS_ORDEN_COMPRA).optional(),
-  pruebas: parametroPruebas,
 })
 
 type Fila = OrdenCompra & {
@@ -21,11 +20,11 @@ type Fila = OrdenCompra & {
   lineas: { cantidad: number }[] | null
 }
 
-// GET /api/ordenes-compra — Solo admin. Sin las órdenes de proveedores de prueba
-// (@amlagrotech.test) salvo que pida ?pruebas=1.
+// GET /api/ordenes-compra — Solo admin. Todas las órdenes, de cualquier proveedor.
+// es_prueba no se muestra: lo usa la limpieza de las pruebas E2E.
 export const GET = manejarRuta(async (request: NextRequest) => {
   const { supabase } = await requerirAdmin()
-  const { estado, pruebas } = validarParametros(request, esquemaParametros)
+  const { estado } = validarParametros(request, esquemaParametros)
 
   let consulta = supabase
     .from('ordenes_compra')
@@ -47,7 +46,7 @@ export const GET = manejarRuta(async (request: NextRequest) => {
     }
   })
 
-  return respuestaOk(pruebas ? ordenes : ordenes.filter((o) => !o.es_prueba))
+  return respuestaOk(ordenes)
 })
 
 // POST /api/ordenes-compra — Solo admin. "Armar orden": junta las líneas por proveedor en su

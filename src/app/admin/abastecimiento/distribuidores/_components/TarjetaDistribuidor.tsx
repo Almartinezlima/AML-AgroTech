@@ -5,8 +5,6 @@ import { claseBoton, claseEnlace, claseTarjeta } from '@/components/ui/estilos'
 import { numeroWhatsApp } from '@/lib/abastecimiento/ordenes'
 import type { DistribuidorAdmin } from '@/types/abastecimiento'
 
-const INSIGNIA_PRUEBA = { etiqueta: 'Cuenta de prueba', color: '#3b82f6' }
-
 interface TarjetaDistribuidorProps {
   distribuidor: DistribuidorAdmin
   onEditar: () => void
@@ -26,7 +24,6 @@ export default function TarjetaDistribuidor({ distribuidor: d, onEditar }: Tarje
           <p className="text-sm text-texto-2 break-all">{d.cuenta?.email ?? 'Sin cuenta'}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {d.es_prueba && <Insignia info={INSIGNIA_PRUEBA} />}
           <Insignia info={d.activo ? INSIGNIA_ACTIVO : INSIGNIA_INACTIVO} />
         </div>
       </div>

@@ -1,7 +1,6 @@
 'use client'
 import { useCallback, useState } from 'react'
 import EncabezadoAdmin from '@/components/admin/EncabezadoAdmin'
-import InterruptorPruebas, { conPruebas, useMostrarPruebas } from '@/components/admin/InterruptorPruebas'
 import TarjetasResumen from '@/components/admin/TarjetasResumen'
 import { AvisoError, BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import Modal from '@/components/ui/Modal'
@@ -23,9 +22,8 @@ const OPCIONES_FILTRO: Array<{ valor: EstadoPago | ''; texto: string }> = [
 
 export default function AdminPagosPage() {
   const [estado, setEstado] = useState<EstadoPago | ''>('en_revision')
-  const { mostrar, setMostrar, listo } = useMostrarPruebas()
-  const url = conPruebas(`/api/pagos${estado ? `?estado=${estado}` : ''}`, mostrar)
-  const { datos, cargando, error, recargar } = useDatosApi<PagoAdmin[]>(listo ? url : null)
+  const url = `/api/pagos${estado ? `?estado=${estado}` : ''}`
+  const { datos, cargando, error, recargar } = useDatosApi<PagoAdmin[]>(url)
   const [aprobando, setAprobando] = useState<PagoAdmin | null>(null)
   const [rechazando, setRechazando] = useState<PagoAdmin | null>(null)
   const [reembolsando, setReembolsando] = useState<PagoAdmin | null>(null)
@@ -84,7 +82,6 @@ export default function AdminPagosPage() {
         <EncabezadoAdmin
           titulo="Pagos"
           descripcion="Revisa los comprobantes, aprueba o rechaza, y marca los reembolsos."
-          acciones={<InterruptorPruebas mostrar={mostrar} onCambiar={setMostrar} />}
         />
 
         <div role="group" aria-label="Filtrar por estado del pago" className={`${claseFilaFiltros} mb-5`}>
@@ -95,7 +92,7 @@ export default function AdminPagosPage() {
           ))}
         </div>
 
-        {cargando || !listo ? (
+        {cargando ? (
           <BloqueCarga />
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />

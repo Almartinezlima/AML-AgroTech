@@ -1,6 +1,5 @@
 'use client'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import InterruptorPruebas, { conPruebas, useMostrarPruebas } from '@/components/admin/InterruptorPruebas'
 import ModalConfirmacion from '@/components/ui/ModalConfirmacion'
 import { useAuth } from '@/context/AuthContext'
 import { pedirApi } from '@/lib/api/cliente'
@@ -26,7 +25,6 @@ const normalizar = (texto: string) =>
 
 export default function GestionUsuarios() {
   const { user } = useAuth()
-  const { mostrar, setMostrar, listo } = useMostrarPruebas()
   const [usuarios, setUsuarios] = useState<UsuarioAdmin[]>([])
   const [cargando, setCargando] = useState(true)
   const [errorCarga, setErrorCarga] = useState('')
@@ -37,17 +35,16 @@ export default function GestionUsuarios() {
   const [errorAccion, setErrorAccion] = useState('')
 
   const cargar = useCallback(async () => {
-    if (!listo) return
     setCargando(true)
     setErrorCarga('')
     try {
-      setUsuarios(await pedirApi<UsuarioAdmin[]>(conPruebas('/api/usuarios', mostrar)))
+      setUsuarios(await pedirApi<UsuarioAdmin[]>('/api/usuarios'))
     } catch (error) {
       setErrorCarga(error instanceof Error ? error.message : 'No se pudieron cargar los usuarios.')
     } finally {
       setCargando(false)
     }
-  }, [listo, mostrar])
+  }, [])
 
   useEffect(() => {
     void cargar()
@@ -126,10 +123,6 @@ export default function GestionUsuarios() {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
-        <InterruptorPruebas mostrar={mostrar} onCambiar={setMostrar} />
-      </div>
-
       <ResumenUsuarios usuarios={usuarios} />
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">

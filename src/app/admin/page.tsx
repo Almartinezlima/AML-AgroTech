@@ -2,7 +2,6 @@
 import Link from 'next/link'
 import EncabezadoAdmin from '@/components/admin/EncabezadoAdmin'
 import { Cifra } from '@/components/admin/TarjetasResumen'
-import InterruptorPruebas, { conPruebas, useMostrarPruebas } from '@/components/admin/InterruptorPruebas'
 import { BloqueCarga, BloqueError } from '@/components/ui/Estados'
 import { clasePagina, claseTarjeta, claseTextoPendiente, claseTituloSeccion } from '@/components/ui/estilos'
 import { useDatosApi } from '@/lib/api/useDatosApi'
@@ -15,8 +14,7 @@ import { LuBanknote, LuCalendarDays, LuCreditCard, LuHandCoins, LuTrendingUp, Lu
 const textoPedidos = (cantidad: number) => `${cantidad} pedido${cantidad === 1 ? '' : 's'}`
 
 export default function AdminPage() {
-  const { mostrar, setMostrar, listo } = useMostrarPruebas()
-  const { datos: d, cargando, error, recargar } = useDatosApi<Dashboard>(listo ? conPruebas('/api/dashboard', mostrar) : null)
+  const { datos: d, cargando, error, recargar } = useDatosApi<Dashboard>('/api/dashboard')
 
   return (
     <div className={clasePagina}>
@@ -24,10 +22,9 @@ export default function AdminPage() {
         <EncabezadoAdmin
           titulo="Panel de administración"
           descripcion="Ventas, cobros e inventario de la tienda de un vistazo."
-          acciones={<InterruptorPruebas mostrar={mostrar} onCambiar={setMostrar} />}
         />
 
-        {cargando || !listo ? (
+        {cargando ? (
           <BloqueCarga filas={4} alto="h-28" />
         ) : error || !d ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />
