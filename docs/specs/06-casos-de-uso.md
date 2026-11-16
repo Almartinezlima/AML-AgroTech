@@ -10,10 +10,12 @@ Catálogo de casos de uso de lo que la app hace hoy. Cada CU sale de una o más 
 | Cliente | Persona | Compra, paga, sigue sus pedidos |
 | Administrador | Persona | Opera la tienda |
 | Distribuidor | Persona | Proveedor mayorista: publica presentaciones y atiende órdenes de compra |
+| Almacén | Persona | Prepara y empaca los pedidos pagados, reporta faltantes e imprime etiquetas (fase 9C) |
+| Repartidor | Persona | Lleva los pedidos empacados y los entrega (rol creado en la 9C; su panel llega en la 9D) |
 | Supabase | Sistema externo | Auth, base, archivos; dispara los avisos (`pg_net`, `pg_cron`) |
 | Telegram | Sistema externo | Entrega los avisos al chat del admin |
 
-Cliente, Administrador y Distribuidor **heredan** de Visitante (generalización): con sesión iniciada también pueden mirar el catálogo.
+Cliente, Administrador, Distribuidor, Almacén y Repartidor **heredan** de Visitante (generalización): con sesión iniciada también pueden mirar el catálogo.
 
 ## Catálogo
 
@@ -52,8 +54,13 @@ Cliente, Administrador y Distribuidor **heredan** de Visitante (generalización)
 | CU-31 | Consultar margen | Administrador | Almacenamiento (abastecimiento) | HU-B08 |
 | CU-32 | Descargar nota de venta (PDF) | Cliente, Administrador | E-commerce | HU-E11 |
 | CU-33 | Avisar al administrador por Telegram | Supabase (secundario: Telegram) | Todos | HU-T01 a T05 |
+| CU-34 | Preparar pedido (empezar y marcar productos) | Almacén, Administrador | Distribución | HU-AL01, AL02, AL03 |
+| CU-35 | Reportar faltante | Almacén, Administrador | Almacenamiento | HU-AL04 |
+| CU-36 | Resolver faltante | Administrador | Almacenamiento | HU-AL05 |
+| CU-37 | Empacar pedido | Almacén, Administrador | Distribución | HU-AL06 |
+| CU-38 | Imprimir etiquetas de bultos | Almacén, Administrador | Distribución | HU-AL07 |
 
-Las HU de abastecimiento (HU-B…) están en [`08-abastecimiento.md`](08-abastecimiento.md) y las de avisos (HU-T…) en [`09-avisos-telegram.md`](09-avisos-telegram.md).
+Las HU de abastecimiento (HU-B…) están en [`08-abastecimiento.md`](08-abastecimiento.md), las de avisos (HU-T…) en [`09-avisos-telegram.md`](09-avisos-telegram.md) y las de preparación y empaque (HU-AL…) en [`10-preparacion-empaque.md`](10-preparacion-empaque.md).
 
 ## Relaciones
 
@@ -65,16 +72,21 @@ Las HU de abastecimiento (HU-B…) están en [`08-abastecimiento.md`](08-abastec
   Si la tienda cancela un pedido con el pago en revisión o verificado, el pago pasa solo a «Reembolso pendiente»; después el admin lo marca reembolsado en CU-15.
 - CU-25 Armar y enviar orden de compra **«include»** «Ver qué reponer» (proveedor más barato por unidad).
 - CU-29 Recibir orden de compra **«include»** «Registrar entrada en el kardex» y «Actualizar costo promedio» (internos).
+- CU-37 Empacar pedido **«include»** «Verificar que todo esté marcado y sin faltantes abiertos» (interno).
+- Los CU del Almacén (CU-34, CU-35, CU-37, CU-38) **«include»** CU-02 Iniciar sesión con rol almacén o admin. Cada uno deja su paso en la línea de tiempo con quién y cuándo.
 - Los CU del Administrador (CU-04, CU-11, CU-12, CU-15, CU-18 a CU-23, CU-25, CU-26, CU-29, CU-31) y del Distribuidor (CU-24, CU-27, CU-28, CU-30) **«include»** CU-02 Iniciar sesión con su rol. Los del Cliente (CU-08 a CU-10, CU-13, CU-14, CU-17, CU-32) piden sesión de cliente. En los diagramas esto va como nota para no cruzar líneas.
 
 ### «extend» (pasa solo si se cumple la condición)
 
 - CU-14 Subir comprobante **«extend»** CU-13 Pagar pedido: solo con QR o transferencia.
 - CU-32 Descargar nota de venta **«extend»** CU-09 Consultar mis pedidos: solo desde que el pedido se confirma.
+- CU-35 Reportar faltante **«extend»** CU-34 Preparar pedido: solo si falta algún producto. Bloquea CU-37 hasta que se cumpla CU-36.
+- CU-38 Imprimir etiquetas **«extend»** CU-37 Empacar pedido: una etiqueta por bulto.
 - CU-33 Avisar por Telegram **«extend»**:
   - CU-08 Realizar pedido (pedido nuevo);
   - CU-14 Subir comprobante (comprobante por revisar);
   - CU-08 y CU-20 cuando el stock cruza su mínimo o llega a 0;
-  - CU-27 y CU-28 (orden aceptada, rechazada o despachada).
+  - CU-27 y CU-28 (orden aceptada, rechazada o despachada);
+  - CU-35 Reportar faltante (fase 9C).
 
   Condición: la cuenta no es de prueba y los secretos de Telegram están en Vault. El resumen de las 20:00 lo dispara `pg_cron`, sin otro CU.

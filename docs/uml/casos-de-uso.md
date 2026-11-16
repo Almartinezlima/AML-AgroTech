@@ -11,7 +11,7 @@ Fuente: [`../specs/06-casos-de-uso.md`](../specs/06-casos-de-uso.md) (catálogo,
 | Flecha punteada `«include»` / `«extend»` | Relación entre casos de uso |
 | Flecha `hereda` | Generalización entre actores |
 
-Para que se lea, va un diagrama por pilar. En todos, los casos de uso del Administrador y del Distribuidor «incluyen» CU-02 Iniciar sesión con su rol; no se dibuja esa línea en cada uno.
+Para que se lea, va un diagrama por pilar. En todos, los casos de uso del Administrador, del Distribuidor y del Almacén «incluyen» CU-02 Iniciar sesión con su rol; no se dibuja esa línea en cada uno.
 
 ## 1. Actores
 
@@ -21,11 +21,15 @@ flowchart BT
   C["«actor»<br/>Cliente"]
   A["«actor»<br/>Administrador"]
   D["«actor»<br/>Distribuidor"]
+  AL["«actor»<br/>Almacén"]
+  R["«actor»<br/>Repartidor"]
   S["«actor» «sistema»<br/>Supabase"]
   T["«actor» «sistema»<br/>Telegram"]
   C -->|hereda| V
   A -->|hereda| V
   D -->|hereda| V
+  AL -->|hereda| V
+  R -->|hereda| V
   S ~~~ T
 ```
 
@@ -199,6 +203,39 @@ flowchart LR
   CU33 -.->|«extend»<br/>stock bajo| CU20
   CU33 -.->|«extend»<br/>aceptada · rechazada| CU27
   CU33 -.->|«extend»<br/>despachada| CU28
+  CU35b(["CU-35 Reportar faltante"])
+  CU33 -.->|«extend»<br/>faltante| CU35b
 ```
 
 Condición de todos los «extend» de CU-33: la cuenta no es de prueba y los secretos de Telegram están en Vault. El resumen diario de las 20:00 lo inicia `pg_cron` (actor Supabase) sin otro caso de uso.
+
+## 8. Preparación y empaque (fase 9C)
+
+```mermaid
+flowchart LR
+  AL["«actor»<br/>Almacén"]
+  A["«actor»<br/>Administrador"]
+  subgraph PRE["AML AgroTech · Preparación y empaque"]
+    CU34(["CU-34 Preparar pedido<br/>empezar y marcar productos"])
+    CU35(["CU-35 Reportar faltante"])
+    CU36(["CU-36 Resolver faltante"])
+    CU37(["CU-37 Empacar pedido"])
+    CU38(["CU-38 Imprimir etiquetas"])
+    VER(["Verificar todo marcado<br/>y sin faltantes abiertos"])
+  end
+  AL --- CU34
+  AL --- CU35
+  AL --- CU37
+  AL --- CU38
+  A --- CU34
+  A --- CU36
+  A --- CU37
+  CU35 -.->|«extend»<br/>si falta un producto| CU34
+  CU37 -.->|«include»| VER
+  CU38 -.->|«extend»<br/>una por bulto| CU37
+```
+
+- El Administrador puede hacer todo lo del Almacén (también CU-35 y CU-38; se omiten esas líneas para que se lea).
+- Mientras un faltante (CU-35) siga abierto, CU-37 no se puede completar: lo destraba CU-36.
+- Cada caso deja su paso en la línea de tiempo del pedido con **quién** y **cuándo** (CU-17 Seguir pedido).
+- El Repartidor ya existe como rol; sus casos de uso (entregar con código) llegan en la fase 9D.

@@ -4,26 +4,30 @@ Los estados son restricciones `check` de la base y **solo cambian dentro de func
 
 ## 1. Pedido
 
-`cambiar_estado_pedido` solo deja avanzar al siguiente estado del camino que corresponde a la zona. Un pedido con QR o transferencia no pasa de `pendiente` hasta que su pago esté verificado.
+`cambiar_estado_pedido` (admin) solo deja avanzar al siguiente estado del camino que corresponde a la zona. Preparar y empacar se hacen **solo** con las funciones del almacén (`empezar_preparacion`, `empacar_pedido`, migración 0017), que registran quién y cuándo. Un pedido con QR o transferencia no pasa de `pendiente` hasta que su pago esté verificado.
 
 ```mermaid
 stateDiagram-v2
   [*] --> pendiente : crear_pedido
   pendiente --> confirmado : pago verificado (QR o transferencia)<br/>o el admin confirma (contra entrega)
-  confirmado --> preparando : admin
+  confirmado --> preparando : almacén o admin<br/>empezar_preparacion
   state zona <<choice>>
-  preparando --> zona
+  preparando --> zona : empacar_pedido<br/>(todo marcado, sin faltantes abiertos)
   zona --> listo_para_recoger : recojo en tienda
-  zona --> despachado : en el pueblo o por flota<br/>(flota con transportista y guía)
+  zona --> empacado : en el pueblo o por flota
+  empacado --> despachado : admin (9D: repartidor)<br/>flota con transportista y guía
   listo_para_recoger --> entregado : admin, cuando el cliente recoge
   despachado --> entregado : admin
   pendiente --> cancelado : el cliente (sin comprobante) o el admin
   confirmado --> cancelado : admin
+  preparando --> cancelado : admin
+  empacado --> cancelado : admin
   entregado --> [*]
   cancelado --> [*]
 ```
 
-- Cancelar devuelve el stock al kardex (`devolucion`).
+- Cancelar devuelve el stock al kardex (`devolucion`) y cierra los faltantes abiertos.
+- En `preparando`, un faltante reportado frena el empaque hasta que el admin lo resuelve («Repuesto, continuar»).
 - El cliente solo cancela si el pedido y el pago siguen pendientes. Si ya mandó el comprobante, tiene que pedírselo a la tienda.
 
 ## 2. Pago

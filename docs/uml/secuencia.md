@@ -111,3 +111,56 @@ sequenceDiagram
 ```
 
 El admin también puede cancelar la orden con motivo mientras esté en borrador, enviada o aceptada (`POST /api/ordenes-compra/{id}/cancelar`).
+
+## 3. Preparar y empacar un pedido (CU-34 a CU-38, fase 9C)
+
+Del pedido pagado a la caja cerrada con su etiqueta. Cada paso guarda quién y cuándo.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor AL as Almacén
+  actor AD as Administrador
+  participant A as API REST<br/>Next.js en Render
+  participant DB as Postgres<br/>Supabase
+  participant Q as pg_net
+  participant T as Telegram
+
+  AL->>A: GET /api/almacen/pedidos
+  A->>DB: rpc cola_almacen()
+  Note over DB: aml_personal_almacen(): rol almacén o admin, si no AML03 (403)
+  DB-->>A: Pedidos confirmados, el más antiguo primero
+  AL->>A: POST /api/almacen/pedidos/{id}/preparar
+  A->>DB: rpc empezar_preparacion(id)
+  Note over DB: confirmado → preparando<br/>preparacion_por, preparacion_en y seguimiento
+  loop Cada producto que entra a la caja
+    AL->>A: PATCH /api/almacen/items/{item} (marcado: true)
+    A->>DB: rpc marcar_item_pedido(item, true)
+  end
+  opt Falta un producto
+    AL->>A: POST /api/almacen/pedidos/{id}/faltante (nota, item_id)
+    A->>DB: rpc reportar_faltante(id, item, nota)
+    DB->>Q: Trigger aml_aviso_faltante (si no es cuenta de prueba)
+    Q-)T: «Faltante en AML-…» con producto, nota y quién
+    AD->>A: POST /api/faltantes/{faltante}/resolver (nota)
+    A->>DB: rpc resolver_faltante(faltante, nota)
+    Note over DB: resuelto_en, resuelto_por y seguimiento
+  end
+  AL->>A: POST /api/almacen/pedidos/{id}/empacar (bultos)
+  A->>DB: rpc empacar_pedido(id, bultos)
+  activate DB
+  Note over DB: Exige todo marcado y ningún faltante abierto (si no, AML05 → 409)
+  alt Recojo en tienda
+    DB->>DB: estado listo_para_recoger (pedido y envío)
+  else En el pueblo o por flota
+    DB->>DB: estado empacado
+  end
+  DB->>DB: empacado_por, empacado_en, bultos y seguimiento
+  DB-->>A: Pedido empacado
+  deactivate DB
+  AL->>A: GET /api/almacen/pedidos/{id} (página /etiqueta)
+  A-->>AL: Datos de la etiqueta
+  Note over AL: Imprime una etiqueta por bulto con el QR del código
+```
+
+El cliente ve cada paso en su pedido con el nombre de quién lo hizo (`GET /api/pedidos/{id}` → `linea_tiempo_pedido`).

@@ -91,7 +91,7 @@ Navegador (React) ──fetch──▶ API REST propia  src/app/api/**  (valida 
 - **Nunca hard-delete**: usar `activo = false` o estados (`cancelado`).
 - **Fechas**: en el navegador, `fechaHoyLocal()` de `@/lib/utils`. **NUNCA `toISOString()`** para fechas de calendario (Bolivia es UTC-4). En el servidor, la fecha la pone la base (`now()`).
 - **Dinero**: `numeric(10,2)` en la base; en pantalla siempre `Bs. 0,00` con `formatoBs()` de `@/lib/utils`.
-- **Roles**: `admin`, `cliente`, `distribuidor`. El rol se verifica **en el servidor** (middleware + API + RLS), nunca solo en la pantalla.
+- **Roles**: `admin`, `cliente`, `distribuidor`, `almacen`, `repartidor` (los dos últimos desde la 0017; solo el admin asigna roles y puede hacer todo lo del almacén y del repartidor). El rol se verifica **en el servidor** (middleware + API + RLS o funciones que revisan el rol), nunca solo en la pantalla. El almacén y el repartidor no leen tablas directo: solo funciones `security definer`.
 - **Migraciones**: toda tabla, columna, política o función nueva tiene su archivo en `supabase/migrations/` (numerado). Nada se crea a mano en el panel de Supabase sin su receta.
 - **Funciones SQL**: siempre `set search_path = ''` y nombres calificados (`public.tabla`). `security definer` solo si hace falta, y con `revoke execute ... from public, anon` cuando no deben ser públicas.
 - **Storage**: imágenes de productos en bucket público `productos`; comprobantes de pago en bucket **privado** `comprobantes` (solo dueño y admin).
