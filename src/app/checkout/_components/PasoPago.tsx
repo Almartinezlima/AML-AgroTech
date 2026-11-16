@@ -1,4 +1,5 @@
 import InstruccionesPago from '@/components/pagos/InstruccionesPago'
+import { transferenciaDisponible } from '@/lib/pagos/banco'
 import { claseTarjeta, claseTituloSeccion } from '@/components/ui/estilos'
 import type { MetodoPago, ZonaEnvio } from '@/types/comercio'
 import type { IconType } from 'react-icons'
@@ -17,7 +18,9 @@ interface PasoPagoProps {
 }
 
 export default function PasoPago({ zona, metodo, onCambiar }: PasoPagoProps) {
-  const opciones = OPCIONES.filter((o) => o.valor !== 'contra_entrega' || zona.permite_contra_entrega)
+  // Sin la cuenta del banco configurada no se ofrece transferencia (nunca datos falsos)
+  const opciones = OPCIONES.filter((o) =>
+    (o.valor !== 'contra_entrega' || zona.permite_contra_entrega) && (o.valor !== 'transferencia' || transferenciaDisponible))
 
   return (
     <div className="flex flex-col gap-5">
@@ -36,7 +39,7 @@ export default function PasoPago({ zona, metodo, onCambiar }: PasoPagoProps) {
       </fieldset>
 
       {!zona.permite_contra_entrega && (
-        <p className="text-texto-2 text-xs">El pago contra entrega no está disponible para envíos a {zona.nombre}. Puedes pagar con QR o transferencia.</p>
+        <p className="text-texto-2 text-xs">El pago contra entrega no está disponible para envíos a {zona.nombre}. Puedes pagar con QR{transferenciaDisponible ? ' o transferencia' : ''}.</p>
       )}
 
       {metodo && (
