@@ -36,11 +36,6 @@ components:
       in: path
       required: true
       schema: { type: string, format: uuid }
-    Pruebas:
-      name: pruebas
-      in: query
-      description: '`1` incluye los datos de las cuentas de prueba E2E (@amlagrotech.test). Por defecto se ocultan.'
-      schema: { type: string, enum: ['0', '1'] }
   schemas:
     Error:
       type: object
@@ -208,12 +203,21 @@ paths:
       responses:
         '200': { description: Todo responde }
         '503': { $ref: '#/components/responses/Error' }
+  /openapi:
+    get:
+      tags: [Salud]
+      summary: Este contrato OpenAPI en YAML (lo usa /api-docs)
+      responses:
+        '200':
+          description: El contrato
+          content:
+            text/yaml:
+              schema: { type: string }
   /usuarios:
     get:
       tags: [Usuarios]
-      summary: Listar usuarios (admin)
+      summary: Listar todos los usuarios (admin)
       security: [{ sesion: [] }]
-      parameters: [{ $ref: '#/components/parameters/Pruebas' }]
       responses:
         '200': { description: Lista de usuarios }
         '401': { $ref: '#/components/responses/Error' }
@@ -363,7 +367,6 @@ paths:
       parameters:
         - { name: alcance, in: query, schema: { type: string, enum: [propios, todos] }, description: "`todos` requiere admin" }
         - { name: estado, in: query, schema: { $ref: '#/components/schemas/EstadoPedido' } }
-        - { $ref: '#/components/parameters/Pruebas' }
       responses:
         '200': { description: Lista de pedidos }
         '401': { $ref: '#/components/responses/Error' }
@@ -512,7 +515,6 @@ paths:
       security: [{ sesion: [] }]
       parameters:
         - { name: estado, in: query, schema: { type: string, enum: [pendiente, en_revision, verificado, rechazado, reembolso_pendiente, reembolsado] } }
-        - { $ref: '#/components/parameters/Pruebas' }
       responses:
         '200': { description: Lista de pagos }
         '403': { $ref: '#/components/responses/Error' }
@@ -609,9 +611,8 @@ paths:
   /dashboard:
     get:
       tags: [Panel]
-      summary: Resumen del negocio (admin)
+      summary: Resumen del negocio con los datos de todas las cuentas (admin)
       security: [{ sesion: [] }]
-      parameters: [{ $ref: '#/components/parameters/Pruebas' }]
       responses:
         '200': { description: Ventas, pedidos, stock bajo, pagos e inventario }
         '401': { $ref: '#/components/responses/Error' }
@@ -711,10 +712,9 @@ paths:
   /ordenes-compra:
     get:
       tags: [Abastecimiento]
-      summary: Órdenes de compra, sin las de proveedores de prueba salvo ?pruebas=1 (admin)
+      summary: Órdenes de compra de todos los proveedores (admin)
       security: [{ sesion: [] }]
       parameters:
-        - { $ref: '#/components/parameters/Pruebas' }
         - name: estado
           in: query
           schema: { type: string, enum: [borrador, enviada, aceptada, despachada, recibida, rechazada, cancelada] }
