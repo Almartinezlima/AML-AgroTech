@@ -24,6 +24,7 @@
     "react-dom": "^18",
     "react-icons": "^5.7.0",
     "recharts": "^3.10.1",
+    "sharp": "^0.33.5",
     "swagger-ui-react": "^5.34.1",
     "zod": "^4.6.7"
   },

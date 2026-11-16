@@ -122,8 +122,8 @@ export default function CatalogoPage() {
           </BloqueVacio>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filtrados.map((producto, i) => (
-              <TarjetaProducto key={producto.id} producto={producto} agregado={agregados.includes(producto.id)} onAgregar={handleAgregar} prioridad={i < 4} />
+            {filtrados.map((producto) => (
+              <TarjetaProducto key={producto.id} producto={producto} agregado={agregados.includes(producto.id)} onAgregar={handleAgregar} />
             ))}
           </div>
         )}

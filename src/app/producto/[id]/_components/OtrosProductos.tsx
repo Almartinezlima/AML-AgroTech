@@ -35,7 +35,8 @@ export default function OtrosProductos({ productoId, categoria }: { productoId: 
       </div>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
         {otros.map((p) => (
-          <TarjetaProducto key={p.id} producto={p} agregado={agregados.includes(p.id)} onAgregar={agregar} compacta />
+          <TarjetaProducto key={p.id} producto={p} agregado={agregados.includes(p.id)} onAgregar={agregar} compacta
+            sizes="(max-width: 1023px) 50vw, 270px" />
         ))}
       </div>
     </section>
