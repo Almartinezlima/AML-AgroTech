@@ -1,7 +1,7 @@
 import { ErrorApi, manejarRuta, respuestaOk } from '@/lib/api/respuestas'
 import { requerirSesion } from '@/lib/api/sesion'
 import { validarUuid } from '@/lib/api/validacion'
-import { buscarClientes, COLUMNAS_PEDIDO_DETALLE, faltaColumna, firmarComprobante, sinColumnasRecoge } from '@/lib/ecommerce/consultas'
+import { buscarClientes, COLUMNAS_PEDIDO_DETALLE, faltaColumna, firmarComprobante, leerFaltantes, leerLineaTiempo, sinColumnasRecoge } from '@/lib/ecommerce/consultas'
 import type { PedidoDetalle } from '@/types/comercio'
 
 export const dynamic = 'force-dynamic'
@@ -29,12 +29,19 @@ export const GET = manejarRuta<{ params: { id: string } }>(async (_request, { pa
   if (!data) throw new ErrorApi(404, 'NO_ENCONTRADO', 'El pedido no existe.')
 
   const pedido = data as unknown as Omit<PedidoDetalle, 'comprobante_url'>
-  const comprobanteUrl = await firmarComprobante(supabase, pedido.pagos?.comprobante_path)
-  const clientes = esAdmin ? await buscarClientes(supabase, [pedido.usuario_id]) : null
+  const [comprobanteUrl, clientes, lineaTiempo, faltantes] = await Promise.all([
+    firmarComprobante(supabase, pedido.pagos?.comprobante_path),
+    esAdmin ? buscarClientes(supabase, [pedido.usuario_id]) : null,
+    // Con el nombre de quién hizo cada paso (0017); sin la 0017, la línea de siempre
+    leerLineaTiempo(supabase, id),
+    esAdmin ? leerFaltantes(supabase, id, pedido.pedido_items) : undefined,
+  ])
 
   return respuestaOk<PedidoDetalle>({
     ...pedido,
+    seguimiento_pedido: lineaTiempo ?? pedido.seguimiento_pedido,
     comprobante_url: comprobanteUrl,
     cliente: clientes?.get(pedido.usuario_id) ?? null,
+    ...(faltantes ? { faltantes } : {}),
   })
 })

@@ -7,11 +7,11 @@ import Modal from '@/components/ui/Modal'
 import ModalConfirmacion from '@/components/ui/ModalConfirmacion'
 import { claseBoton, claseBotonPrimario, claseBotonSecundario, claseEnlace, claseEtiqueta, claseInput, claseTarjeta, claseTextoPendiente } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
-import { ETIQUETA_METODO, INFO_ESTADO_PAGO, INFO_ESTADO_PEDIDO, fechaHora, siguienteEstado } from '@/lib/ecommerce/presentacion'
+import { ESTADOS_ALMACEN, ETIQUETA_METODO, INFO_ESTADO_PAGO, INFO_ESTADO_PEDIDO, fechaHora, puedeCancelarAdmin, siguienteEstado } from '@/lib/ecommerce/presentacion'
 import { nombreArchivoNota, situacionNota } from '@/lib/ecommerce/notaVenta'
 import { formatoBs } from '@/lib/utils'
 import type { PedidoResumen } from '@/types/comercio'
-import { LuFileDown, LuHourglass } from 'react-icons/lu'
+import { LuFileDown, LuHourglass, LuPackageCheck } from 'react-icons/lu'
 
 // Un dato del pedido: "Entrega: Distrito Pucara"
 function Dato({ titulo, children }: { titulo: string; children: React.ReactNode }) {
@@ -104,8 +104,14 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
                       <LuFileDown className="h-4 w-4" aria-hidden="true" /> Nota PDF
                     </a>
                   )}
-                  {(pedido.estado === 'pendiente' || pedido.estado === 'confirmado') && (
+                  {puedeCancelarAdmin(pedido.estado) && (
                     <button onClick={() => { setError(''); setCancelando(pedido) }} className={claseBoton('peligro', 'chico')}>Cancelar</button>
+                  )}
+                  {/* Preparar y empacar se hace en el panel de almacén (fase 9C) */}
+                  {ESTADOS_ALMACEN.includes(pedido.estado) && (
+                    <Link href={`/almacen/pedidos/${pedido.id}`} className={claseBoton('primario', 'chico')}>
+                      <LuPackageCheck className="h-4 w-4" aria-hidden="true" /> Ver en almacén
+                    </Link>
                   )}
                   {proximo && (esperaPago && proximo !== 'entregado' ? (
                     <span className={`${claseTextoPendiente} inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold`}>
@@ -165,7 +171,7 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
       {cancelando && (
         <ModalConfirmacion
           titulo="Cancelar pedido"
-          mensaje={`El pedido ${cancelando.codigo} se cancelará y sus productos volverán al inventario.`}
+          mensaje={`El pedido ${cancelando.codigo} se cancelará y sus productos volverán al inventario${cancelando.estado === 'preparando' || cancelando.estado === 'empacado' ? ' (avisa al almacén para que deshaga la caja)' : ''}.`}
           textoConfirmar="Sí, cancelar"
           peligro
           procesando={procesando}

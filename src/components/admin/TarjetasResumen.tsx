@@ -60,7 +60,7 @@ export function Cifra({ titulo, valor, detalle, icono: Icono, tono = 'neutro', h
 }
 
 // Columnas en escritorio según cuántas cifras haya (clases completas para Tailwind)
-const COLUMNAS_ESCRITORIO: Record<number, string> = { 2: 'lg:grid-cols-2', 3: 'lg:grid-cols-3', 4: 'lg:grid-cols-4' }
+const COLUMNAS_ESCRITORIO: Record<number, string> = { 2: 'lg:grid-cols-2', 3: 'lg:grid-cols-3', 4: 'lg:grid-cols-4', 5: 'lg:grid-cols-5' }
 
 // Fila de cifras arriba de cada pantalla del panel: 2 columnas en celular, hasta 4 en escritorio
 export default function TarjetasResumen({ cifras, etiqueta }: { cifras: CifraProps[]; etiqueta: string }) {

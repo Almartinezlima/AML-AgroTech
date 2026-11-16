@@ -7,7 +7,7 @@ import { claseBotonPrimario, claseEtiqueta, claseInput } from '@/components/ui/e
 import MarcoAcceso from '../_components/MarcoAcceso'
 import BotonGoogle, { SeparadorCorreo } from '../_components/BotonGoogle'
 import { mensajeErrorAuth } from '@/lib/auth/mensajes'
-import { rutaInterna } from '@/lib/auth/redireccion'
+import { inicioPorRol, rutaInterna } from '@/lib/auth/redireccion'
 import { useConsultaSiguiente } from '@/lib/auth/useSiguiente'
 
 type Aviso = { tipo: 'error' | 'ok'; texto: string }
@@ -56,7 +56,7 @@ export default function LoginPage() {
     // Navegación completa: el router de Next guarda precargas hechas SIN sesión
     // (p. ej. /carrito → login) y las reusaría; así se parte de cero con la cuenta nueva
     // El distribuidor (proveedor) entra a su panel si no venía de otra pantalla
-    const inicio = perfil?.rol === 'distribuidor' ? '/distribuidor' : '/'
+    const inicio = inicioPorRol(perfil?.rol)
     window.location.assign(perfil?.activo === false ? '/cuenta-desactivada' : rutaInterna(siguiente, inicio))
   }
 

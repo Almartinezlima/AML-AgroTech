@@ -14,6 +14,7 @@ import { formatoBs } from '@/lib/utils'
 import type { PedidoDetalle } from '@/types/comercio'
 import BloquePago from './_components/BloquePago'
 import BotonNota from './_components/BotonNota'
+import FaltantesAdmin from './_components/FaltantesAdmin'
 import LineaTiempo from './_components/LineaTiempo'
 import { LuArrowLeft, LuMessageCircle } from 'react-icons/lu'
 
@@ -139,6 +140,10 @@ export default function PedidoDetallePage() {
               </a>
             )}
           </section>
+
+          {pedido.faltantes && pedido.faltantes.length > 0 && (
+            <FaltantesAdmin pedidoId={pedido.id} faltantes={pedido.faltantes} onActualizado={() => void recargar()} />
+          )}
 
           <section className={`${claseTarjeta} p-5`}>
             <h2 className="text-texto font-bold mb-4">Seguimiento</h2>

@@ -13,6 +13,7 @@ Cada clase es una tabla real de Postgres (esquema `public`, migraciones `0001` a
 | Pago | `pagos` |
 | Envio | `envios` |
 | SeguimientoPedido | `seguimiento_pedido` |
+| FaltantePedido | `faltantes_pedido` (fase 9C) |
 | MovimientoInventario | `movimientos_inventario` (kardex) |
 | Distribuidor | `distribuidores` |
 | PresentacionDistribuidor | `presentaciones_distribuidor` |
@@ -34,6 +35,8 @@ classDiagram
     +text telefono
     +bool activo
     +es_admin() bool «SQL»
+    +es_almacen() bool «SQL»
+    +es_repartidor() bool «SQL»
   }
   class Categoria {
     +uuid id
@@ -79,9 +82,17 @@ classDiagram
     +text recoge_nombre
     +text recoge_ci
     +text telefono_contacto
+    +uuid preparacion_por
+    +timestamptz preparacion_en
+    +uuid empacado_por
+    +timestamptz empacado_en
+    +int bultos
     +crear_pedido() «SQL»
     +cancelar_pedido() «SQL»
     +cambiar_estado_pedido() «SQL»
+    +empezar_preparacion() «SQL»
+    +empacar_pedido() «SQL»
+    +linea_tiempo_pedido() «SQL»
   }
   class PedidoItem {
     +uuid id
@@ -89,6 +100,18 @@ classDiagram
     +numeric precio_unitario
     +int cantidad
     +numeric subtotal
+    +uuid marcado_por
+    +timestamptz marcado_en
+    +marcar_item_pedido() «SQL»
+  }
+  class FaltantePedido {
+    +uuid id
+    +text nota
+    +timestamptz created_at
+    +timestamptz resuelto_en
+    +text nota_resolucion
+    +reportar_faltante() «SQL»
+    +resolver_faltante() «SQL»
   }
   class Pago {
     +uuid id
@@ -135,6 +158,11 @@ classDiagram
   Pedido "1" *-- "1" Pago : se paga con
   Pedido "1" *-- "1" Envio : se entrega con
   Pedido "1" *-- "1..*" SeguimientoPedido : línea de tiempo
+  Pedido "1" *-- "0..*" FaltantePedido : faltantes del almacén
+  PedidoItem "0..1" --> "0..*" FaltantePedido : producto que falta
+  Perfil "1" --> "0..*" FaltantePedido : reporta o resuelve
+  Perfil "0..1" --> "0..*" Pedido : prepara y empaca
+  Perfil "0..1" --> "0..*" SeguimientoPedido : hizo el paso
   Producto "1" --> "0..*" MovimientoInventario : kardex
   Pedido "0..1" --> "0..*" MovimientoInventario : salida o devolución
   Perfil "0..1" --> "0..*" MovimientoInventario : registra
@@ -246,6 +274,8 @@ classDiagram
     admin
     cliente
     distribuidor
+    almacen
+    repartidor
   }
   class TipoZona {
     <<enumeration>>
@@ -264,6 +294,7 @@ classDiagram
     pendiente
     confirmado
     preparando
+    empacado
     listo_para_recoger
     despachado
     entregado
@@ -315,3 +346,4 @@ classDiagram
 - **Precios congelados:** `PedidoItem.precio_unitario` y `OrdenCompraItem.precio_unitario` guardan el precio del momento; si el producto o la presentación cambian de precio después, el pedido o la orden no cambian.
 - **Stock protegido:** `Producto.stock` solo cambia dentro de las funciones que registran un `MovimientoInventario` (trigger `proteger_stock_producto`) y nunca queda negativo.
 - **Costo aparte:** `CostoProducto` es solo del admin, porque `Producto` se lee sin sesión.
+- **Quién y cuándo (fase 9C):** `Pedido` guarda quién empezó a prepararlo y quién lo empacó; `PedidoItem`, quién lo puso en la caja; `FaltantePedido`, quién lo reportó y quién lo resolvió. El almacén no lee tablas: todo pasa por funciones que revisan su rol.

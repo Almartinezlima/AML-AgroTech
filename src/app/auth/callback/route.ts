@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/api/supabase-servidor'
-import { rutaInterna } from '@/lib/auth/redireccion'
+import { inicioPorRol, rutaInterna } from '@/lib/auth/redireccion'
 
 // Vuelta de "Continuar con Google": cambia el código por la sesión (PKCE; el verificador
 // quedó en una cookie al tocar el botón) y lleva a la persona a donde iba.
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     .maybeSingle()
 
   if (perfil?.activo === false) return NextResponse.redirect(new URL('/cuenta-desactivada', origin))
-  // El distribuidor (proveedor) entra a su panel si no venía de otra pantalla
-  const inicio = perfil?.rol === 'distribuidor' ? '/distribuidor' : '/'
+  // El proveedor y el almacén entran a su panel si no venían de otra pantalla
+  const inicio = inicioPorRol(perfil?.rol)
   return NextResponse.redirect(new URL(siguiente || inicio, origin))
 }

@@ -51,6 +51,18 @@ export async function requerirAdmin(): Promise<SesionApi> {
   return sesion
 }
 
+// Exige uno de los roles internos indicados. El admin siempre pasa: puede hacer todo lo
+// del almacén y del repartidor. 403 si no corresponde.
+export async function requerirRol(roles: Array<Exclude<RolUsuario, 'admin' | 'cliente'>>): Promise<SesionApi> {
+  const sesion = await requerirSesion()
+
+  if (sesion.perfil.rol !== 'admin' && !(roles as RolUsuario[]).includes(sesion.perfil.rol)) {
+    throw new ErrorApi(403, 'SIN_PERMISO', 'No tienes permiso para esta acción.')
+  }
+
+  return sesion
+}
+
 // Exige rol distribuidor (proveedor) y una ficha activa. Devuelve el id de la ficha.
 export async function requerirDistribuidor(): Promise<SesionApi & { distribuidorId: string }> {
   const sesion = await requerirSesion()

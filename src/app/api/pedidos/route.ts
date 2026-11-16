@@ -1,10 +1,11 @@
 import type { NextRequest } from 'next/server'
 import { z } from 'zod'
-import { manejarRuta, respuestaOk } from '@/lib/api/respuestas'
+import { ErrorApi, manejarRuta, respuestaOk } from '@/lib/api/respuestas'
 import { requerirAdmin, requerirSesion } from '@/lib/api/sesion'
 import { validarCuerpo, validarParametros } from '@/lib/api/validacion'
 import { buscarClientes, COLUMNAS_PEDIDO_RESUMEN, faltaColumna, sinColumnasRecoge } from '@/lib/ecommerce/consultas'
 import { esquemaCrearPedido } from '@/lib/ecommerce/esquemas'
+import { transferenciaDisponible } from '@/lib/pagos/banco'
 import { ESTADOS_PEDIDO, type PedidoCreado, type PedidoResumen } from '@/types/comercio'
 
 export const dynamic = 'force-dynamic'
@@ -46,6 +47,11 @@ export const GET = manejarRuta(async (request: NextRequest) => {
 export const POST = manejarRuta(async (request: NextRequest) => {
   const { supabase } = await requerirSesion()
   const pedido = await validarCuerpo(request, esquemaCrearPedido)
+
+  // Sin la cuenta del banco configurada no se acepta transferencia (fase 9C)
+  if (pedido.metodo_pago === 'transferencia' && !transferenciaDisponible) {
+    throw new ErrorApi(422, 'METODO_NO_DISPONIBLE', 'El pago por transferencia no está disponible por ahora. Elige QR.')
+  }
 
   const base = {
     p_items: pedido.items,

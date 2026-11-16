@@ -51,14 +51,18 @@ export async function middleware(request: NextRequest) {
   const ruta = request.nextUrl.pathname
   const esRutaAdmin = coincide(ruta, '/admin')
   const esRutaDistribuidor = coincide(ruta, '/distribuidor')
+  // Paneles del personal (fase 9C): el admin entra a todos
+  const esRutaAlmacen = coincide(ruta, '/almacen')
+  const esRutaRepartidor = coincide(ruta, '/repartidor')
+  const esRutaPersonal = esRutaAlmacen || esRutaRepartidor
   const esRutaConSesion = RUTAS_CON_SESION.some((base) => coincide(ruta, base))
   const esAvisoDesactivada = coincide(ruta, RUTA_CUENTA_DESACTIVADA)
 
-  if ((esRutaAdmin || esRutaDistribuidor || esRutaConSesion) && !user) {
+  if ((esRutaAdmin || esRutaDistribuidor || esRutaPersonal || esRutaConSesion) && !user) {
     return redirigir('/auth/login', `${ruta}${request.nextUrl.search}`)
   }
 
-  if (user && (esRutaAdmin || esRutaDistribuidor || esRutaConSesion || esAvisoDesactivada)) {
+  if (user && (esRutaAdmin || esRutaDistribuidor || esRutaPersonal || esRutaConSesion || esAvisoDesactivada)) {
     // El rol se lee de la base en cada petición, nunca de la pantalla
     const { data: perfil } = await supabase
       .from('perfiles')
@@ -74,6 +78,8 @@ export async function middleware(request: NextRequest) {
     if (esRutaAdmin && perfil?.rol !== 'admin') return redirigir('/')
     // El panel del proveedor es solo para el rol distribuidor (el admin tiene el suyo)
     if (esRutaDistribuidor && perfil?.rol !== 'distribuidor') return redirigir('/')
+    if (esRutaAlmacen && perfil?.rol !== 'almacen' && perfil?.rol !== 'admin') return redirigir('/')
+    if (esRutaRepartidor && perfil?.rol !== 'repartidor' && perfil?.rol !== 'admin') return redirigir('/')
   }
 
   if (!user && esAvisoDesactivada) {

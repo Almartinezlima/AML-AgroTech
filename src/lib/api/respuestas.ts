@@ -33,6 +33,8 @@ const ERRORES_BASE: Record<string, { estado: number; codigo: string; mensaje?: s
   AML06: { estado: 401, codigo: 'NO_AUTENTICADO' },
   '23505': { estado: 409, codigo: 'DUPLICADO', mensaje: 'Ya existe un registro con ese valor.' },
   '42501': { estado: 403, codigo: 'SIN_PERMISO', mensaje: 'No tienes permiso para esta acción.' },
+  // PostgREST no encuentra la función: falta correr una migración
+  PGRST202: { estado: 503, codigo: 'FALTA_MIGRACION', mensaje: 'Esta función todavía no está disponible. Intenta más tarde.' },
 }
 
 interface ErrorBase {

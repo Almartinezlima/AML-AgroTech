@@ -17,6 +17,8 @@ tags:
   - name: Panel
   - name: Abastecimiento
     description: Proveedores mayoristas (rol distribuidor), sus presentaciones, órdenes de compra, recepción y margen
+  - name: Almacén
+    description: Preparación y empaque de pedidos (rol almacen o admin, fase 9C). Cada paso registra quién y cuándo
 components:
   securitySchemes:
     sesion:
@@ -46,8 +48,8 @@ components:
             codigo: { type: string, example: NO_AUTENTICADO }
             mensaje: { type: string, example: Debes iniciar sesión. }
             detalle: { type: object }
-    Rol: { type: string, enum: [admin, cliente, distribuidor] }
-    EstadoPedido: { type: string, enum: [pendiente, confirmado, preparando, listo_para_recoger, despachado, entregado, cancelado], description: 'Recojo en tienda usa listo_para_recoger en vez de despachado (migración 0007)' }
+    Rol: { type: string, enum: [admin, cliente, distribuidor, almacen, repartidor], description: 'almacen y repartidor desde la migración 0017; solo el admin asigna roles' }
+    EstadoPedido: { type: string, enum: [pendiente, confirmado, preparando, empacado, listo_para_recoger, despachado, entregado, cancelado], description: 'Recojo en tienda: al empacar pasa a listo_para_recoger. A domicilio o por flota: empacado y luego despachado (migración 0017)' }
     MetodoPago: { type: string, enum: [qr, transferencia, contra_entrega] }
     ProductoEntrada:
       type: object
@@ -383,6 +385,7 @@ paths:
         content:
           application/json:
             schema: { $ref: '#/components/schemas/PedidoEntrada' }
+      description: 'Con metodo_pago transferencia responde 422 (METODO_NO_DISPONIBLE) si la cuenta del banco no está configurada (NEXT_PUBLIC_BANCO_*).'
       responses:
         '201': { description: Pedido creado con su código }
         '401': { $ref: '#/components/responses/Error' }
@@ -434,6 +437,7 @@ paths:
     get:
       tags: [Pedidos]
       summary: Detalle con items, pago, envío y seguimiento (dueño o admin)
+      description: 'El seguimiento trae actor_nombre, actor_rol y es_propio (quién hizo cada paso, migración 0017). El admin recibe además los faltantes del almacén.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       responses:
@@ -461,7 +465,7 @@ paths:
     post:
       tags: [Pedidos]
       summary: Cancelar pedido y devolver el stock
-      description: 'Cliente: solo si el pedido y el pago siguen pendientes (sin comprobante). Admin: pedidos pendientes o confirmados; si el pago estaba verificado o en revisión pasa a reembolso_pendiente (migración 0006).'
+      description: 'Cliente: solo si el pedido y el pago siguen pendientes (sin comprobante). Admin: pedidos pendientes, confirmados, en preparación o empacados (0017); si el pago estaba verificado o en revisión pasa a reembolso_pendiente (migración 0006).'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -492,6 +496,7 @@ paths:
     patch:
       tags: [Pedidos]
       summary: Avanzar el estado del pedido (admin)
+      description: 'Solo pendiente a confirmado, empacado a despachado, y despachado o listo_para_recoger a entregado. Preparar y empacar se hace con las rutas de /almacen (409 si se intenta aquí).'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -902,3 +907,125 @@ paths:
       responses:
         '200': { description: '{ productos, margen_promedio, con_costo, estimados, sin_costo, menores }' }
         '403': { $ref: '#/components/responses/Error' }
+  /almacen/pedidos:
+    get:
+      tags: [Almacén]
+      summary: Cola de preparación, el más antiguo primero (almacén o admin)
+      description: 'Pedidos confirmado, preparando, empacado y listo_para_recoger, con avance de la caja y faltantes abiertos (función cola_almacen).'
+      security: [{ sesion: [] }]
+      responses:
+        '200': { description: Lista de pedidos de la cola }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /almacen/pedidos/{id}:
+    get:
+      tags: [Almacén]
+      summary: Detalle para preparar e imprimir la etiqueta (almacén o admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: 'Pedido con cliente, teléfono, zona, dirección, productos con casilla, faltantes y bultos' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /almacen/pedidos/{id}/preparar:
+    post:
+      tags: [Almacén]
+      summary: Empezar a preparar (de confirmado a preparando, registra quién)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Pedido en preparación }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+  /almacen/items/{id}:
+    patch:
+      tags: [Almacén]
+      summary: Marcar o desmarcar un producto como puesto en la caja (almacén o admin)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [marcado]
+              properties:
+                marcado: { type: boolean }
+      responses:
+        '200': { description: Casilla guardada }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+  /almacen/pedidos/{id}/faltante:
+    post:
+      tags: [Almacén]
+      summary: Reportar un faltante (avisa al admin por Telegram y frena el empaque)
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nota]
+              properties:
+                nota: { type: string, minLength: 3, maxLength: 300 }
+                item_id: { type: string, format: uuid, nullable: true }
+      responses:
+        '201': { description: Faltante registrado }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /almacen/pedidos/{id}/empacar:
+    post:
+      tags: [Almacén]
+      summary: Empacado (exige todo marcado y ningún faltante abierto)
+      description: 'Recojo en tienda pasa a listo_para_recoger; a domicilio o por flota, a empacado. Registra quién, cuándo y los bultos (una etiqueta por bulto).'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bultos]
+              properties:
+                bultos: { type: integer, minimum: 1, maximum: 50 }
+      responses:
+        '200': { description: Pedido empacado }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /faltantes/{id}/resolver:
+    post:
+      tags: [Almacén]
+      summary: 'Resolver un faltante: Repuesto, continuar (admin)'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nota]
+              properties:
+                nota: { type: string, minLength: 3, maxLength: 300 }
+      responses:
+        '200': { description: Faltante resuelto }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }

@@ -4,13 +4,15 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { IconType } from 'react-icons'
 import {
-  LuBuilding2, LuChartColumn, LuCreditCard, LuMapPin, LuPackage, LuPercent, LuShoppingCart, LuTruck, LuUsers, LuWarehouse,
+  LuBuilding2, LuChartColumn, LuCreditCard, LuMapPin, LuPackage, LuPackageCheck, LuPercent, LuShoppingCart, LuTruck, LuUsers, LuWarehouse,
 } from 'react-icons/lu'
 
 const OPCIONES: Array<{ href: string; texto: string; icono: IconType }> = [
   { href: '/admin', texto: 'Panel', icono: LuChartColumn },
   { href: '/admin/pedidos', texto: 'Pedidos', icono: LuShoppingCart },
   { href: '/admin/pagos', texto: 'Pagos', icono: LuCreditCard },
+  // El panel de almacén está fuera de /admin: lo usan el admin y la cuenta de almacén
+  { href: '/almacen', texto: 'Almacén', icono: LuPackageCheck },
   { href: '/admin/envios', texto: 'Envíos', icono: LuTruck },
   { href: '/admin/productos', texto: 'Productos', icono: LuPackage },
   { href: '/admin/inventario', texto: 'Inventario', icono: LuWarehouse },
