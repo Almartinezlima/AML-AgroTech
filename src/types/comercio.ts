@@ -1,6 +1,6 @@
-// Tipos escritos a mano según las migraciones 0003, 0006, 0007 y 0008.
+// Tipos escritos a mano según las migraciones 0003, 0006, 0007, 0008 y 0017.
 
-export const ESTADOS_PEDIDO = ['pendiente', 'confirmado', 'preparando', 'listo_para_recoger', 'despachado', 'entregado', 'cancelado'] as const
+export const ESTADOS_PEDIDO = ['pendiente', 'confirmado', 'preparando', 'empacado', 'listo_para_recoger', 'despachado', 'entregado', 'cancelado'] as const
 export type EstadoPedido = (typeof ESTADOS_PEDIDO)[number]
 
 export const ESTADOS_PAGO = ['pendiente', 'en_revision', 'verificado', 'rechazado', 'reembolso_pendiente', 'reembolsado'] as const
@@ -100,6 +100,23 @@ export interface EventoSeguimiento {
   estado: EstadoPedido
   nota: string | null
   created_at: string
+  // Quién hizo el paso (linea_tiempo_pedido, migración 0017). Sin la 0017 no vienen.
+  actor_nombre?: string | null
+  actor_rol?: string | null
+  es_propio?: boolean
+}
+
+// Faltante reportado por el almacén (migración 0017). El admin lo ve en el detalle del pedido.
+export interface FaltantePedido {
+  id: string
+  pedido_item_id: string | null
+  producto: string | null
+  nota: string
+  reportado_por: string | null
+  created_at: string
+  resuelto_en: string | null
+  resuelto_por: string | null
+  nota_resolucion: string | null
 }
 
 export interface ClientePedido {
@@ -138,6 +155,8 @@ export interface PedidoDetalle extends Omit<PedidoResumen, 'pagos' | 'envios'> {
   seguimiento_pedido: EventoSeguimiento[]
   comprobante_url: string | null
   cliente?: ClientePedido | null
+  // Solo para el admin (migración 0017)
+  faltantes?: FaltantePedido[]
 }
 
 export interface PagoAdmin {

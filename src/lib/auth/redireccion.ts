@@ -15,3 +15,11 @@ export function rutaInterna(valor: string | null | undefined, porDefecto = '/'):
     return porDefecto
   }
 }
+
+// Pantalla de inicio según el rol, cuando la persona no venía de otra pantalla.
+// El proveedor entra a su panel y el almacén al suyo (el repartidor tendrá el suyo en la 9D).
+export function inicioPorRol(rol: string | null | undefined): string {
+  if (rol === 'distribuidor') return '/distribuidor'
+  if (rol === 'almacen') return '/almacen'
+  return '/'
+}

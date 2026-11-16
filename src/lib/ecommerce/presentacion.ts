@@ -10,6 +10,7 @@ export const INFO_ESTADO_PEDIDO: Record<EstadoPedido, { etiqueta: string; color:
   pendiente: { etiqueta: 'Pendiente', color: AMBAR },
   confirmado: { etiqueta: 'Confirmado', color: VERDE },
   preparando: { etiqueta: 'Preparando', color: AZUL },
+  empacado: { etiqueta: 'Empacado', color: AZUL },
   listo_para_recoger: { etiqueta: 'Listo para recoger', color: AZUL },
   despachado: { etiqueta: 'Despachado', color: AZUL },
   entregado: { etiqueta: 'Entregado', color: VERDE },
@@ -76,6 +77,12 @@ export function estadoCliente({ estado, estado_pago, metodo_pago, tipoZona, mont
       return { etiqueta: 'Confirmado', color: VERDE, queSigue: 'Tu pedido está confirmado. El siguiente paso es prepararlo.' }
     case 'preparando':
       return { etiqueta: 'Preparando', color: AZUL, queSigue: 'Estamos alistando tus productos.' }
+    case 'empacado':
+      return {
+        etiqueta: 'Empacado',
+        color: AZUL,
+        queSigue: tipoZona === 'provincia' ? 'Tu pedido está empacado y sale pronto en la flota.' : 'Tu pedido está empacado y sale pronto hacia ti.',
+      }
     case 'listo_para_recoger':
       return { etiqueta: 'Listo para recoger', color: AZUL, queSigue: 'Pasa por la tienda de Villa Charcas con el código de tu pedido.' }
     case 'despachado':
@@ -104,6 +111,7 @@ export const ETIQUETA_SEGUIMIENTO_CLIENTE: Record<EstadoPedido, string> = {
   pendiente: 'Pedido recibido',
   confirmado: 'Confirmado',
   preparando: 'Preparando',
+  empacado: 'Empacado',
   listo_para_recoger: 'Listo para recoger',
   despachado: 'En camino',
   entregado: 'Entregado',
@@ -123,20 +131,26 @@ export const ETIQUETA_TIPO_ZONA: Record<TipoZona, string> = {
   provincia: 'Por flota',
 }
 
+// Pasos que el admin avanza a mano (cambiar_estado_pedido, migración 0017). Preparar y empacar
+// se hacen en /almacen: confirmado y preparando no tienen "siguiente" aquí.
 const SIGUIENTE: Partial<Record<EstadoPedido, EstadoPedido>> = {
   pendiente: 'confirmado',
-  confirmado: 'preparando',
-  preparando: 'despachado',
+  empacado: 'despachado',
   despachado: 'entregado',
 }
 
-// Recojo en tienda no pasa por "despachado": se prepara y queda listo para recoger (migración 0007)
+// Recojo en tienda no pasa por "despachado": al empacar queda listo para recoger
 const SIGUIENTE_RECOJO: Partial<Record<EstadoPedido, EstadoPedido>> = {
   pendiente: 'confirmado',
-  confirmado: 'preparando',
-  preparando: 'listo_para_recoger',
   listo_para_recoger: 'entregado',
 }
+
+// Estados que se trabajan en el panel de almacén
+export const ESTADOS_ALMACEN: readonly EstadoPedido[] = ['confirmado', 'preparando']
+
+// El admin cancela hasta que el pedido sale (0017: también preparando y empacado)
+export const puedeCancelarAdmin = (estado: EstadoPedido) =>
+  estado === 'pendiente' || estado === 'confirmado' || estado === 'preparando' || estado === 'empacado'
 
 export const siguienteEstado = (estado: EstadoPedido, tipoZona?: TipoZona | null) =>
   (tipoZona === 'recojo' ? SIGUIENTE_RECOJO : SIGUIENTE)[estado] ?? null
@@ -176,3 +190,15 @@ const FORMATO_FECHA_HORA = new Intl.DateTimeFormat('es-BO', {
 })
 
 export const fechaHora = (fecha: string) => FORMATO_FECHA_HORA.format(new Date(fecha))
+
+// "16/11 14:32" en hora de Bolivia (línea de tiempo y panel de almacén)
+const FORMATO_DIA_HORA = new Intl.DateTimeFormat('es-BO', {
+  timeZone: 'America/La_Paz',
+  day: '2-digit',
+  month: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+})
+
+export const diaHora = (fecha: string) => FORMATO_DIA_HORA.format(new Date(fecha)).replace(',', '')

@@ -2,12 +2,13 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase'
+import type { RolUsuario } from '@/types/usuarios'
 
 interface PerfilUsuario {
   id: string
   nombre: string
   email: string
-  rol: 'admin' | 'cliente' | 'distribuidor'
+  rol: RolUsuario
   telefono?: string | null
   activo: boolean
 }
