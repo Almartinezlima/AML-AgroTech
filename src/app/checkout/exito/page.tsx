@@ -2,7 +2,7 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { LuArrowLeft, LuCircleCheck, LuUpload } from 'react-icons/lu'
+import { LuArrowLeft, LuCircleCheck, LuClipboardList, LuUpload } from 'react-icons/lu'
 import PasosCompra from '@/components/compra/PasosCompra'
 import InstruccionesPago from '@/components/pagos/InstruccionesPago'
 import { BloqueCarga, BloqueError } from '@/components/ui/Estados'
@@ -16,7 +16,7 @@ function ContenidoExito() {
   const id = useSearchParams().get('id')
   const { datos: pedido, cargando, error, recargar } = useDatosApi<PedidoDetalle>(id ? `/api/pedidos/${id}` : null)
 
-  const verPedidos = <Link href="/pedidos" className={claseBotonSecundario}>Ver mis pedidos</Link>
+  const verPedidos = <Link href="/pedidos" className={claseBotonSecundario}>Mis pedidos</Link>
   if (!id) return <BloqueError titulo="No encontramos el pedido" mensaje="Revisa tus compras en «Mis pedidos».">{verPedidos}</BloqueError>
   if (cargando) return <BloqueCarga filas={2} alto="h-40" />
   if (error || !pedido) {
@@ -51,15 +51,20 @@ function ContenidoExito() {
         <InstruccionesPago metodo={pedido.metodo_pago} monto={pedido.total} codigo={pedido.codigo} />
       </section>
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Link href={`/pedidos/${pedido.id}`} className={`${claseBotonPrimario} flex-1`}>
+      <div className="flex flex-col gap-3">
+        <Link href={`/pedidos/${pedido.id}`} className={claseBotonPrimario}>
           {contraEntrega
             ? 'Ver el estado de mi pedido'
             : <><LuUpload className="h-5 w-5" aria-hidden="true" /> Ya pagué: subir comprobante</>}
         </Link>
-        <Link href="/catalogo" className={`${claseBotonSecundario} flex-1`}>
-          <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Seguir comprando
-        </Link>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Link href="/pedidos" className={claseBotonSecundario}>
+            <LuClipboardList className="h-4 w-4" aria-hidden="true" /> Mis pedidos
+          </Link>
+          <Link href="/catalogo" className={claseBotonSecundario}>
+            <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Seguir comprando
+          </Link>
+        </div>
       </div>
     </div>
   )

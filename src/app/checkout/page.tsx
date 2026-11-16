@@ -136,7 +136,7 @@ export default function CheckoutPage() {
   if (zonas.cargando) return contenedor(<BloqueCarga filas={5} />)
   if (zonas.error || !zonas.datos) return contenedor(<BloqueError mensaje={zonas.error} onReintentar={() => void zonas.recargar()} />)
 
-  const resumen = { items, zona, totalServidor: paso === 1 ? cotizacion?.total : undefined }
+  const resumen = { items, zona, cotizacion: paso === 1 ? cotizacion ?? undefined : undefined }
 
   return contenedor(
     <>

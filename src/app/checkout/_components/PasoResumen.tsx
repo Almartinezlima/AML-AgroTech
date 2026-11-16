@@ -10,12 +10,13 @@ interface PasoResumenProps {
   entrega: DatosEntrega
 }
 
-// Lo que se va a pedir, con el total calculado por el servidor (paso Pago)
+// Lo que se va a pedir, con el total calculado por el servidor (paso Pago).
+// Los montos se ven aquí solo en celular: en pantalla ancha ya están en el resumen lateral.
 export default function PasoResumen({ cotizacion, zona, entrega }: PasoResumenProps) {
   return (
     <section aria-label="Resumen del pedido" className="flex flex-col gap-4">
       <h2 className={claseTituloSeccion}>Tu pedido</h2>
-      <div className={`${claseTarjeta} p-4 flex flex-col gap-2`}>
+      <div data-montos className={`${claseTarjeta} p-4 flex flex-col gap-2 lg:hidden`}>
         {cotizacion.items.map((item) => (
           <div key={item.producto_id} className="flex justify-between gap-3 text-sm">
             <span className="text-texto-2 min-w-0 break-words">{item.nombre} × {item.cantidad}</span>
@@ -23,9 +24,9 @@ export default function PasoResumen({ cotizacion, zona, entrega }: PasoResumenPr
           </div>
         ))}
         <div className="border-t border-borde mt-2 pt-3 flex flex-col gap-2 text-sm">
-          <div className="flex justify-between"><span className="text-texto-2">Subtotal</span><span className="text-texto">{formatoBs(cotizacion.subtotal)}</span></div>
-          <div className="flex justify-between"><span className="text-texto-2">Envío</span><span className="text-texto">{formatoBs(cotizacion.costo_envio)}</span></div>
-          <div className="flex justify-between font-bold text-lg"><span className="text-texto">Total</span><span className="text-acento">{formatoBs(cotizacion.total)}</span></div>
+          <div className="flex justify-between"><span className="text-texto-2">Subtotal</span><span data-monto="subtotal" className="text-texto">{formatoBs(cotizacion.subtotal)}</span></div>
+          <div className="flex justify-between"><span className="text-texto-2">Envío</span><span data-monto="envio" className="text-texto">{formatoBs(cotizacion.costo_envio)}</span></div>
+          <div className="flex justify-between font-bold text-lg"><span className="text-texto">Total</span><span data-monto="total" className="text-acento">{formatoBs(cotizacion.total)}</span></div>
         </div>
       </div>
 
