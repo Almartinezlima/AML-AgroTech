@@ -7,6 +7,7 @@ interface ImagenProductoProps {
   categoria?: string | null
   className?: string
   sizes?: string
+  // Solo la foto principal de la ficha de producto; todo lo demás carga diferido (lazy)
   prioridad?: boolean
   // Se acepta por compatibilidad con llamadas anteriores; ya no se dibujan íconos
   icono?: string | null
@@ -33,7 +34,7 @@ export default function ImagenProducto({
   const estilo = estiloCategoria(categoria)
   return (
     <div className={`relative overflow-hidden bg-tarjeta-hover ${className}`}>
-      <Image src={estilo.foto} alt={`${nombre} (foto de la categoría ${estilo.nombre})`} fill sizes={sizes} className="object-cover opacity-80" />
+      <Image src={estilo.foto} alt={`${nombre} (foto de la categoría ${estilo.nombre})`} fill sizes={sizes} priority={prioridad} className="object-cover opacity-80" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" aria-hidden="true" />
     </div>
   )

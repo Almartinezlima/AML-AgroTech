@@ -59,7 +59,8 @@ export default function ProductosDestacados() {
       role="list" aria-label="Productos destacados">
       {destacados.map((producto) => (
         <div key={producto.id} role="listitem" className="w-[72%] shrink-0 snap-start sm:w-auto">
-          <TarjetaProducto producto={producto} agregado={agregados.includes(producto.id)} onAgregar={agregar} compacta />
+          <TarjetaProducto producto={producto} agregado={agregados.includes(producto.id)} onAgregar={agregar} compacta
+            sizes="(max-width: 639px) 72vw, (max-width: 1023px) 50vw, 290px" />
         </div>
       ))}
     </div>

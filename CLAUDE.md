@@ -10,7 +10,7 @@ Especificación completa (historias de usuario, casos de uso, arquitectura): **`
 
 1. **E-commerce** — catálogo, carrito, checkout, pedidos.
 2. **Seguridad** — autenticación, roles, RLS, API protegida.
-3. **Pagos** — QR (simulado), transferencia, contra entrega; comprobante y verificación.
+3. **Pagos** — QR de cobro real del BNB, transferencia, contra entrega; comprobante y verificación.
 4. **Distribución** — zonas de envío, flota/encomienda, estados y seguimiento.
 5. **Almacenamiento** — inventario, kardex de movimientos, stock mínimo y alertas.
 
@@ -125,7 +125,7 @@ Contrastes medidos (WCAG AA): texto 15:1, texto-2 7:1, acento 5,3:1, trigo 5,1:1
 - **Sombras**: solo `shadow-tarjeta`, `shadow-tarjeta-hover` y `shadow-flotante`. **Tablas** debajo de 768 px: tarjetas apiladas, nunca scroll de la página.
 - **Portada**: la foto propia de Villa Charcas a pantalla completa, **original**: sin capas, velos, filtros, brillo ni opacidad encima. El texto se lee solo con sombra doble en las letras (`text-shadow`), sin cajas detrás. Encuadre `object-[90%_50%]` para que en celular el título caiga sobre las nubes oscuras.
 - **Tipografía**: Bricolage Grotesque (títulos) + Figtree (texto), con `next/font`.
-- **Imágenes**: fotos reales siempre (los 36 productos en `public/productos/<sku>.webp`, categorías en `public/categorias/`, portada en `public/portada/`). Fuente de cada una en `docs/CREDITOS_IMAGENES.md`. Nunca íconos como imagen de producto.
+- **Imágenes**: fotos reales siempre (los 36 productos en `public/productos/<sku>.webp`, categorías en `public/categorias/`, portada en `public/portada/`). Fuente de cada una en `docs/CREDITOS_IMAGENES.md`. Nunca íconos como imagen de producto. Fotos de producto WebP de 800 px de lado mayor, portada hasta 1920 px; siempre con `next/image` y `sizes` igual al ancho real en pantalla; `priority` solo en la foto de la portada y la foto principal de la ficha. Las que sube el admin se guardan en Storage dos veces: el original en `productos/originales/` y la copia WebP de 800 px que usa la tienda.
 - **Color por categoría** (`src/lib/categorias.ts`): Semillas verde, Riego azul, Agroquímicos naranja, Herramientas tierra, Cañerías gris azulado. Solo en etiquetas y detalles.
 - **Íconos**: Lucide (`react-icons/lu`) solo para la interfaz (carrito, usuario, camión…). Sin emojis en la interfaz. Detalle completo en `docs/DISENO.md`.
 
@@ -138,7 +138,7 @@ Contrastes medidos (WCAG AA): texto 15:1, texto-2 7:1, acento 5,3:1, trigo 5,1:1
 
 - Catálogo: 36 productos reales. Base de precios de Sucre (Observatorio Agroambiental, 2º sem. 2023); riego y cañerías son estimados. Desde la migración 0008 los fertilizantes Urea, Calferquim, Molimax y los 3 nuevos (Fosfato Diamónico, Cloruro de Potasio, Urea Protegida) tienen precio de referencia de mercado de SurtiAgro (Santa Cruz, 7 sep 2026) con tendencia; nuestro precio incluye el flete hasta Villa Charcas. Ficha técnica opcional por producto (composición, cultivos, modo de uso, dosis y banda toxicológica, esta solo en Agroquímicos). Detalle en `docs/specs/07-reingenieria.md`.
 - La tienda está en **Villa Charcas**. Zonas (migración 0010, 14 nov 2026): **Recojo en tienda (Villa Charcas)** Bs. 0 · a domicilio: **Villa Charcas — Distrito 1 (el pueblo)** Bs. 15, **Distrito Pucara** Bs. 20, **Distrito Santa Elena** Bs. 25, **Distrito Supas** Bs. 30, **Distrito Kaisaka** Bs. 35 · por flota con nombre y CI de quien recoge y número de guía: **Incahuasi** Bs. 20, **Culpina** Bs. 25. Contra entrega solo en recojo y Distrito 1. **Sucre está inactiva** (no se borra: hay pedidos viejos).
-- El **QR de pago es de demostración** (repo y Render son públicos): nunca subir un QR o cuenta bancaria real.
+- El **QR de cobro real** va en `public/qr-bnb.jpg` (o en la URL de `NEXT_PUBLIC_QR_TIENDA_IMAGEN`) y **se renueva cuando vence**. El actual es del BNB y vale hasta el **23/11/2026**. Al cambiarlo: JPG de al menos ~900 px de ancho, sin comprimir de más, y comprobar que se sigue leyendo con un lector de QR.
 - Cuentas demo para la feria: se crean con el panel de Supabase; las contraseñas **nunca** van al repo.
 
 ## Documentación

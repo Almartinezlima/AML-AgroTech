@@ -12,7 +12,8 @@ interface TarjetaProductoProps {
   producto: Producto
   agregado: boolean
   onAgregar: (producto: Producto) => void
-  prioridad?: boolean
+  // Ancho real de la foto en pantalla (atributo sizes de next/image); cambia según la grilla donde va
+  sizes?: string
   // Para grillas de 2 columnas (celular, relacionados): sin descripción y con el precio más chico
   compacta?: boolean
 }
@@ -23,7 +24,10 @@ const TEXTO_STOCK = {
   normal: { texto: 'Disponible', clase: 'text-texto-2' },
 }
 
-export default function TarjetaProducto({ producto, agregado, onAgregar, prioridad = false, compacta = false }: TarjetaProductoProps) {
+// Catálogo: 1 columna en celular (ancho de pantalla menos 2 × 16 px de margen), 2 desde 640 px, 3 desde 1024 px y 4 desde 1280 px (máx. 7xl ≈ 290 px)
+const SIZES_CATALOGO = '(max-width: 639px) calc(100vw - 32px), (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 290px'
+
+export default function TarjetaProducto({ producto, agregado, onAgregar, sizes = SIZES_CATALOGO, compacta = false }: TarjetaProductoProps) {
   const agotado = producto.stock === 0
   const categoria = producto.categorias?.nombre
   const color = estiloCategoria(categoria).color
@@ -39,8 +43,7 @@ export default function TarjetaProducto({ producto, agregado, onAgregar, priorid
           nombre={producto.nombre}
           imagen={producto.imagen_url}
           categoria={categoria}
-          prioridad={prioridad}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 300px"
+          sizes={sizes}
           className="aspect-square transition-transform duration-500 ease-out group-hover:scale-105"
         />
         {/* Franja del color de la categoría */}

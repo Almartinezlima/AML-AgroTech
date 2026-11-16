@@ -9,6 +9,15 @@ const nextConfig = {
     serverComponentsExternalPackages: ['pdfkit'],
   },
   images: {
+    // Solo WebP: se probó AVIF y con estas fotos (tierra, pasto, texturas) pesa lo mismo
+    // (1 155 KB contra 1 163 KB los 36 productos) y cuesta mucho más CPU generarlo en Render
+    formats: ['image/webp'],
+    // Anchos que se generan. 720 cubre la tarjeta en celular x2 sin pasar los 800 px de las fotos
+    // de producto (si el ancho pedido es mayor que la foto, se manda el original sin achicar)
+    deviceSizes: [360, 412, 640, 720, 828, 1080, 1280, 1920],
+    imageSizes: [56, 96, 128, 256, 384],
+    // Las versiones optimizadas se guardan 30 días en caché
+    minimumCacheTTL: 2592000,
     remotePatterns: [
       { protocol: 'https', hostname: '*.supabase.co', pathname: '/storage/v1/object/public/**' },
     ],

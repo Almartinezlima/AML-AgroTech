@@ -3,6 +3,10 @@ import Link from 'next/link'
 import { LuArrowRight } from 'react-icons/lu'
 import { listaCategorias } from '@/lib/categorias'
 
+// Grilla de 2 columnas en celular (la primera ocupa las 2), 3 en tablet y 5 desde 1024 px
+const SIZES_CATEGORIA = '(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 250px'
+const SIZES_PRIMERA = '(max-width: 767px) 100vw, (max-width: 1023px) 33vw, 250px'
+
 // Categorías con foto real y su color
 export default function CategoriasPortada() {
   const categorias = listaCategorias()
@@ -14,7 +18,7 @@ export default function CategoriasPortada() {
           href={`/catalogo?categoria=${encodeURIComponent(c.nombre)}`}
           className={`group relative isolate flex min-h-56 flex-col justify-end overflow-hidden rounded-2xl border border-borde p-4 shadow-tarjeta transition duration-300 hover:-translate-y-1 hover:shadow-tarjeta-hover ${i === 0 ? 'col-span-2 md:col-span-1' : ''}`}
         >
-          <Image src={c.foto} alt="" fill sizes="(max-width: 768px) 50vw, 20vw" className="-z-20 object-cover transition-transform duration-500 group-hover:scale-110" />
+          <Image src={c.foto} alt="" fill sizes={i === 0 ? SIZES_PRIMERA : SIZES_CATEGORIA} className="-z-20 object-cover transition-transform duration-500 group-hover:scale-110" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/40 to-black/5" aria-hidden="true" />
           <span className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: c.color }} aria-hidden="true" />
           <h3 className="font-titulo text-xl font-bold text-white">{c.nombre}</h3>

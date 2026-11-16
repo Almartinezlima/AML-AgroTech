@@ -81,7 +81,7 @@ export default function ProductoPage() {
             categoria={categoria}
             prioridad
             className="aspect-square"
-            sizes="(max-width: 768px) 100vw, 560px"
+            sizes="(max-width: 767px) 100vw, (max-width: 1151px) 50vw, 560px"
           />
           <span className="absolute inset-x-0 bottom-0 h-1.5" style={{ backgroundColor: color }} aria-hidden="true" />
         </div>
