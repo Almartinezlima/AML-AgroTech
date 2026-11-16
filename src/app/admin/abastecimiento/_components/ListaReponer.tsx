@@ -95,7 +95,7 @@ export default function ListaReponer({ onArmadas }: { onArmadas: () => void }) {
           {paraReponer.length === 0 ? (
             <div className={`${claseTarjeta} flex items-start gap-3 p-4`}>
               <LuCircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-acento" aria-hidden="true" />
-              <p className="text-sm text-texto-2">Todo el inventario está por encima de 1,5 veces su mínimo. Si igual quieres comprar, usa «Pedir otro producto».</p>
+              <p className="text-sm text-texto-2">No hace falta reponer nada: todo el inventario está por encima de 1,5 veces su mínimo. Si igual quieres comprar, toca «Pedir otro producto» y elige de la lista.</p>
             </div>
           ) : (
             <ul className="flex flex-col gap-3">
@@ -114,7 +114,7 @@ export default function ListaReponer({ onArmadas }: { onArmadas: () => void }) {
                 <input id="buscar-otro" type="search" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className={claseInput} placeholder="Ej.: glifosato" />
               </div>
               {otros.length === 0 ? (
-                <p className="text-sm text-texto-2">Ningún otro producto con proveedor coincide.</p>
+                <p className="text-sm text-texto-2">{busqueda ? 'Ningún producto con proveedor coincide. Prueba con otra palabra.' : 'Ningún otro producto tiene proveedor todavía. Primero el proveedor tiene que cargar su presentación.'}</p>
               ) : (
                 <ul className="flex flex-col gap-3">
                   {otros.map((p) => <FilaReponer key={p.id} producto={p} eleccion={elecciones[p.id]} onCambiar={(c) => cambiar(p, c)} />)}

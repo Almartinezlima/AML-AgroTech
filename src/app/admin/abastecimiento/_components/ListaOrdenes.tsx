@@ -44,7 +44,7 @@ export default function ListaOrdenes({ mostrarPruebas, listo }: { mostrarPruebas
         <BloqueError mensaje={error} onReintentar={() => void recargar()} />
       ) : visibles.length === 0 ? (
         <BloqueVacio icono={LuClipboardList} mensaje={filtro === 'todas' ? 'Todavía no hay órdenes de compra' : `No hay órdenes en «${INFO_ESTADO_ORDEN[filtro].etiqueta}»`}>
-          {filtro === 'todas' && <p className="text-sm text-texto-2">Marca lo que quieres pedir arriba y toca «Armar orden».</p>}
+          <p className="text-sm text-texto-2">{filtro === 'todas' ? 'Marca arriba lo que quieres pedir y toca «Armar orden».' : 'Elige «Todas» para ver las demás órdenes.'}</p>
         </BloqueVacio>
       ) : (
         <ul className="flex flex-col gap-3">
