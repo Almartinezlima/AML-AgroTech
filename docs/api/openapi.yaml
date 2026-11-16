@@ -304,6 +304,9 @@ paths:
     post:
       tags: [Inventario]
       summary: Subir imagen de producto (admin, jpg/png/webp, máx. 2 MB)
+      description: >-
+        Guarda el original tal cual en Storage (productos/originales/) y una copia WebP
+        de 800 px de lado mayor (productos/<uuid>.webp). Devuelve la URL pública de la copia.
       security: [{ sesion: [] }]
       requestBody:
         required: true
@@ -314,7 +317,7 @@ paths:
               properties:
                 archivo: { type: string, format: binary }
       responses:
-        '201': { description: URL pública de la imagen }
+        '201': { description: URL pública de la copia WebP }
         '403': { $ref: '#/components/responses/Error' }
         '422': { $ref: '#/components/responses/Error' }
   /categorias:
