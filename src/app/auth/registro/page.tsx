@@ -9,6 +9,7 @@ import RevisaCorreo from './_components/RevisaCorreo'
 import { Aviso } from '@/components/ui/Estados'
 import { claseBotonPrimario, claseEtiqueta, claseInput } from '@/components/ui/estilos'
 import MarcoAcceso from '../_components/MarcoAcceso'
+import BotonGoogle, { SeparadorCorreo } from '../_components/BotonGoogle'
 
 const CORREO_YA_REGISTRADO = 'Ese correo ya está registrado. Inicia sesión o recupera tu contraseña.'
 
@@ -83,6 +84,8 @@ export default function RegistroPage() {
       subtitulo="Compra insumos con precios en Bs. y envío a tu pueblo"
       pie={<>¿Ya tienes cuenta?{' '}<Link href={`/auth/login${consulta}`} className="text-acento font-semibold hover:underline">Iniciar sesión</Link></>}
     >
+      <BotonGoogle />
+      <SeparadorCorreo />
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {error && (
           <Aviso tipo="error">
