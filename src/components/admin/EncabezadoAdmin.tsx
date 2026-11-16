@@ -5,7 +5,7 @@ interface EncabezadoAdminProps {
   titulo: string
   // Para qué sirve la pantalla, en una línea
   descripcion?: ReactNode
-  // Interruptor de pruebas, botón "Nuevo", exportar…
+  // Filtros, botón "Nuevo", exportar…
   acciones?: ReactNode
 }
 

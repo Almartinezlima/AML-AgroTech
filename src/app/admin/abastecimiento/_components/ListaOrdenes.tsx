@@ -2,7 +2,6 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { LuClipboardList } from 'react-icons/lu'
-import { conPruebas } from '@/components/admin/InterruptorPruebas'
 import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import Insignia from '@/components/ui/Insignia'
 import { claseBoton, claseFilaFiltros, claseFiltro, claseTarjeta } from '@/components/ui/estilos'
@@ -12,11 +11,9 @@ import { fechaHora } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import { ESTADOS_ORDEN_COMPRA, type EstadoOrdenCompra, type OrdenCompraResumen } from '@/types/abastecimiento'
 
-const INSIGNIA_PRUEBA = { etiqueta: 'Prueba', color: '#3b82f6' }
-
-// Órdenes de compra por estado (el interruptor de arriba suma las de proveedores de prueba)
-export default function ListaOrdenes({ mostrarPruebas, listo }: { mostrarPruebas: boolean; listo: boolean }) {
-  const { datos, cargando, error, recargar } = useDatosApi<OrdenCompraResumen[]>(listo ? conPruebas('/api/ordenes-compra', mostrarPruebas) : null)
+// Órdenes de compra por estado, de todos los proveedores
+export default function ListaOrdenes() {
+  const { datos, cargando, error, recargar } = useDatosApi<OrdenCompraResumen[]>('/api/ordenes-compra')
   const [filtro, setFiltro] = useState<EstadoOrdenCompra | 'todas'>('todas')
 
   const ordenes = useMemo(() => datos ?? [], [datos])
@@ -38,7 +35,7 @@ export default function ListaOrdenes({ mostrarPruebas, listo }: { mostrarPruebas
         ))}
       </div>
 
-      {cargando || !listo ? (
+      {cargando ? (
         <BloqueCarga filas={3} />
       ) : error || !datos ? (
         <BloqueError mensaje={error} onReintentar={() => void recargar()} />
@@ -56,7 +53,6 @@ export default function ListaOrdenes({ mostrarPruebas, listo }: { mostrarPruebas
                   <p className="text-sm text-texto-2 break-words">{o.distribuidor?.nombre_comercial ?? 'Proveedor'} · {o.distribuidor?.ciudad}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  {o.es_prueba && <Insignia info={INSIGNIA_PRUEBA} />}
                   <Insignia info={INFO_ESTADO_ORDEN[o.estado]} />
                 </div>
               </div>

@@ -13,8 +13,6 @@ import type { OrdenCompraAdmin } from '@/types/abastecimiento'
 import AccionesOrdenAdmin from './_components/AccionesOrdenAdmin'
 import EditorBorrador from './_components/EditorBorrador'
 
-const INSIGNIA_PRUEBA = { etiqueta: 'Proveedor de prueba', color: '#3b82f6' }
-
 // Una orden de compra del lado del admin: líneas, acciones según el estado y línea de tiempo
 export default function OrdenCompraAdminPage({ params }: { params: { id: string } }) {
   const { datos: orden, cargando, error, estadoError, recargar } = useDatosApi<OrdenCompraAdmin>(`/api/ordenes-compra/${params.id}`)
@@ -57,7 +55,6 @@ export default function OrdenCompraAdminPage({ params }: { params: { id: string 
             <p className="mt-1 max-w-prose text-sm text-texto">{QUE_SIGUE_ADMIN[orden.estado]}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {orden.es_prueba && <Insignia info={INSIGNIA_PRUEBA} />}
             <Insignia info={INFO_ESTADO_ORDEN[orden.estado]} />
           </div>
         </header>

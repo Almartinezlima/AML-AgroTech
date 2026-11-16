@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import type { IconType } from 'react-icons'
 import EncabezadoAdmin from '@/components/admin/EncabezadoAdmin'
-import InterruptorPruebas, { conPruebas, useMostrarPruebas } from '@/components/admin/InterruptorPruebas'
 import TarjetasResumen, { type TonoCifra } from '@/components/admin/TarjetasResumen'
 import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import { clasePagina } from '@/components/ui/estilos'
@@ -19,8 +18,7 @@ const GRUPOS: Array<{ estado: EstadoPedido; titulo: string; vacio: string; icono
 ]
 
 export default function AdminEnviosPage() {
-  const { mostrar, setMostrar, listo } = useMostrarPruebas()
-  const { datos, cargando, error, recargar } = useDatosApi<PedidoResumen[]>(listo ? conPruebas('/api/pedidos?alcance=todos', mostrar) : null)
+  const { datos, cargando, error, recargar } = useDatosApi<PedidoResumen[]>('/api/pedidos?alcance=todos')
   const [activo, setActivo] = useState<EstadoPedido>('confirmado')
   const grupo = GRUPOS.find((g) => g.estado === activo) ?? GRUPOS[0]
   const delGrupo = (estado: EstadoPedido) => (datos ?? []).filter((p) => p.estado === estado)
@@ -31,10 +29,9 @@ export default function AdminEnviosPage() {
         <EncabezadoAdmin
           titulo="Envíos"
           descripcion="Pedidos pagados en camino al cliente. Elige un grupo y pásalo al siguiente paso."
-          acciones={<InterruptorPruebas mostrar={mostrar} onCambiar={setMostrar} />}
         />
 
-        {cargando || !listo ? (
+        {cargando ? (
           <BloqueCarga />
         ) : error || !datos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />

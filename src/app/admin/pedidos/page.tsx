@@ -3,7 +3,6 @@ import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import EncabezadoAdmin from '@/components/admin/EncabezadoAdmin'
-import InterruptorPruebas, { conPruebas, useMostrarPruebas } from '@/components/admin/InterruptorPruebas'
 import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import { claseEnlace, claseInput, clasePagina } from '@/components/ui/estilos'
 import { useDatosApi } from '@/lib/api/useDatosApi'
@@ -16,9 +15,8 @@ import { LuShoppingCart } from 'react-icons/lu'
 function ContenidoPedidos() {
   const codigo = useSearchParams().get('codigo')?.trim().toUpperCase() || null
   const [estado, setEstado] = useState<EstadoPedido | ''>('')
-  const { mostrar, setMostrar, listo } = useMostrarPruebas()
-  const url = conPruebas(`/api/pedidos?alcance=todos${estado ? `&estado=${estado}` : ''}`, mostrar)
-  const { datos, cargando, error, recargar } = useDatosApi<PedidoResumen[]>(listo ? url : null)
+  const url = `/api/pedidos?alcance=todos${estado ? `&estado=${estado}` : ''}`
+  const { datos, cargando, error, recargar } = useDatosApi<PedidoResumen[]>(url)
   const pedidos = codigo ? datos?.filter((p) => p.codigo.toUpperCase() === codigo) : datos
 
   return (
@@ -29,7 +27,6 @@ function ContenidoPedidos() {
           descripcion="Todos los pedidos de la tienda, del más nuevo al más viejo."
           acciones={
             <>
-              <InterruptorPruebas mostrar={mostrar} onCambiar={setMostrar} />
               <select
                 value={estado}
                 aria-label="Filtrar por estado"
@@ -50,7 +47,7 @@ function ContenidoPedidos() {
           </p>
         )}
 
-        {cargando || !listo ? (
+        {cargando ? (
           <BloqueCarga />
         ) : error || !pedidos ? (
           <BloqueError mensaje={error} onReintentar={() => void recargar()} />

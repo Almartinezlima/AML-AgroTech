@@ -1,6 +1,6 @@
 import { type Page } from '@playwright/test'
 import {
-  PRODUCTO_A, agregarAlCarrito, datosDePruebaEnPanel, entrarComoCliente, expect, finalizarCompra, idDeProducto,
+  PRODUCTO_A, agregarAlCarrito, entrarComoCliente, expect, finalizarCompra, idDeProducto,
   imagenComprobante, limpiarDatosDePrueba, paginaAdmin, stockDe, test,
 } from './utilidades'
 
@@ -36,15 +36,13 @@ test.describe('Pagos y distribución', () => {
     await expect(page.getByText('En revisión')).toBeVisible()
     await expect(page.getByRole('link', { name: /Ver comprobante subido/ })).toBeVisible()
 
-    // Admin: con el interruptor apagado el pago de prueba no aparece; encendido, sí
+    // Admin: el panel muestra los pedidos de cualquier cuenta, sin interruptor
     const admin = await paginaAdmin(browser)
     await admin.goto('/admin/pedidos')
-    await datosDePruebaEnPanel(admin, false)
-    await expect(admin.getByRole('link', { name: pedido.codigo, exact: true })).toHaveCount(0)
-    await datosDePruebaEnPanel(admin, true)
+    await expect(admin.getByRole('switch', { name: 'Mostrar datos de prueba' })).toHaveCount(0)
     await expect(admin.getByRole('link', { name: pedido.codigo, exact: true })).toBeVisible()
 
-    // Aprueba el pago (la preferencia del interruptor vale para todo el panel)
+    // Aprueba el pago
     await admin.goto('/admin/pagos')
     const pago = admin.locator('li', { has: admin.getByRole('link', { name: pedido.codigo, exact: true }) })
     await pago.getByRole('button', { name: 'Aprobar' }).click()

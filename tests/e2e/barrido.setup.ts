@@ -28,7 +28,7 @@ setup('barrido de datos de prueba abiertos', async ({ browser }) => {
 
   const admin = await paginaAdmin(browser)
   try {
-    const respuesta = await admin.request.get('/api/pedidos?alcance=todos&pruebas=1')
+    const respuesta = await admin.request.get('/api/pedidos?alcance=todos')
     if (!respuesta.ok()) throw new Error(`GET /api/pedidos: ${respuesta.status()}`)
     const pedidos = ((await respuesta.json()) as { data: PedidoListado[] }).data
 
@@ -44,7 +44,7 @@ setup('barrido de datos de prueba abiertos', async ({ browser }) => {
 
     // Órdenes de compra de los distribuidores de prueba que quedaron abiertas o recibidas sin
     // anular (fase 6B). De la más nueva a la más vieja, como la limpieza normal.
-    const ordenes = await admin.request.get('/api/ordenes-compra?pruebas=1')
+    const ordenes = await admin.request.get('/api/ordenes-compra')
     if (ordenes.status() !== 503) {
       if (!ordenes.ok()) throw new Error(`GET /api/ordenes-compra: ${ordenes.status()}`)
       const abiertas = ((await ordenes.json()) as { data: OrdenListada[] }).data

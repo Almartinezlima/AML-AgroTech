@@ -3,7 +3,7 @@ import path from 'node:path'
 import { inflateSync } from 'node:zlib'
 import { request as solicitudes, type APIResponse, type Page } from '@playwright/test'
 import {
-  PRODUCTO_A, agregarAlCarrito, datosDePruebaEnPanel, entrarComoCliente, esperarCarga, expect, finalizarCompra,
+  PRODUCTO_A, agregarAlCarrito, entrarComoCliente, esperarCarga, expect, finalizarCompra,
   imagenComprobante, limpiarDatosDePrueba, paginaAdmin, paginaDistribuidor, test,
 } from './utilidades'
 
@@ -99,7 +99,7 @@ test.describe('Nota de venta', () => {
 
     // Admin: "Nota PDF" en la tarjeta del panel
     await admin.goto('/admin/pedidos')
-    await datosDePruebaEnPanel(admin, true)
+    await esperarCarga(admin)
     const tarjeta = admin.locator('li', { has: admin.getByRole('link', { name: pedido.codigo, exact: true }) })
     await expect(tarjeta.getByRole('link', { name: /Nota PDF/ })).toBeVisible()
     const descarga = admin.waitForEvent('download')

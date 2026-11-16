@@ -81,11 +81,8 @@ test('capturas de la fase 6B', async ({ browser }) => {
   await enviar(enviada)
   const borrador = await armar([{ presentacion_id: glifosato, cantidad: 2 }, { presentacion_id: bravonil, cantidad: 1 }])
 
-  // Abastecimiento con "Pedir otro producto" abierto y la lista con los datos de prueba
+  // Abastecimiento con "Pedir otro producto" abierto
   await admin.goto('/admin/abastecimiento')
-  await esperarCarga(admin)
-  const interruptor = admin.getByRole('switch', { name: 'Mostrar datos de prueba' })
-  if (!(await interruptor.isChecked())) await admin.getByText('Mostrar datos de prueba', { exact: true }).click()
   await esperarCarga(admin)
   await admin.getByRole('button', { name: 'Pedir otro producto' }).click()
   await admin.getByLabel('Buscar producto con proveedor').fill('glifosato')
