@@ -35,6 +35,11 @@ export interface DatosNotaPdf {
   pedido_items: ItemNota[]
   cliente: { nombre: string; telefono: string | null } | null
   anulada: boolean
+  // "Pago verificado por Aldo Martínez · 16/11/2026 14:32" (fase 9D)
+  verificacion?: string | null
+  // Cierre: "Entregado a Juan Pérez · 16/11/2026 15:40" y si la nota ya es final
+  entrega?: string | null
+  final?: boolean
   enlacePedido: string
   whatsapp?: string | null
 }
@@ -214,9 +219,14 @@ export async function generarNotaPdf(datos: DatosNotaPdf): Promise<Buffer> {
   const pago = [
     `Método: ${ETIQUETA_METODO[datos.metodo_pago]}`,
     `Estado del pago: ${textoPago(datos)}`,
+    ...(datos.verificacion ? [datos.verificacion] : []),
   ]
+  // Completado: la nota queda final. Antes, se aclara que el pedido sigue en curso.
+  const estado = [estadoPedido]
+  if (datos.entrega) estado.push(datos.entrega)
+  if (!datos.anulada) estado.push(datos.final ? 'NOTA FINAL: pedido entregado y pagado' : 'Pedido en curso: la nota queda final al completarse')
   const finPago = bloque(doc, 'Pago', pago, MARGEN, y, mitad)
-  const finEstado = bloque(doc, 'Estado del pedido', [estadoPedido], MARGEN + mitad + 24, y, mitad)
+  const finEstado = bloque(doc, 'Estado del pedido', estado, MARGEN + mitad + 24, y, mitad)
   y = Math.max(finPago, finEstado) + 18
 
   y = tabla(doc, datos, y)

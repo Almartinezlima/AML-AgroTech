@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server'
 import { ErrorApi, manejarRuta } from '@/lib/api/respuestas'
 import { requerirSesion } from '@/lib/api/sesion'
 import { validarUuid } from '@/lib/api/validacion'
-import { buscarClientes } from '@/lib/ecommerce/consultas'
+import { buscarClientes, leerLineaTiempo } from '@/lib/ecommerce/consultas'
+import { fechaHora } from '@/lib/ecommerce/presentacion'
+import { textoVerificacion, ultimaVerificacion } from '@/lib/entrega/presentacion'
+import { leerCierre } from '@/lib/entrega/consultas'
 import { MENSAJE_NOTA_CANCELADO, MENSAJE_NOTA_NO_DISPONIBLE, nombreArchivoNota, situacionNota } from '@/lib/ecommerce/notaVenta'
 import { generarNotaPdf, type DatosNotaPdf } from '@/lib/ecommerce/notaVentaPdf'
 
@@ -47,13 +50,25 @@ export const GET = manejarRuta<{ params: { id: string } }>(async (request, { par
     throw new ErrorApi(409, 'NOTA_NO_DISPONIBLE', pedido.estado === 'cancelado' ? MENSAJE_NOTA_CANCELADO : MENSAJE_NOTA_NO_DISPONIBLE)
   }
 
-  const clientes = await buscarClientes(supabase, [pedido.usuario_id])
+  const [clientes, lineaTiempo, cierre] = await Promise.all([
+    buscarClientes(supabase, [pedido.usuario_id]),
+    // Quién verificó el pago y cuándo (con nombre desde la 0017) y el cierre (0018)
+    leerLineaTiempo(supabase, pedido.id),
+    leerCierre(supabase, pedido.id),
+  ])
   const cliente = clientes.get(pedido.usuario_id)
+  const verificado = pedido.estado_pago === 'verificado' ? ultimaVerificacion(lineaTiempo ?? []) : null
+  const entrega = cierre?.entregado_en
+    ? `Entregado${cierre.recibe_nombre ? ` a ${cierre.recibe_nombre}` : ''} · ${fechaHora(cierre.entregado_en)}`
+    : null
 
   const pdf = await generarNotaPdf({
     ...pedido,
     cliente: cliente ? { nombre: cliente.nombre, telefono: cliente.telefono } : null,
     anulada: situacion === 'anulada',
+    verificacion: verificado ? textoVerificacion(verificado, true) : null,
+    entrega,
+    final: pedido.estado === 'completado',
     enlacePedido: `${origenPublico(request)}/pedidos/${pedido.id}`,
     whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_TIENDA ?? null,
   })

@@ -1,6 +1,7 @@
-// Tipos escritos a mano según las migraciones 0003, 0006, 0007, 0008 y 0017.
+// Tipos escritos a mano según las migraciones 0003, 0006, 0007, 0008, 0017 y 0018.
+import type { CodigoEntrega, DatosCierre } from './entrega'
 
-export const ESTADOS_PEDIDO = ['pendiente', 'confirmado', 'preparando', 'empacado', 'listo_para_recoger', 'despachado', 'entregado', 'cancelado'] as const
+export const ESTADOS_PEDIDO = ['pendiente', 'confirmado', 'preparando', 'empacado', 'listo_para_recoger', 'despachado', 'entregado', 'completado', 'cancelado'] as const
 export type EstadoPedido = (typeof ESTADOS_PEDIDO)[number]
 
 export const ESTADOS_PAGO = ['pendiente', 'en_revision', 'verificado', 'rechazado', 'reembolso_pendiente', 'reembolsado'] as const
@@ -143,6 +144,8 @@ export interface PedidoResumen {
   envios: { estado: EstadoEnvio; transportista: string | null; numero_guia: string | null } | null
   pagos: { estado: EstadoPago } | null
   cliente?: ClientePedido | null
+  // Solo para el dueño, con el pedido en camino (migración 0018)
+  codigo_entrega?: CodigoEntrega | null
 }
 
 export interface PedidoDetalle extends Omit<PedidoResumen, 'pagos' | 'envios'> {
@@ -157,6 +160,8 @@ export interface PedidoDetalle extends Omit<PedidoResumen, 'pagos' | 'envios'> {
   cliente?: ClientePedido | null
   // Solo para el admin (migración 0017)
   faltantes?: FaltantePedido[]
+  // Quién recibió, cobro en efectivo, cierre y calificación (migración 0018)
+  cierre?: DatosCierre | null
 }
 
 export interface PagoAdmin {
@@ -169,8 +174,12 @@ export interface PagoAdmin {
   comprobante_path: string | null
   created_at: string
   comprobante_url: string | null
-  pedidos: { codigo: string; estado: EstadoPedido; usuario_id: string } | null
+  pedidos: { codigo: string; estado: EstadoPedido; usuario_id: string; total?: number } | null
   cliente?: ClientePedido | null
+  // Contra entrega cobrada por el repartidor o el almacén: "efectivo por rendir" (0018)
+  cobrado_en?: string | null
+  monto_cobrado?: number | null
+  cobrado_por?: string | null
 }
 
 export interface Movimiento {

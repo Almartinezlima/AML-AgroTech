@@ -4,7 +4,7 @@ Los estados son restricciones `check` de la base y **solo cambian dentro de func
 
 ## 1. Pedido
 
-`cambiar_estado_pedido` (admin) solo deja avanzar al siguiente estado del camino que corresponde a la zona. Preparar y empacar se hacen **solo** con las funciones del almacén (`empezar_preparacion`, `empacar_pedido`, migración 0017), que registran quién y cuándo. Un pedido con QR o transferencia no pasa de `pendiente` hasta que su pago esté verificado.
+`cambiar_estado_pedido` (admin) solo confirma y despacha por flota. Preparar y empacar se hacen **solo** con las funciones del almacén (`empezar_preparacion`, `empacar_pedido`, 0017). Desde la **0018 nadie marca «entregado» sin prueba**: a domicilio y en tienda hace falta el **código de 4 dígitos del cliente** (`entregar_pedido`); por flota lo confirma el cliente («Recibí mi pedido») o el admin con una nota (`confirmar_recepcion`). Un pedido con QR o transferencia no pasa de `pendiente` hasta que su pago esté verificado.
 
 ```mermaid
 stateDiagram-v2
@@ -12,23 +12,30 @@ stateDiagram-v2
   pendiente --> confirmado : pago verificado (QR o transferencia)<br/>o el admin confirma (contra entrega)
   confirmado --> preparando : almacén o admin<br/>empezar_preparacion
   state zona <<choice>>
-  preparando --> zona : empacar_pedido<br/>(todo marcado, sin faltantes abiertos)
+  preparando --> zona : empacar_pedido<br/>(todo marcado, sin faltantes abiertos)<br/>genera el código de entrega
   zona --> listo_para_recoger : recojo en tienda
-  zona --> empacado : en el pueblo o por flota
-  empacado --> despachado : admin (9D: repartidor)<br/>flota con transportista y guía
-  listo_para_recoger --> entregado : admin, cuando el cliente recoge
-  despachado --> entregado : admin
+  zona --> empacado : a domicilio o por flota
+  empacado --> despachado : repartidor «Tomar y salir» (domicilio)<br/>admin con flota y guía (provincia)
+  listo_para_recoger --> entregado : almacén o admin<br/>código del cliente + quién recoge
+  despachado --> entregado : repartidor con el código (domicilio)<br/>cliente o admin con nota (flota)
+  state pagado <<choice>>
+  entregado --> pagado
+  pagado --> completado : pago verificado (en el mismo momento)
+  pagado --> entregado_espera : efectivo por rendir
+  entregado_espera --> completado : admin «Recibí el efectivo»
   pendiente --> cancelado : el cliente (sin comprobante) o el admin
   confirmado --> cancelado : admin
   preparando --> cancelado : admin
   empacado --> cancelado : admin
-  entregado --> [*]
+  completado --> [*]
   cancelado --> [*]
 ```
 
-- Cancelar devuelve el stock al kardex (`devolucion`) y cierra los faltantes abiertos.
-- En `preparando`, un faltante reportado frena el empaque hasta que el admin lo resuelve («Repuesto, continuar»).
-- El cliente solo cancela si el pedido y el pago siguen pendientes. Si ya mandó el comprobante, tiene que pedírselo a la tienda.
+- `entregado_espera` no es otro estado: es `entregado` con el efectivo de contra entrega todavía en manos del repartidor o del almacén. Se dibuja aparte para que se lea.
+- **Código de entrega:** 5 intentos fallidos lo bloquean; el pedido no se entrega hasta que el admin lo desbloquea con una nota. El cliente lo ve en «Mis pedidos»; el repartidor, el almacén y el admin nunca.
+- **Contra entrega:** antes del código se registra el cobro (`registrar_cobro_entrega`, monto igual al total).
+- Cancelar devuelve el stock al kardex (`devolucion`) y cierra los faltantes abiertos. Un pedido despachado ya no se cancela.
+- En `preparando`, un faltante reportado frena el empaque hasta que el admin lo resuelve («Repuesto, continuar»). El cliente ve solo «Revisando un producto de tu pedido».
 
 ## 2. Pago
 
@@ -39,7 +46,9 @@ stateDiagram-v2
   en_revision --> verificado : el admin aprueba
   en_revision --> rechazado : el admin rechaza con motivo
   rechazado --> en_revision : el cliente sube otro comprobante
-  pendiente --> verificado : contra entrega, al entregar el pedido
+  pendiente --> por_rendir : contra entrega: cobra el repartidor<br/>o el almacén (monto = total)
+  por_rendir --> verificado : el admin «Recibí el efectivo»
+  pendiente --> verificado : contra entrega: cobra el admin
   en_revision --> reembolso_pendiente : la tienda cancela el pedido
   verificado --> reembolso_pendiente : la tienda cancela el pedido
   reembolso_pendiente --> reembolsado : el admin lo marca devuelto
@@ -47,7 +56,9 @@ stateDiagram-v2
   reembolsado --> [*]
 ```
 
-- Funciones: `registrar_comprobante`, `verificar_pago`, `cancelar_pedido` y `marcar_reembolsado`.
+- `por_rendir` es `pendiente` con `cobrado_en` lleno (0018): se ve como «Efectivo por rendir» en `/admin/pagos`.
+- Funciones: `registrar_comprobante`, `verificar_pago`, `registrar_cobro_entrega`, `confirmar_efectivo`, `cancelar_pedido` y `marcar_reembolsado`.
+- Al verificar, la línea de tiempo y la nota de venta dicen «Pago verificado por <nombre> · <fecha y hora>».
 - El monto es siempre el total del pedido, lo pone la base.
 - Si se cancela un pedido con el pago `pendiente` o `rechazado`, el pago queda como estaba: no hubo plata que devolver.
 

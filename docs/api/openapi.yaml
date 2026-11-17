@@ -19,6 +19,8 @@ tags:
     description: Proveedores mayoristas (rol distribuidor), sus presentaciones, órdenes de compra, recepción y margen
   - name: Almacén
     description: Preparación y empaque de pedidos (rol almacen o admin, fase 9C). Cada paso registra quién y cuándo
+  - name: Entrega
+    description: 'Entrega con el código de 4 dígitos del cliente, cobro contra entrega, recepción por flota y calificación (rol repartidor, almacén o admin; fase 9D). Nadie salvo el dueño ve el código'
 components:
   securitySchemes:
     sesion:
@@ -49,7 +51,7 @@ components:
             mensaje: { type: string, example: Debes iniciar sesión. }
             detalle: { type: object }
     Rol: { type: string, enum: [admin, cliente, distribuidor, almacen, repartidor], description: 'almacen y repartidor desde la migración 0017; solo el admin asigna roles' }
-    EstadoPedido: { type: string, enum: [pendiente, confirmado, preparando, empacado, listo_para_recoger, despachado, entregado, cancelado], description: 'Recojo en tienda: al empacar pasa a listo_para_recoger. A domicilio o por flota: empacado y luego despachado (migración 0017)' }
+    EstadoPedido: { type: string, enum: [pendiente, confirmado, preparando, empacado, listo_para_recoger, despachado, entregado, completado, cancelado], description: 'Recojo en tienda: al empacar pasa a listo_para_recoger. A domicilio o por flota: empacado y luego despachado (0017). Entregado solo con el código del cliente o, por flota, con su confirmación; completado = entregado + pago verificado (0018)' }
     MetodoPago: { type: string, enum: [qr, transferencia, contra_entrega] }
     ProductoEntrada:
       type: object
@@ -437,7 +439,7 @@ paths:
     get:
       tags: [Pedidos]
       summary: Detalle con items, pago, envío y seguimiento (dueño o admin)
-      description: 'El seguimiento trae actor_nombre, actor_rol y es_propio (quién hizo cada paso, migración 0017). El admin recibe además los faltantes del almacén.'
+      description: 'El seguimiento trae actor_nombre, actor_rol y es_propio (quién hizo cada paso, migración 0017). El admin recibe además los faltantes del almacén. Desde la 0018 trae cierre (quién recibió, cobro en efectivo, calificación) y, solo para el dueño, codigo_entrega.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       responses:
@@ -496,7 +498,7 @@ paths:
     patch:
       tags: [Pedidos]
       summary: Avanzar el estado del pedido (admin)
-      description: 'Solo pendiente a confirmado, empacado a despachado, y despachado o listo_para_recoger a entregado. Preparar y empacar se hace con las rutas de /almacen (409 si se intenta aquí).'
+      description: 'Solo pendiente a confirmado y, por flota, empacado a despachado (con flota y guía). Preparar y empacar se hace en /almacen; a domicilio despacha el repartidor y nadie marca entregado aquí (409): se usa /entregas/{id}/entregar o /pedidos/{id}/recibido.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -1029,3 +1031,175 @@ paths:
         '404': { $ref: '#/components/responses/Error' }
         '409': { $ref: '#/components/responses/Error' }
         '422': { $ref: '#/components/responses/Error' }
+  /repartidor/pedidos:
+    get:
+      tags: [Entrega]
+      summary: Cola del repartidor (repartidor o admin)
+      description: 'A domicilio empacados (el más antiguo primero) y los que ya van en camino (los propios; el admin ve todos). Con zona, dirección, teléfono, bultos y si hay que cobrar. Nunca trae el código de entrega (función cola_reparto).'
+      security: [{ sesion: [] }]
+      responses:
+        '200': { description: Lista de pedidos para repartir }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /entregas/{id}:
+    get:
+      tags: [Entrega]
+      summary: Datos para entregar un pedido (repartidor, almacén o admin)
+      description: 'Repartidor: a domicilio empacado o el que él lleva. Almacén: recojo listo para recoger. Admin: cualquiera. Trae si está cobrado, si el código está bloqueado y los intentos que quedan; nunca el código (función detalle_entrega).'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Datos de la entrega }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /entregas/{id}/tomar:
+    post:
+      tags: [Entrega]
+      summary: Tomar y salir (repartidor o admin)
+      description: 'Empacado a despachado, a domicilio. Registra quién lo lleva y cuándo salió. 409 si ya salió con otro repartidor.'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Pedido en camino }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+  /entregas/{id}/cobro:
+    post:
+      tags: [Entrega]
+      summary: Registrar el cobro de un pedido contra entrega
+      description: 'Repartidor (domicilio), almacén (recojo) o admin. El monto tiene que ser igual al total (422 si no). Si no cobra el admin, el pago queda como efectivo por rendir.'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [monto]
+              properties:
+                monto: { type: number, exclusiveMinimum: true, minimum: 0 }
+      responses:
+        '200': { description: Cobro registrado }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /entregas/{id}/entregar:
+    post:
+      tags: [Entrega]
+      summary: Entregar con el código de 4 dígitos del cliente
+      description: 'Repartidor (domicilio, el que lo tomó), almacén (recojo en tienda) o admin. Contra entrega exige el cobro registrado. Con el pago verificado, el pedido queda completado. Código incorrecto: 422 CODIGO_INCORRECTO con detalle.intentos_restantes; al quinto intento, 409 CODIGO_BLOQUEADO.'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [codigo, nombre]
+              properties:
+                codigo: { type: string, pattern: '^[0-9]{4}$' }
+                nombre: { type: string, minLength: 3, maxLength: 120, description: Quien recibe }
+                ci: { type: string, minLength: 4, maxLength: 20, nullable: true }
+      responses:
+        '200': { description: 'Entregado (estado entregado o completado)' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /entregas/{id}/desbloquear:
+    post:
+      tags: [Entrega]
+      summary: Desbloquear un código de entrega (admin)
+      description: 'Solo con el código bloqueado por 5 intentos fallidos. La nota queda en la línea de tiempo.'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nota]
+              properties:
+                nota: { type: string, minLength: 3, maxLength: 300 }
+      responses:
+        '200': { description: Código desbloqueado }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /pedidos/{id}/recibido:
+    post:
+      tags: [Entrega]
+      summary: 'Por flota: Recibí mi pedido (dueño) o confirmación con nota (admin)'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nota: { type: string, maxLength: 300, nullable: true, description: 'Obligatoria para el admin (3 a 300)' }
+      responses:
+        '200': { description: 'Entregado (y completado si el pago está verificado)' }
+        '401': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /pedidos/{id}/calificacion:
+    post:
+      tags: [Entrega]
+      summary: 'Recibí conforme: calificar la entrega (dueño, una vez)'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estrellas]
+              properties:
+                estrellas: { type: integer, minimum: 1, maximum: 5 }
+                comentario: { type: string, maxLength: 200, nullable: true }
+      responses:
+        '201': { description: Calificación guardada }
+        '401': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /calificaciones:
+    get:
+      tags: [Entrega]
+      summary: Resumen de calificaciones de entrega (admin)
+      description: 'Promedio, cantidad, bajas (1 o 2 estrellas) y las 10 últimas con el código del pedido y el cliente.'
+      security: [{ sesion: [] }]
+      responses:
+        '200': { description: Resumen }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /pagos/{id}/efectivo:
+    post:
+      tags: [Pagos]
+      summary: Recibí el efectivo de una entrega contra entrega (admin)
+      description: 'El pago cobrado por el repartidor o el almacén pasa a verificado con el nombre del admin; si el pedido ya está entregado, queda completado.'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Efectivo recibido }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }

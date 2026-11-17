@@ -9,11 +9,14 @@ import { claseBoton, claseBotonPeligro, claseBotonSecundario, clasePagina, clase
 import { useAuth } from '@/context/AuthContext'
 import { ErrorPedidoApi, enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
-import { INFO_ESTADO_ENVIO, estadoCliente, fechaHora, puedeCancelarCliente } from '@/lib/ecommerce/presentacion'
+import { ESTADOS_EN_ENTREGA, INFO_ESTADO_ENVIO, estadoCliente, fechaHora, puedeCancelarCliente } from '@/lib/ecommerce/presentacion'
+import CodigoEntrega from '@/components/entrega/CodigoEntrega'
+import PanelEntrega from '@/components/entrega/PanelEntrega'
 import { formatoBs } from '@/lib/utils'
 import type { PedidoDetalle } from '@/types/comercio'
 import BloquePago from './_components/BloquePago'
 import BotonNota from './_components/BotonNota'
+import CierrePedido from './_components/CierrePedido'
 import FaltantesAdmin from './_components/FaltantesAdmin'
 import LineaTiempo from './_components/LineaTiempo'
 import { LuArrowLeft, LuMessageCircle } from 'react-icons/lu'
@@ -22,7 +25,7 @@ const NUMERO_WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA
 
 export default function PedidoDetallePage() {
   const { id } = useParams<{ id: string }>()
-  const { user } = useAuth()
+  const { user, perfil } = useAuth()
   const { datos: pedido, cargando, error, estadoError, recargar } = useDatosApi<PedidoDetalle>(`/api/pedidos/${id}`)
   const [cancelando, setCancelando] = useState(false)
   const [procesando, setProcesando] = useState(false)
@@ -44,6 +47,7 @@ export default function PedidoDetallePage() {
   }
 
   const esDueno = user?.id === pedido.usuario_id
+  const esAdmin = perfil?.rol === 'admin'
   // Si ya mandó el comprobante, la cancelación la hace la tienda (y genera el reembolso)
   const puedeCancelar = esDueno && puedeCancelarCliente(pedido.estado, pedido.estado_pago)
   const estado = estadoCliente({
@@ -91,6 +95,8 @@ export default function PedidoDetallePage() {
         <p className="rounded-2xl border border-borde bg-tarjeta-hover px-4 py-3 text-texto">
           <span className="font-semibold">Qué sigue: </span>{estado.queSigue}
         </p>
+        {/* Solo el dueño lo recibe de la API (fase 9D) */}
+        {pedido.codigo_entrega && <CodigoEntrega codigo={pedido.codigo_entrega} />}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -144,6 +150,11 @@ export default function PedidoDetallePage() {
           {pedido.faltantes && pedido.faltantes.length > 0 && (
             <FaltantesAdmin pedidoId={pedido.id} faltantes={pedido.faltantes} onActualizado={() => void recargar()} />
           )}
+
+          {esAdmin && ESTADOS_EN_ENTREGA.includes(pedido.estado) && (
+            <PanelEntrega pedidoId={pedido.id} esAdmin onActualizado={() => void recargar()} />
+          )}
+          <CierrePedido pedido={pedido} esDueno={esDueno} onActualizado={() => void recargar()} />
 
           <section className={`${claseTarjeta} p-5`}>
             <h2 className="text-texto font-bold mb-4">Seguimiento</h2>

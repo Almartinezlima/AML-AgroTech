@@ -5,6 +5,7 @@ import { requerirAdmin, requerirSesion } from '@/lib/api/sesion'
 import { validarCuerpo, validarParametros } from '@/lib/api/validacion'
 import { buscarClientes, COLUMNAS_PEDIDO_RESUMEN, faltaColumna, sinColumnasRecoge } from '@/lib/ecommerce/consultas'
 import { esquemaCrearPedido } from '@/lib/ecommerce/esquemas'
+import { leerMisCodigos } from '@/lib/entrega/consultas'
 import { transferenciaDisponible } from '@/lib/pagos/banco'
 import { ESTADOS_PEDIDO, type PedidoCreado, type PedidoResumen } from '@/types/comercio'
 
@@ -36,7 +37,11 @@ export const GET = manejarRuta(async (request: NextRequest) => {
 
   const pedidos = data as unknown as PedidoResumen[]
 
-  if (alcance === 'propios') return respuestaOk(pedidos)
+  // Mis pedidos: con el código de entrega de los que están en camino (0018, solo los propios)
+  if (alcance === 'propios') {
+    const codigos = await leerMisCodigos(sesion.supabase)
+    return respuestaOk(pedidos.map((p) => ({ ...p, codigo_entrega: codigos.get(p.id) ?? null })))
+  }
 
   const clientes = await buscarClientes(sesion.supabase, pedidos.map((p) => p.usuario_id))
   const conCliente = pedidos.map((p) => ({ ...p, cliente: clientes.get(p.usuario_id) ?? null }))

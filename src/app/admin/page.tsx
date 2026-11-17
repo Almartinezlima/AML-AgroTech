@@ -8,6 +8,7 @@ import { useDatosApi } from '@/lib/api/useDatosApi'
 import { formatoBs } from '@/lib/utils'
 import type { Dashboard } from '@/types/comercio'
 import { GraficoPedidosEstado, GraficoVentas } from './_components/Graficos'
+import TarjetaCalificaciones from './_components/TarjetaCalificaciones'
 import TarjetaMargen from './_components/TarjetaMargen'
 import { LuBanknote, LuCalendarDays, LuCreditCard, LuHandCoins, LuTrendingUp, LuTriangleAlert, LuUndo2, LuWarehouse } from 'react-icons/lu'
 
@@ -53,6 +54,9 @@ export default function AdminPage() {
                 <GraficoPedidosEstado datos={d.pedidos_por_estado} />
               </section>
             </div>
+
+            {/* Fase 9D: cómo califican los clientes la entrega */}
+            <TarjetaCalificaciones />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <TarjetaMargen />

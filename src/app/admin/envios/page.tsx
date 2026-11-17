@@ -8,7 +8,7 @@ import { clasePagina } from '@/components/ui/estilos'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import type { EstadoPedido, PedidoResumen } from '@/types/comercio'
 import ListaPedidosAdmin from '../_components/ListaPedidosAdmin'
-import { LuBox, LuPackageCheck, LuPackageOpen, LuStore, LuTruck } from 'react-icons/lu'
+import { LuBox, LuHandCoins, LuPackageCheck, LuPackageOpen, LuStore, LuTruck } from 'react-icons/lu'
 
 const GRUPOS: Array<{ estado: EstadoPedido; titulo: string; vacio: string; icono: IconType; tono: TonoCifra }> = [
   { estado: 'confirmado', titulo: 'Por preparar', vacio: 'No hay pedidos por preparar', icono: LuPackageOpen, tono: 'pendiente' },
@@ -16,6 +16,8 @@ const GRUPOS: Array<{ estado: EstadoPedido; titulo: string; vacio: string; icono
   { estado: 'empacado', titulo: 'Empacados', vacio: 'No hay pedidos empacados esperando salir', icono: LuBox, tono: 'acento' },
   { estado: 'listo_para_recoger', titulo: 'Para recoger en tienda', vacio: 'No hay pedidos esperando en tienda', icono: LuStore, tono: 'acento' },
   { estado: 'despachado', titulo: 'En camino', vacio: 'No hay pedidos en camino', icono: LuTruck, tono: 'camino' },
+  // Entregados con el efectivo todavía por rendir (fase 9D): se cierran en Pagos
+  { estado: 'entregado', titulo: 'Entregados por cerrar', vacio: 'No hay entregas esperando el efectivo', icono: LuHandCoins, tono: 'pendiente' },
 ]
 
 export default function AdminEnviosPage() {

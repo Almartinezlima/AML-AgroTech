@@ -26,6 +26,7 @@
 | [`specs/08-abastecimiento.md`](specs/08-abastecimiento.md) | Abastecimiento: proveedores, órdenes de compra, recepción y margen |
 | [`specs/09-avisos-telegram.md`](specs/09-avisos-telegram.md) | Avisos por Telegram al administrador |
 | [`specs/10-preparacion-empaque.md`](specs/10-preparacion-empaque.md) | Preparación y empaque con roles Almacén y Repartidor (fase 9C) |
+| [`specs/11-entrega-cierre.md`](specs/11-entrega-cierre.md) | Entrega con código, efectivo por rendir, completado y calificación (fase 9D) |
 
 ## Carpetas
 

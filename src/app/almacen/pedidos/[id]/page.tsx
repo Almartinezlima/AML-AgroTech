@@ -4,11 +4,13 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { LuArrowLeft, LuCircleAlert, LuPackageCheck, LuPlay, LuPrinter } from 'react-icons/lu'
 import ListaFaltantes from '@/components/almacen/ListaFaltantes'
+import PanelEntrega from '@/components/entrega/PanelEntrega'
 import { AvisoError, BloqueCarga, BloqueError } from '@/components/ui/Estados'
 import Insignia from '@/components/ui/Insignia'
 import { claseBoton, claseBotonPrimario, claseBotonSecundario, clasePagina, claseTarjeta, claseTituloSeccion } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
+import { useAuth } from '@/context/AuthContext'
 import { INFO_ESTADO_PEDIDO, diaHora } from '@/lib/ecommerce/presentacion'
 import type { DetallePreparacion, ItemPreparacion } from '@/types/almacen'
 import DatosEntrega from './_components/DatosEntrega'
@@ -20,6 +22,7 @@ import ModalFaltante from './_components/ModalFaltante'
 // faltantes y empacar. Cada paso queda con el nombre de quién lo hizo.
 export default function PrepararPedidoPage() {
   const { id } = useParams<{ id: string }>()
+  const { perfil } = useAuth()
   const { datos: pedido, cargando, error, estadoError, recargar, setDatos } = useDatosApi<DetallePreparacion>(`/api/almacen/pedidos/${id}`)
   const [modal, setModal] = useState<'faltante' | 'empacar' | null>(null)
   const [guardando, setGuardando] = useState<string | null>(null)
@@ -150,6 +153,11 @@ export default function PrepararPedidoPage() {
               <LuPrinter className="h-5 w-5" aria-hidden="true" /> Imprimir {pedido.bultos === 1 ? 'etiqueta' : `${pedido.bultos} etiquetas`}
             </Link>
           </section>
+        )}
+
+        {/* Recojo: "Entregar en tienda" con el código del cliente (fase 9D) */}
+        {pedido.estado === 'listo_para_recoger' && (
+          <PanelEntrega pedidoId={pedido.id} esAdmin={perfil?.rol === 'admin'} onActualizado={() => undefined} />
         )}
       </div>
 

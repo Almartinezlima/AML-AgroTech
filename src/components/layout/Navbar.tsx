@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { LuLayoutDashboard, LuLogOut, LuMenu, LuPackageCheck, LuShoppingCart, LuUser, LuX } from 'react-icons/lu'
+import { LuLayoutDashboard, LuLogOut, LuMenu, LuPackageCheck, LuShoppingCart, LuTruck, LuUser, LuX } from 'react-icons/lu'
 import Marca from '@/components/Marca'
 import { useCarrito } from '@/context/CarritoContext'
 import { useAuth } from '@/context/AuthContext'
@@ -19,6 +19,7 @@ export default function Navbar() {
   const esDistribuidor = user && perfil?.rol === 'distribuidor'
   // El admin llega al almacén desde su panel; acá el enlace es para la cuenta de almacén
   const esAlmacen = user && perfil?.rol === 'almacen'
+  const esRepartidor = user && perfil?.rol === 'repartidor'
 
   const handleCerrarSesion = async () => {
     await cerrarSesion()
@@ -60,6 +61,11 @@ export default function Navbar() {
             {esAlmacen && (
               <Link href="/almacen" className={`${claseEnlace(activo('/almacen'))} inline-flex items-center gap-1.5`}>
                 <LuPackageCheck className="h-4 w-4" aria-hidden="true" /> Almacén
+              </Link>
+            )}
+            {esRepartidor && (
+              <Link href="/repartidor" className={`${claseEnlace(activo('/repartidor'))} inline-flex items-center gap-1.5`}>
+                <LuTruck className="h-4 w-4" aria-hidden="true" /> Reparto
               </Link>
             )}
           </div>
@@ -117,6 +123,7 @@ export default function Navbar() {
             {esAdmin && <Link href="/admin" className={claseEnlace(activo('/admin'))} onClick={cerrarMenu}>Panel Admin</Link>}
             {esDistribuidor && <Link href="/distribuidor" className={claseEnlace(activo('/distribuidor'))} onClick={cerrarMenu}>Panel del proveedor</Link>}
             {esAlmacen && <Link href="/almacen" className={claseEnlace(activo('/almacen'))} onClick={cerrarMenu}>Almacén</Link>}
+            {esRepartidor && <Link href="/repartidor" className={claseEnlace(activo('/repartidor'))} onClick={cerrarMenu}>Reparto</Link>}
             <Link href="/carrito" className={claseEnlace(activo('/carrito'))} onClick={cerrarMenu}>
               Mi carrito {totalItems > 0 && `(${totalItems})`}
             </Link>
