@@ -1,6 +1,6 @@
 # Diagrama de clases (modelo de datos)
 
-Cada clase es una tabla real de Postgres (esquema `public`, migraciones `0001` a `0015`). Van los atributos principales; los `created_at` / `updated_at` se omiten salvo cuando son parte del negocio. Las operaciones `«SQL»` son las funciones transaccionales que cambian esa tabla: la API no escribe directo en las tablas de pedidos, pagos, kardex ni órdenes de compra (RLS sin `insert`/`update`), todo pasa por esas funciones.
+Cada clase es una tabla real de Postgres (esquema `public`, migraciones `0001` a `0018`). Van los atributos principales; los `created_at` / `updated_at` se omiten salvo cuando son parte del negocio. Las operaciones `«SQL»` son las funciones transaccionales que cambian esa tabla: la API no escribe directo en las tablas de pedidos, pagos, kardex ni órdenes de compra (RLS sin `insert`/`update`), todo pasa por esas funciones.
 
 | Clase | Tabla |
 |---|---|
@@ -14,6 +14,8 @@ Cada clase es una tabla real de Postgres (esquema `public`, migraciones `0001` a
 | Envio | `envios` |
 | SeguimientoPedido | `seguimiento_pedido` |
 | FaltantePedido | `faltantes_pedido` (fase 9C) |
+| CodigoEntrega | `codigos_entrega` (fase 9D: nadie la lee directo) |
+| CalificacionEntrega | `calificaciones_entrega` (fase 9D) |
 | MovimientoInventario | `movimientos_inventario` (kardex) |
 | Distribuidor | `distribuidores` |
 | PresentacionDistribuidor | `presentaciones_distribuidor` |
@@ -87,12 +89,39 @@ classDiagram
     +uuid empacado_por
     +timestamptz empacado_en
     +int bultos
+    +uuid despachado_por
+    +timestamptz despachado_en
+    +uuid entregado_por
+    +timestamptz entregado_en
+    +text recibe_nombre
+    +text recibe_ci
+    +timestamptz completado_en
+    +timestamptz conforme_en
     +crear_pedido() «SQL»
     +cancelar_pedido() «SQL»
     +cambiar_estado_pedido() «SQL»
     +empezar_preparacion() «SQL»
     +empacar_pedido() «SQL»
     +linea_tiempo_pedido() «SQL»
+    +tomar_pedido() «SQL»
+    +entregar_pedido() «SQL»
+    +confirmar_recepcion() «SQL»
+  }
+  class CodigoEntrega {
+    +char4 codigo
+    +int intentos_fallidos
+    +timestamptz bloqueado_en
+    +uuid desbloqueado_por
+    +timestamptz usado_en
+    +mi_codigo_entrega() «SQL»
+    +desbloquear_codigo_entrega() «SQL»
+  }
+  class CalificacionEntrega {
+    +uuid id
+    +int estrellas
+    +text comentario
+    +timestamptz created_at
+    +calificar_entrega() «SQL»
   }
   class PedidoItem {
     +uuid id
@@ -121,9 +150,14 @@ classDiagram
     +EstadoPago estado
     +text motivo_rechazo
     +timestamptz revisado_en
+    +uuid cobrado_por
+    +timestamptz cobrado_en
+    +numeric monto_cobrado
     +registrar_comprobante() «SQL»
     +verificar_pago() «SQL»
     +marcar_reembolsado() «SQL»
+    +registrar_cobro_entrega() «SQL»
+    +confirmar_efectivo() «SQL»
   }
   class Envio {
     +uuid id
@@ -166,7 +200,11 @@ classDiagram
   Producto "1" --> "0..*" MovimientoInventario : kardex
   Pedido "0..1" --> "0..*" MovimientoInventario : salida o devolución
   Perfil "0..1" --> "0..*" MovimientoInventario : registra
-  Perfil "0..1" --> "0..*" Pago : revisa
+  Perfil "0..1" --> "0..*" Pago : revisa o cobra
+  Pedido "1" *-- "0..1" CodigoEntrega : prueba de entrega
+  Pedido "1" *-- "0..1" CalificacionEntrega : recibí conforme
+  Perfil "0..1" --> "0..*" Pedido : despacha y entrega
+  FaltantePedido "0..1" --> "0..*" SeguimientoPedido : paso del faltante
 ```
 
 ## 2. Abastecimiento: proveedores y órdenes de compra
@@ -298,6 +336,7 @@ classDiagram
     listo_para_recoger
     despachado
     entregado
+    completado
     cancelado
   }
   class EstadoPago {
@@ -346,4 +385,5 @@ classDiagram
 - **Precios congelados:** `PedidoItem.precio_unitario` y `OrdenCompraItem.precio_unitario` guardan el precio del momento; si el producto o la presentación cambian de precio después, el pedido o la orden no cambian.
 - **Stock protegido:** `Producto.stock` solo cambia dentro de las funciones que registran un `MovimientoInventario` (trigger `proteger_stock_producto`) y nunca queda negativo.
 - **Costo aparte:** `CostoProducto` es solo del admin, porque `Producto` se lee sin sesión.
+- **Entrega con prueba (fase 9D):** `CodigoEntrega` tiene RLS y **ninguna política**: ni el admin la lee. Solo el dueño ve su código con `mi_codigo_entrega()`; quien entrega lo escribe y `entregar_pedido` solo dice si coincide. A los 5 intentos fallidos se bloquea (el admin lo desbloquea con nota). `Pago.cobrado_*` es el efectivo de contra entrega cobrado por el repartidor o el almacén: queda «por rendir» (pago pendiente) hasta que el admin lo confirma, y ahí el pedido pasa a `completado`.
 - **Quién y cuándo (fase 9C):** `Pedido` guarda quién empezó a prepararlo y quién lo empacó; `PedidoItem`, quién lo puso en la caja; `FaltantePedido`, quién lo reportó y quién lo resolvió. El almacén no lee tablas: todo pasa por funciones que revisan su rol.

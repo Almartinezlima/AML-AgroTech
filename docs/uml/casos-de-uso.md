@@ -11,7 +11,7 @@ Fuente: [`../specs/06-casos-de-uso.md`](../specs/06-casos-de-uso.md) (catálogo,
 | Flecha punteada `«include»` / `«extend»` | Relación entre casos de uso |
 | Flecha `hereda` | Generalización entre actores |
 
-Para que se lea, va un diagrama por pilar. En todos, los casos de uso del Administrador, del Distribuidor y del Almacén «incluyen» CU-02 Iniciar sesión con su rol; no se dibuja esa línea en cada uno.
+Para que se lea, va un diagrama por pilar. En todos, los casos de uso del Administrador, del Distribuidor, del Almacén y del Repartidor «incluyen» CU-02 Iniciar sesión con su rol; no se dibuja esa línea en cada uno.
 
 ## 1. Actores
 
@@ -238,4 +238,48 @@ flowchart LR
 - El Administrador puede hacer todo lo del Almacén (también CU-35 y CU-38; se omiten esas líneas para que se lea).
 - Mientras un faltante (CU-35) siga abierto, CU-37 no se puede completar: lo destraba CU-36.
 - Cada caso deja su paso en la línea de tiempo del pedido con **quién** y **cuándo** (CU-17 Seguir pedido).
-- El Repartidor ya existe como rol; sus casos de uso (entregar con código) llegan en la fase 9D.
+- Los casos de uso del Repartidor (entregar con código) están en la sección 9.
+
+## 9. Entrega y cierre (fase 9D)
+
+```mermaid
+flowchart LR
+  C["«actor»<br/>Cliente"]
+  R["«actor»<br/>Repartidor"]
+  AL["«actor»<br/>Almacén"]
+  A["«actor»<br/>Administrador"]
+  T["«actor» «sistema»<br/>Telegram"]
+  subgraph ENT["AML AgroTech · Entrega y cierre"]
+    CU39(["CU-39 Ver código de entrega"])
+    CU40(["CU-40 Tomar y salir"])
+    CU41(["CU-41 Registrar cobro<br/>contra entrega"])
+    CU42(["CU-42 Entregar con código"])
+    CU43(["CU-43 Desbloquear código"])
+    CU44(["CU-44 Confirmar recepción<br/>por flota"])
+    CU45(["CU-45 Calificar entrega<br/>Recibí conforme"])
+    CU46(["CU-46 Recibir el efectivo"])
+    VER(["Verificar código<br/>máx. 5 intentos"])
+    CER(["Completar pedido<br/>entregado + pagado"])
+  end
+  C --- CU39
+  C --- CU44
+  C --- CU45
+  R --- CU40
+  R --- CU41
+  R --- CU42
+  AL --- CU41
+  AL --- CU42
+  A --- CU43
+  A --- CU44
+  A --- CU46
+  CU42 -.->|«include»| VER
+  CU42 -.->|«include»| CER
+  CU46 -.->|«include»| CER
+  CU41 -.->|«extend»<br/>contra entrega| CU42
+  CU43 -.->|«extend»<br/>5 intentos fallidos| CU42
+  CU42 --- T
+```
+
+- El Repartidor entrega a domicilio; el Almacén entrega en tienda (recojo). El Administrador puede hacer todo lo de ambos (se omiten esas líneas).
+- CU-39 lo ve **solo el dueño**: ni el repartidor, ni el almacén, ni el admin.
+- Telegram avisa al admin de la entrega, del código bloqueado y de una calificación de 1 o 2 estrellas (CU-33).

@@ -164,3 +164,74 @@ sequenceDiagram
 ```
 
 El cliente ve cada paso en su pedido con el nombre de quién lo hizo (`GET /api/pedidos/{id}` → `linea_tiempo_pedido`).
+
+## 4. Entregar un pedido con código y cerrarlo (CU-39 a CU-46, fase 9D)
+
+Del pedido empacado a la entrega con prueba y al cierre. Nadie marca «entregado» sin el código que solo tiene el cliente.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor C as Cliente
+  actor R as Repartidor
+  actor AD as Administrador
+  participant A as API REST<br/>Next.js en Render
+  participant DB as Postgres<br/>Supabase
+  participant Q as pg_net
+  participant T as Telegram
+
+  C->>A: GET /api/pedidos/{id}
+  A->>DB: rpc mi_codigo_entrega(id)
+  Note over DB: Solo el dueño: a cualquier otro (también el admin) AML04 → 404
+  DB-->>A: código 4827
+  A-->>C: «Tu código de entrega: 4827»
+  R->>A: GET /api/repartidor/pedidos
+  A->>DB: rpc cola_reparto()
+  DB-->>A: A domicilio empacados, el más antiguo primero (sin código)
+  R->>A: POST /api/entregas/{id}/tomar
+  A->>DB: rpc tomar_pedido(id)
+  Note over DB: empacado → despachado<br/>despachado_por, despachado_en, envío en camino
+  opt Contra entrega
+    R->>A: POST /api/entregas/{id}/cobro (monto)
+    A->>DB: rpc registrar_cobro_entrega(id, monto)
+    Note over DB: monto ≠ total → AML02 (422)<br/>cobrado_por, cobrado_en: efectivo por rendir
+  end
+  Note over C,R: El cliente ya tiene el pedido en la mano y dicta su código
+  R->>A: POST /api/entregas/{id}/entregar (código, nombre, CI)
+  A->>DB: rpc entregar_pedido(id, código, nombre, CI)
+  activate DB
+  alt Código incorrecto
+    DB->>DB: intentos_fallidos + 1 (no lanza error: el intento queda guardado)
+    DB-->>A: ok false, intentos restantes
+    A-->>R: 422 CODIGO_INCORRECTO «Quedan N intentos»
+    opt Quinto intento
+      DB->>Q: Trigger aml_aviso_codigo_bloqueado
+      Q-)T: «Código de entrega bloqueado en AML-…»
+      A-->>R: 409 CODIGO_BLOQUEADO
+      AD->>A: POST /api/entregas/{id}/desbloquear (nota)
+    end
+  else Código correcto
+    DB->>DB: entregado: entregado_por, recibe_nombre, envío entregado, seguimiento
+    DB->>Q: Trigger aml_aviso_entregado
+    Q-)T: «Entregado AML-… a Juan Pérez · por …»
+    alt Pago ya verificado
+      DB->>DB: completado (mismo momento)
+    else Efectivo por rendir
+      AD->>A: POST /api/pagos/{pago}/efectivo
+      A->>DB: rpc confirmar_efectivo(pago)
+      DB->>DB: pago verificado → completado
+    end
+    DB-->>A: ok true
+  end
+  deactivate DB
+  C->>A: POST /api/pedidos/{id}/calificacion (estrellas, comentario)
+  A->>DB: rpc calificar_entrega(id, estrellas, comentario)
+  opt 1 o 2 estrellas
+    DB->>Q: Trigger aml_aviso_calificacion_baja
+    Q-)T: «Calificación baja en AML-…»
+  end
+```
+
+- **Recojo en tienda:** igual, pero entrega el almacén o el admin desde el pedido («Entregar en tienda»), con nombre y CI de quien recoge.
+- **Por flota:** no hay código. El cliente toca «Recibí mi pedido» (`POST /api/pedidos/{id}/recibido`) o el admin lo confirma con una nota.
+- Las cuentas de prueba (`@amlagrotech.test`) no avisan por Telegram.

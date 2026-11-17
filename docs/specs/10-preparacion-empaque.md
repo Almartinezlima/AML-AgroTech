@@ -9,7 +9,7 @@ Responde a dos observaciones del docente: «controlar la preparación y empaque 
 | Rol | Qué hace | Panel |
 |---|---|---|
 | `almacen` | Prepara y empaca los pedidos pagados, reporta faltantes, imprime etiquetas | `/almacen` |
-| `repartidor` | Lleva los pedidos empacados y los entrega (fase 9D) | `/repartidor` (9D) |
+| `repartidor` | Lleva los pedidos empacados y los entrega con el código del cliente (fase 9D, ver [`11-entrega-cierre.md`](11-entrega-cierre.md)) | `/repartidor` |
 | `admin` | Todo lo anterior, más resolver faltantes y cancelar | `/admin` y `/almacen` |
 
 - Los asigna **solo el admin** en `/admin/usuarios`. Nadie se asigna un rol solo: `proteger_campos_perfil` lo impide y `handle_new_user` crea siempre clientes (también con Google).
@@ -53,7 +53,7 @@ a domicilio o por flota: pendiente → confirmado → preparando → [empacar] �
 ```
 
 - `preparando` y el empaque solo se alcanzan con las funciones del almacén (`empezar_preparacion`, `empacar_pedido`). `cambiar_estado_pedido` (admin) ya no los acepta: así nunca se salta la casilla de cada producto ni el registro de quién lo hizo.
-- El admin sigue despachando (`empacado` → `despachado`, con flota y guía si es provincia) y entregando, hasta que en la **9D** lo haga el repartidor con el código de entrega.
+- Desde la **9D** (0018): a domicilio despacha el repartidor («Tomar y salir») y nadie marca «entregado» sin el código del cliente; el admin solo despacha por flota. Detalle en [`11-entrega-cierre.md`](11-entrega-cierre.md).
 - Un pedido que ya estaba en `preparando` antes de la 0017 se sigue preparando en `/almacen`, sin migrar datos.
 
 ## Pantallas

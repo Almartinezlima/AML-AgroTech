@@ -59,8 +59,16 @@ Cliente, Administrador, Distribuidor, Almacén y Repartidor **heredan** de Visit
 | CU-36 | Resolver faltante | Administrador | Almacenamiento | HU-AL05 |
 | CU-37 | Empacar pedido | Almacén, Administrador | Distribución | HU-AL06 |
 | CU-38 | Imprimir etiquetas de bultos | Almacén, Administrador | Distribución | HU-AL07 |
+| CU-39 | Ver código de entrega | Cliente | Distribución | HU-EN01 |
+| CU-40 | Tomar y salir | Repartidor, Administrador | Distribución | HU-EN02, EN03 |
+| CU-41 | Registrar cobro contra entrega | Repartidor, Almacén, Administrador | Pagos | HU-EN04 |
+| CU-42 | Entregar con código | Repartidor, Almacén, Administrador | Distribución | HU-EN05, EN06, EN12 |
+| CU-43 | Desbloquear código de entrega | Administrador | Seguridad | HU-EN07 |
+| CU-44 | Confirmar recepción por flota | Cliente, Administrador | Distribución | HU-EN08 |
+| CU-45 | Calificar la entrega («Recibí conforme») | Cliente | E-commerce | HU-EN10, EN11 |
+| CU-46 | Recibir el efectivo de una entrega | Administrador | Pagos | HU-EN09, EN13 |
 
-Las HU de abastecimiento (HU-B…) están en [`08-abastecimiento.md`](08-abastecimiento.md), las de avisos (HU-T…) en [`09-avisos-telegram.md`](09-avisos-telegram.md) y las de preparación y empaque (HU-AL…) en [`10-preparacion-empaque.md`](10-preparacion-empaque.md).
+Las HU de abastecimiento (HU-B…) están en [`08-abastecimiento.md`](08-abastecimiento.md), las de avisos (HU-T…) en [`09-avisos-telegram.md`](09-avisos-telegram.md) las de preparación y empaque (HU-AL…) en [`10-preparacion-empaque.md`](10-preparacion-empaque.md) y las de entrega y cierre (HU-EN…) en [`11-entrega-cierre.md`](11-entrega-cierre.md).
 
 ## Relaciones
 
@@ -73,6 +81,8 @@ Las HU de abastecimiento (HU-B…) están en [`08-abastecimiento.md`](08-abastec
 - CU-25 Armar y enviar orden de compra **«include»** «Ver qué reponer» (proveedor más barato por unidad).
 - CU-29 Recibir orden de compra **«include»** «Registrar entrada en el kardex» y «Actualizar costo promedio» (internos).
 - CU-37 Empacar pedido **«include»** «Verificar que todo esté marcado y sin faltantes abiertos» (interno).
+- CU-42 Entregar con código **«include»** «Verificar el código (máx. 5 intentos)» y «Completar el pedido si ya está pagado» (internos). CU-46 Recibir el efectivo **«include»** «Completar el pedido».
+- Los CU del Repartidor (CU-40 a CU-42) **«include»** CU-02 Iniciar sesión con rol repartidor o admin.
 - Los CU del Almacén (CU-34, CU-35, CU-37, CU-38) **«include»** CU-02 Iniciar sesión con rol almacén o admin. Cada uno deja su paso en la línea de tiempo con quién y cuándo.
 - Los CU del Administrador (CU-04, CU-11, CU-12, CU-15, CU-18 a CU-23, CU-25, CU-26, CU-29, CU-31) y del Distribuidor (CU-24, CU-27, CU-28, CU-30) **«include»** CU-02 Iniciar sesión con su rol. Los del Cliente (CU-08 a CU-10, CU-13, CU-14, CU-17, CU-32) piden sesión de cliente. En los diagramas esto va como nota para no cruzar líneas.
 
@@ -82,11 +92,14 @@ Las HU de abastecimiento (HU-B…) están en [`08-abastecimiento.md`](08-abastec
 - CU-32 Descargar nota de venta **«extend»** CU-09 Consultar mis pedidos: solo desde que el pedido se confirma.
 - CU-35 Reportar faltante **«extend»** CU-34 Preparar pedido: solo si falta algún producto. Bloquea CU-37 hasta que se cumpla CU-36.
 - CU-38 Imprimir etiquetas **«extend»** CU-37 Empacar pedido: una etiqueta por bulto.
+- CU-41 Registrar cobro **«extend»** CU-42 Entregar con código: solo contra entrega, y antes del código.
+- CU-43 Desbloquear código **«extend»** CU-42: solo después de 5 intentos fallidos.
 - CU-33 Avisar por Telegram **«extend»**:
   - CU-08 Realizar pedido (pedido nuevo);
   - CU-14 Subir comprobante (comprobante por revisar);
   - CU-08 y CU-20 cuando el stock cruza su mínimo o llega a 0;
   - CU-27 y CU-28 (orden aceptada, rechazada o despachada);
-  - CU-35 Reportar faltante (fase 9C).
+  - CU-35 Reportar faltante (fase 9C);
+  - CU-42 Entregar con código (pedido entregado y código bloqueado) y CU-45 Calificar entrega con 1 o 2 estrellas (fase 9D).
 
   Condición: la cuenta no es de prueba y los secretos de Telegram están en Vault. El resumen de las 20:00 lo dispara `pg_cron`, sin otro CU.
