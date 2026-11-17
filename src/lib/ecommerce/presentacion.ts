@@ -14,6 +14,7 @@ export const INFO_ESTADO_PEDIDO: Record<EstadoPedido, { etiqueta: string; color:
   listo_para_recoger: { etiqueta: 'Listo para recoger', color: AZUL },
   despachado: { etiqueta: 'Despachado', color: AZUL },
   entregado: { etiqueta: 'Entregado', color: VERDE },
+  completado: { etiqueta: 'Completado', color: VERDE },
   cancelado: { etiqueta: 'Cancelado', color: ROJO },
 }
 
@@ -81,20 +82,24 @@ export function estadoCliente({ estado, estado_pago, metodo_pago, tipoZona, mont
       return {
         etiqueta: 'Empacado',
         color: AZUL,
-        queSigue: tipoZona === 'provincia' ? 'Tu pedido está empacado y sale pronto en la flota.' : 'Tu pedido está empacado y sale pronto hacia ti.',
+        queSigue: tipoZona === 'provincia'
+          ? 'Tu pedido está empacado y sale pronto en la flota.'
+          : 'Tu pedido está empacado y sale pronto hacia ti. Ten a mano tu código de entrega.',
       }
     case 'listo_para_recoger':
-      return { etiqueta: 'Listo para recoger', color: AZUL, queSigue: 'Pasa por la tienda de Villa Charcas con el código de tu pedido.' }
+      return { etiqueta: 'Listo para recoger', color: AZUL, queSigue: 'Pasa por la tienda de Villa Charcas. Da tu código de entrega cuando tengas tu pedido en la mano.' }
     case 'despachado':
       return {
         etiqueta: 'En camino',
         color: AZUL,
         queSigue: tipoZona === 'provincia'
-          ? 'Va en la flota. Recógelo en la terminal con el carnet de quien indicaste.'
-          : 'Va hacia la dirección que indicaste.',
+          ? 'Va en la flota. Recógelo en la terminal con el carnet de quien indicaste y toca «Recibí mi pedido».'
+          : 'Va hacia la dirección que indicaste. Da tu código de entrega solo cuando tengas tu pedido en la mano.',
       }
     case 'entregado':
-      return { etiqueta: 'Entregado', color: VERDE, queSigue: '¡Gracias por tu compra!' }
+      return { etiqueta: 'Entregado', color: VERDE, queSigue: '¡Gracias por tu compra! Cuéntanos cómo te fue con la entrega.' }
+    case 'completado':
+      return { etiqueta: 'Completado', color: VERDE, queSigue: 'Pedido cerrado: entregado y pagado. ¡Gracias por tu compra!' }
     case 'cancelado':
       if (estado_pago === 'reembolso_pendiente') {
         return { etiqueta: 'Cancelado', color: ROJO, queSigue: `La tienda te devolverá ${bs(monto)}.` }
@@ -115,6 +120,7 @@ export const ETIQUETA_SEGUIMIENTO_CLIENTE: Record<EstadoPedido, string> = {
   listo_para_recoger: 'Listo para recoger',
   despachado: 'En camino',
   entregado: 'Entregado',
+  completado: 'Completado',
   cancelado: 'Cancelado',
 }
 
@@ -131,18 +137,17 @@ export const ETIQUETA_TIPO_ZONA: Record<TipoZona, string> = {
   provincia: 'Por flota',
 }
 
-// Pasos que el admin avanza a mano (cambiar_estado_pedido, migración 0017). Preparar y empacar
-// se hacen en /almacen: confirmado y preparando no tienen "siguiente" aquí.
+// Pasos que el admin avanza a mano (cambiar_estado_pedido, migración 0018). Preparar y empacar
+// se hacen en /almacen; a domicilio lo despacha el repartidor ("Tomar y salir") y nadie marca
+// "entregado" sin prueba: código de entrega, o por flota "Recibí mi pedido" / nota de la tienda.
 const SIGUIENTE: Partial<Record<EstadoPedido, EstadoPedido>> = {
   pendiente: 'confirmado',
-  empacado: 'despachado',
-  despachado: 'entregado',
 }
 
-// Recojo en tienda no pasa por "despachado": al empacar queda listo para recoger
-const SIGUIENTE_RECOJO: Partial<Record<EstadoPedido, EstadoPedido>> = {
+// Por flota el admin despacha con la empresa y el número de guía
+const SIGUIENTE_FLOTA: Partial<Record<EstadoPedido, EstadoPedido>> = {
   pendiente: 'confirmado',
-  listo_para_recoger: 'entregado',
+  empacado: 'despachado',
 }
 
 // Estados que se trabajan en el panel de almacén
@@ -153,7 +158,13 @@ export const puedeCancelarAdmin = (estado: EstadoPedido) =>
   estado === 'pendiente' || estado === 'confirmado' || estado === 'preparando' || estado === 'empacado'
 
 export const siguienteEstado = (estado: EstadoPedido, tipoZona?: TipoZona | null) =>
-  (tipoZona === 'recojo' ? SIGUIENTE_RECOJO : SIGUIENTE)[estado] ?? null
+  (tipoZona === 'provincia' ? SIGUIENTE_FLOTA : SIGUIENTE)[estado] ?? null
+
+// Estados en que el pedido ya salió del almacén y espera la entrega
+export const ESTADOS_EN_ENTREGA: readonly EstadoPedido[] = ['empacado', 'listo_para_recoger', 'despachado']
+
+// Pedido cerrado o entregado: ya se puede calificar la entrega
+export const estaEntregado = (estado: EstadoPedido) => estado === 'entregado' || estado === 'completado'
 
 // Estados en que el pago ya llegó o está por revisarse: el cliente no puede cancelar solo (0006)
 export const puedeCancelarCliente = (estado: EstadoPedido, estadoPago: EstadoPago) =>
