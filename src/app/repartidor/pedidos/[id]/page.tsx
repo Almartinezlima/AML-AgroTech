@@ -10,6 +10,7 @@ import Insignia from '@/components/ui/Insignia'
 import { claseBoton, claseBotonPrimario, claseBotonSecundario, clasePagina, claseTarjeta, claseTituloSeccion } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
+import { cantidadConUnidad } from '@/lib/abastecimiento/presentacion'
 import { INFO_ESTADO_PEDIDO, diaHora } from '@/lib/ecommerce/presentacion'
 import type { DetalleEntrega } from '@/types/entrega'
 
@@ -98,7 +99,7 @@ export default function EntregarPedidoPage() {
             {pedido.items.map((item) => (
               <li key={item.id} className="flex justify-between gap-3">
                 <span className="min-w-0 break-words">{item.nombre_producto}</span>
-                <span className="whitespace-nowrap tabular-nums text-texto-2">{item.cantidad} {item.unidad ?? ''}</span>
+                <span className="whitespace-nowrap tabular-nums text-texto-2">{cantidadConUnidad(item.cantidad, item.unidad)}</span>
               </li>
             ))}
           </ul>

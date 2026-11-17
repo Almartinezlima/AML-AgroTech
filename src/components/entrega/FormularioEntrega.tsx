@@ -122,7 +122,7 @@ export default function FormularioEntrega({ detalle, enTienda = false, onCambio,
                 value={monto}
                 onChange={(e) => setMonto(e.target.value.replace(/[^0-9.,]/g, ''))}
                 className={`${claseInput} text-2xl tabular-nums`}
-                placeholder={String(detalle.total)}
+                placeholder={`Ej.: ${detalle.total}`}
               />
               <p className={claseAyuda}>Tiene que ser igual al total. El efectivo lo rindes a la tienda.</p>
             </div>
