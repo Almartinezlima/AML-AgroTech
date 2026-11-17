@@ -445,24 +445,21 @@ as $$
 declare
   v_usuario uuid := public.aml_usuario_activo();
   v_pedido record;
-  v_tipo_zona text;
   v_interna boolean;
 begin
-  select p.id, p.usuario_id, p.estado, p.zona_envio_id, p.despachado_por, p.entregado_por
+  -- Un solo select (con la zona): un segundo select pisaría FOUND
+  select p.id, p.usuario_id, p.estado, p.despachado_por, p.entregado_por, z.tipo as tipo_zona
   into v_pedido
   from public.pedidos p
+  left join public.zonas_envio z on z.id = p.zona_envio_id
   where p.id = p_pedido_id;
-
-  if found then
-    select z.tipo into v_tipo_zona from public.zonas_envio z where z.id = v_pedido.zona_envio_id;
-  end if;
 
   if not found
      or not (
        v_pedido.usuario_id is not distinct from v_usuario
        or public.es_admin()
        or (public.es_almacen() and v_pedido.estado in ('confirmado', 'preparando', 'empacado', 'listo_para_recoger'))
-       or (public.es_repartidor() and v_tipo_zona = 'urbano'
+       or (public.es_repartidor() and v_pedido.tipo_zona = 'urbano'
            and (v_pedido.estado = 'empacado' or v_pedido.despachado_por = v_usuario or v_pedido.entregado_por = v_usuario))
      ) then
     raise exception 'El pedido no existe.' using errcode = 'AML04';
