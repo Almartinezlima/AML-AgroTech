@@ -1,5 +1,6 @@
 import { claseTextoEstado } from '@/components/ui/Insignia'
 import { ETIQUETA_SEGUIMIENTO_CLIENTE, INFO_ESTADO_PEDIDO, diaHora } from '@/lib/ecommerce/presentacion'
+import { detalleVerificacion, esVerificacionPago, textoVerificacion } from '@/lib/entrega/presentacion'
 import type { EventoSeguimiento } from '@/types/comercio'
 import { ETIQUETA_ROL, type RolUsuario } from '@/types/usuarios'
 
@@ -21,6 +22,9 @@ export default function LineaTiempo({ eventos }: { eventos: EventoSeguimiento[] 
     <ol className="flex flex-col">
       {eventos.map((evento, i) => {
         const info = INFO_ESTADO_PEDIDO[evento.estado]
+        // El pago verificado dice quién y cuándo en una sola línea (fase 9D)
+        const verificacion = esVerificacionPago(evento) && evento.actor_nombre
+        const detalle = verificacion ? detalleVerificacion(evento) : null
         return (
           <li key={evento.id} className="flex gap-3">
             <div className="flex flex-col items-center">
@@ -29,8 +33,17 @@ export default function LineaTiempo({ eventos }: { eventos: EventoSeguimiento[] 
             </div>
             <div className="pb-5 min-w-0">
               <p className={`font-semibold text-sm ${claseTextoEstado(info.color)}`}>{ETIQUETA_SEGUIMIENTO_CLIENTE[evento.estado]}</p>
-              {evento.nota && <p className="text-texto text-sm break-words">{evento.nota}</p>}
-              <p className="text-texto-2 text-xs mt-0.5">{quienCuando(evento)}</p>
+              {verificacion ? (
+                <>
+                  <p className="text-texto text-sm break-words">{textoVerificacion(evento)}</p>
+                  {detalle && <p className="text-texto-2 text-xs mt-0.5 break-words first-letter:uppercase">{detalle}</p>}
+                </>
+              ) : (
+                <>
+                  {evento.nota && <p className="text-texto text-sm break-words">{evento.nota}</p>}
+                  <p className="text-texto-2 text-xs mt-0.5">{quienCuando(evento)}</p>
+                </>
+              )}
             </div>
           </li>
         )

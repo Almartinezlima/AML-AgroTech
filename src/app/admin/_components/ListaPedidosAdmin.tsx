@@ -11,7 +11,7 @@ import { ESTADOS_ALMACEN, ETIQUETA_METODO, INFO_ESTADO_PAGO, INFO_ESTADO_PEDIDO,
 import { nombreArchivoNota, situacionNota } from '@/lib/ecommerce/notaVenta'
 import { formatoBs } from '@/lib/utils'
 import type { PedidoResumen } from '@/types/comercio'
-import { LuFileDown, LuHourglass, LuPackageCheck } from 'react-icons/lu'
+import { LuFileDown, LuHandshake, LuHourglass, LuPackageCheck, LuTruck } from 'react-icons/lu'
 
 // Un dato del pedido: "Entrega: Distrito Pucara"
 function Dato({ titulo, children }: { titulo: string; children: React.ReactNode }) {
@@ -73,6 +73,7 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
         {pedidos.map((pedido) => {
           const proximo = siguienteEstado(pedido.estado, pedido.zonas_envio?.tipo)
           const esperaPago = pedido.metodo_pago !== 'contra_entrega' && pedido.estado_pago !== 'verificado'
+          const tipoZona = pedido.zonas_envio?.tipo
           return (
             <li key={pedido.id} className={claseTarjeta}>
               <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2 p-4 pb-2">
@@ -113,7 +114,19 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
                       <LuPackageCheck className="h-4 w-4" aria-hidden="true" /> Ver en almacén
                     </Link>
                   )}
-                  {proximo && (esperaPago && proximo !== 'entregado' ? (
+                  {/* A domicilio lo despacha y lo entrega el repartidor con el código (fase 9D) */}
+                  {tipoZona === 'urbano' && (pedido.estado === 'empacado' || pedido.estado === 'despachado') && (
+                    <Link href={pedido.estado === 'empacado' ? '/repartidor' : `/repartidor/pedidos/${pedido.id}`} className={claseBoton('secundario', 'chico')}>
+                      <LuTruck className="h-4 w-4" aria-hidden="true" /> Ver en reparto
+                    </Link>
+                  )}
+                  {/* En tienda (con el código) o por flota (con nota): desde el detalle del pedido */}
+                  {(pedido.estado === 'listo_para_recoger' || (pedido.estado === 'despachado' && tipoZona === 'provincia')) && (
+                    <Link href={`/pedidos/${pedido.id}`} className={claseBoton('primario', 'chico')}>
+                      <LuHandshake className="h-4 w-4" aria-hidden="true" /> Registrar entrega
+                    </Link>
+                  )}
+                  {proximo && (esperaPago ? (
                     <span className={`${claseTextoPendiente} inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold`}>
                       <LuHourglass className="h-4 w-4" aria-hidden="true" /> Esperando pago
                     </span>
@@ -136,11 +149,11 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
             {siguiente === 'despachado' && (
               <>
                 <div>
-                  <label htmlFor="transportista" className={claseEtiqueta}>Empresa de flota{avanzando.zonas_envio?.tipo === 'provincia' ? ' (obligatorio)' : ''}</label>
+                  <label htmlFor="transportista" className={claseEtiqueta}>Empresa de flota (obligatorio)</label>
                   <input id="transportista" maxLength={100} value={formulario.transportista} onChange={(e) => setFormulario((f) => ({ ...f, transportista: e.target.value }))} className={claseInput} />
                 </div>
                 <div>
-                  <label htmlFor="guia" className={claseEtiqueta}>Número de guía{avanzando.zonas_envio?.tipo === 'provincia' ? ' (obligatorio)' : ''}</label>
+                  <label htmlFor="guia" className={claseEtiqueta}>Número de guía (obligatorio)</label>
                   <input id="guia" maxLength={60} value={formulario.numero_guia} onChange={(e) => setFormulario((f) => ({ ...f, numero_guia: e.target.value }))} className={claseInput} />
                 </div>
               </>

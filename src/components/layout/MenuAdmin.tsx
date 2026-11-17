@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { IconType } from 'react-icons'
 import {
-  LuBuilding2, LuChartColumn, LuCreditCard, LuMapPin, LuPackage, LuPackageCheck, LuPercent, LuShoppingCart, LuTruck, LuUsers, LuWarehouse,
+  LuBuilding2, LuChartColumn, LuCreditCard, LuHandshake, LuMapPin, LuPackage, LuPackageCheck, LuPercent, LuShoppingCart, LuTruck, LuUsers, LuWarehouse,
 } from 'react-icons/lu'
 
 const OPCIONES: Array<{ href: string; texto: string; icono: IconType }> = [
@@ -14,6 +14,8 @@ const OPCIONES: Array<{ href: string; texto: string; icono: IconType }> = [
   // El panel de almacén está fuera de /admin: lo usan el admin y la cuenta de almacén
   { href: '/almacen', texto: 'Almacén', icono: LuPackageCheck },
   { href: '/admin/envios', texto: 'Envíos', icono: LuTruck },
+  // Panel del repartidor (fase 9D): fuera de /admin, lo usan el admin y la cuenta de reparto
+  { href: '/repartidor', texto: 'Reparto', icono: LuHandshake },
   { href: '/admin/productos', texto: 'Productos', icono: LuPackage },
   { href: '/admin/inventario', texto: 'Inventario', icono: LuWarehouse },
   { href: '/admin/abastecimiento', texto: 'Abastecimiento', icono: LuBuilding2 },

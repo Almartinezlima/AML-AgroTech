@@ -19,10 +19,11 @@ test.describe('Registro', () => {
     const usuario = (await usuariosDePrueba(admin)).find((u) => u.email === cuenta.email)
     expect(usuario?.activo).toBe(false)
 
-    // Sin el interruptor, el panel no la lista
+    // Desde la 8A-2, /api/usuarios lista todos los perfiles (también los desactivados):
+    // la cuenta sigue apareciendo, pero desactivada. Nada se borra.
     const lista = await admin.request.get('/api/usuarios')
-    const visibles = ((await lista.json()) as { data: Array<{ email: string }> }).data
-    expect(visibles.some((u) => u.email === cuenta.email)).toBe(false)
+    const visibles = ((await lista.json()) as { data: Array<{ email: string; activo: boolean }> }).data
+    expect(visibles.find((u) => u.email === cuenta.email)?.activo).toBe(false)
     await admin.context().close()
 
     // Si intenta entrar, ve el aviso de cuenta desactivada
