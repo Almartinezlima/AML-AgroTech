@@ -6,7 +6,7 @@ import fotoValle from '../../../public/portada/villa-charcas.webp'
 
 const VENTAJAS = [
   { icono: LuTruck, texto: 'Envío a los distritos de Villa Charcas, Incahuasi y Culpina' },
-  { icono: LuQrCode, texto: 'Pago con QR, transferencia o efectivo al recibir' },
+  { icono: LuQrCode, texto: 'Pago con QR desde la app de tu banco' },
   { icono: LuMapPin, texto: 'Precios en bolivianos, desde Villa Charcas' },
 ]
 

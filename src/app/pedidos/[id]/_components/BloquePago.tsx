@@ -1,6 +1,6 @@
 'use client'
 import { LuExternalLink } from 'react-icons/lu'
-import InstruccionesPago from '@/components/pagos/InstruccionesPago'
+import QrPago from '@/components/pagos/QrPago'
 import { Aviso } from '@/components/ui/Estados'
 import Insignia from '@/components/ui/Insignia'
 import { claseTarjeta } from '@/components/ui/estilos'
@@ -21,7 +21,7 @@ export default function BloquePago({ pedido, esDueno, onActualizado }: BloquePag
 
   const puedeSubir = esDueno
     && pedido.estado !== 'cancelado'
-    && pago.metodo !== 'contra_entrega'
+    && pago.metodo === 'qr'
     && (pago.estado === 'pendiente' || pago.estado === 'rechazado')
 
   return (
@@ -48,7 +48,7 @@ export default function BloquePago({ pedido, esDueno, onActualizado }: BloquePag
         <Aviso tipo="ok">Recibimos tu comprobante (foto del pago). La tienda lo está revisando; mira aquí el estado.</Aviso>
       )}
 
-      {puedeSubir && <InstruccionesPago metodo={pago.metodo} monto={pago.monto} codigo={pedido.codigo} />}
+      {puedeSubir && <QrPago monto={pago.monto} codigo={pedido.codigo} />}
 
       {pedido.comprobante_url && (
         <a href={pedido.comprobante_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-acento hover:underline">

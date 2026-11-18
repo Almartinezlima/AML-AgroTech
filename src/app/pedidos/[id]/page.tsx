@@ -49,7 +49,7 @@ export default function PedidoDetallePage() {
   const esDueno = user?.id === pedido.usuario_id
   const esAdmin = perfil?.rol === 'admin'
   // Si ya mandó el comprobante, la cancelación la hace la tienda (y genera el reembolso)
-  const puedeCancelar = esDueno && puedeCancelarCliente(pedido.estado, pedido.estado_pago, pedido.metodo_pago)
+  const puedeCancelar = esDueno && puedeCancelarCliente(pedido.estado, pedido.estado_pago)
   const estado = estadoCliente({
     estado: pedido.estado,
     estado_pago: pedido.estado_pago,

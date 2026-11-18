@@ -1,31 +1,25 @@
 import Link from 'next/link'
 import Insignia from '@/components/ui/Insignia'
 import { claseBoton, claseEnlace, claseTarjeta, claseTextoError } from '@/components/ui/estilos'
-import { ETIQUETA_METODO, INFO_ESTADO_PAGO, diaHora } from '@/lib/ecommerce/presentacion'
+import { ETIQUETA_METODO, INFO_ESTADO_PAGO } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import type { PagoAdmin } from '@/types/comercio'
-import { LuBanknote, LuExternalLink, LuFileText, LuMaximize2 } from 'react-icons/lu'
+import { LuExternalLink, LuFileText, LuMaximize2 } from 'react-icons/lu'
 
 interface TarjetaPagoProps {
   pago: PagoAdmin
   onAprobar: () => void
   onRechazar: () => void
   onReembolsar: () => void
-  onRecibirEfectivo: () => void
   // Abre el visor en grande (fase 9E)
   onVerComprobante: () => void
 }
 
-// Efectivo cobrado por el repartidor o el almacén, todavía sin rendir a la tienda (fase 9D)
-export const esEfectivoPorRendir = (pago: PagoAdmin) =>
-  pago.metodo === 'contra_entrega' && pago.estado === 'pendiente' && Boolean(pago.cobrado_en)
-
 // Un pago en tres partes: quién y estado · comprobante con el monto esperado · monto y acciones
-export default function TarjetaPago({ pago, onAprobar, onRechazar, onReembolsar, onRecibirEfectivo, onVerComprobante }: TarjetaPagoProps) {
+export default function TarjetaPago({ pago, onAprobar, onRechazar, onReembolsar, onVerComprobante }: TarjetaPagoProps) {
   // Lo que debería decir el comprobante: el total del pedido (o el monto del pago)
   const esperado = pago.pedidos?.total ?? pago.monto
   const esPdf = pago.comprobante_path?.toLowerCase().endsWith('.pdf') ?? false
-  const porRendir = esEfectivoPorRendir(pago)
 
   return (
     <li className={claseTarjeta}>
@@ -34,7 +28,7 @@ export default function TarjetaPago({ pago, onAprobar, onRechazar, onReembolsar,
           <Link href={`/pedidos/${pago.pedido_id}`} className={`${claseEnlace} font-titulo text-lg`}>{pago.pedidos?.codigo}</Link>
           <p className="text-texto font-medium break-words">{pago.cliente?.nombre ?? 'Cliente'}</p>
         </div>
-        <Insignia info={porRendir ? { etiqueta: 'Efectivo por rendir', color: INFO_ESTADO_PAGO.pendiente.color } : INFO_ESTADO_PAGO[pago.estado]} />
+        <Insignia info={INFO_ESTADO_PAGO[pago.estado]} />
       </div>
 
       <dl className="grid grid-cols-1 gap-x-6 gap-y-1 px-4 pb-3 text-sm sm:grid-cols-2">
@@ -73,13 +67,6 @@ export default function TarjetaPago({ pago, onAprobar, onRechazar, onReembolsar,
         </div>
       )}
 
-      {porRendir && pago.cobrado_en && (
-        <p className="mx-4 mb-3 inline-flex items-start gap-2 rounded-xl bg-estado-pendiente/10 px-3 py-2 text-sm text-estado-pendiente-texto">
-          <LuBanknote className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <span>Cobró {pago.cobrado_por ?? 'el personal'} · {diaHora(pago.cobrado_en)} · {formatoBs(pago.monto_cobrado ?? pago.monto)} en efectivo</span>
-        </p>
-      )}
-
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-b-2xl border-t border-borde bg-tarjeta-hover/40 px-4 py-3">
         <span className="font-titulo text-xl font-bold tabular-nums text-texto">{formatoBs(pago.monto)}</span>
         <div className="flex flex-wrap items-center justify-end gap-2">
@@ -94,9 +81,6 @@ export default function TarjetaPago({ pago, onAprobar, onRechazar, onReembolsar,
           ))}
           {pago.estado === 'reembolso_pendiente' && (
             <button onClick={onReembolsar} className={claseBoton('primario', 'chico')}>Marcar como reembolsado</button>
-          )}
-          {porRendir && (
-            <button onClick={onRecibirEfectivo} className={claseBoton('primario', 'chico')}>Recibí el efectivo</button>
           )}
           {pago.estado === 'en_revision' && (
             <>

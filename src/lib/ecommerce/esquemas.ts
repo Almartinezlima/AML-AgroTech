@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { BANDAS_TOXICOLOGICAS, ESTADOS_PEDIDO, METODOS_PAGO, TENDENCIAS_PRECIO, TIPOS_ZONA } from '@/types/comercio'
+import { BANDAS_TOXICOLOGICAS, ESTADOS_PEDIDO, TENDENCIAS_PRECIO, TIPOS_ZONA } from '@/types/comercio'
 import { REGEX_CI } from './reglas'
 
 const textoOpcional = (maximo: number) =>
@@ -26,7 +26,8 @@ export const esquemaCrearPedido = z.strictObject(
     zona_id: z.uuid({ error: 'Elige una zona de envío.' }),
     direccion: textoOpcional(300),
     telefono: z.string({ error: 'El teléfono es obligatorio.' }).trim().regex(/^[0-9+() -]{7,20}$/, { error: 'El teléfono no es válido.' }),
-    metodo_pago: z.enum(METODOS_PAGO, { error: 'El método de pago no es válido.' }),
+    // Fase 9F: solo QR (si no viene, es QR)
+    metodo_pago: z.literal('qr', { error: 'Solo se paga con QR.' }).default('qr'),
     notas: textoOpcional(500),
     // Zonas por flota: quién recoge la encomienda (la base exige ambos para esas zonas)
     recoge_nombre: z.string({ error: 'El nombre de quien recoge no es válido.' }).trim().min(3, { error: 'Escribe el nombre de quien recoge.' }).max(100, { error: 'Máximo 100 caracteres.' }).nullable().optional(),
@@ -113,7 +114,6 @@ const camposZona = {
   costo: z.number({ error: 'El costo no es válido.' }).min(0, { error: 'El costo no es válido.' }).max(99999, { error: 'El costo es demasiado alto.' }),
   dias_min: z.number({ error: 'Los días no son válidos.' }).int({ error: 'Los días no son válidos.' }).min(0, { error: 'Los días no son válidos.' }).max(60, { error: 'Máximo 60 días.' }),
   dias_max: z.number({ error: 'Los días no son válidos.' }).int({ error: 'Los días no son válidos.' }).min(0, { error: 'Los días no son válidos.' }).max(60, { error: 'Máximo 60 días.' }),
-  permite_contra_entrega: z.boolean({ error: 'El valor no es válido.' }),
   orden: z.number({ error: 'El orden no es válido.' }).int({ error: 'El orden no es válido.' }).min(0, { error: 'El orden no es válido.' }).max(999, { error: 'El orden no es válido.' }).optional(),
 }
 
