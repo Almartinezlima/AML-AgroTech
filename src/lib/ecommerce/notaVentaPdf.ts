@@ -63,7 +63,7 @@ const ANCHO_COL = { cantidad: 90, producto: UTIL - 96 - 186, unitario: 86, subto
 type Doc = PDFKit.PDFDocument
 
 function textoPago(datos: DatosNotaPdf) {
-  if (datos.metodo_pago === 'contra_entrega' && datos.estado_pago === 'pendiente') return 'Se paga al recibir'
+  if (datos.metodo_pago === 'contra_entrega' && datos.estado_pago === 'pendiente') return 'Efectivo al recibir'
   return INFO_ESTADO_PAGO[datos.estado_pago].etiqueta
 }
 
@@ -85,7 +85,7 @@ function encabezado(doc: Doc, datos: DatosNotaPdf) {
 
   const derecha = { width: 220, align: 'right' as const }
   const x = MARGEN + UTIL - 220
-  doc.fillColor(TEXTO).font('Helvetica-Bold').fontSize(14).text('NOTA DE VENTA', x, MARGEN, derecha)
+  doc.fillColor(TEXTO).font('Helvetica-Bold').fontSize(14).text('RECIBO DE COMPRA', x, MARGEN, derecha)
   doc.font('Helvetica-Bold').fontSize(12).text(`N.º ${datos.codigo}`, x, MARGEN + 20, derecha)
   doc.font('Helvetica').fontSize(10).fillColor(GRIS).text(`${fechaHora(datos.created_at)} (hora de Bolivia)`, x, MARGEN + 38, derecha)
 
@@ -93,7 +93,7 @@ function encabezado(doc: Doc, datos: DatosNotaPdf) {
   const y = MARGEN + 64
   doc.lineWidth(1).strokeColor(TEXTO).rect(MARGEN, y, UTIL, 24).stroke()
   doc.fillColor(TEXTO).font('Helvetica-Bold').fontSize(10)
-    .text('Nota de venta — documento sin valor fiscal (no es factura)', MARGEN, y + 7, { width: UTIL, align: 'center' })
+    .text('Recibo de compra — documento sin valor fiscal (no es factura)', MARGEN, y + 7, { width: UTIL, align: 'center' })
   return y + 40
 }
 
@@ -188,7 +188,7 @@ function marcaAnulada(doc: Doc) {
 function pie(doc: Doc, datos: DatosNotaPdf, pagina: number, total: number) {
   doc.lineWidth(0.5).strokeColor(LINEA).moveTo(MARGEN, PIE).lineTo(MARGEN + UTIL, PIE).stroke()
   doc.fillColor(GRIS).font('Helvetica').fontSize(9)
-    .text(`${datos.codigo} · Nota de venta sin valor fiscal · Gracias por comprar en AML AgroTech`, MARGEN, PIE + 8, { width: UTIL - 80, lineBreak: false })
+    .text(`${datos.codigo} · Recibo de compra sin valor fiscal · Gracias por comprar en AML AgroTech`, MARGEN, PIE + 8, { width: UTIL - 80, lineBreak: false })
     .text(`Página ${pagina} de ${total}`, MARGEN + UTIL - 80, PIE + 8, { width: 80, align: 'right', lineBreak: false })
 }
 
@@ -197,7 +197,7 @@ export async function generarNotaPdf(datos: DatosNotaPdf): Promise<Buffer> {
     size: 'LETTER',
     margin: MARGEN,
     bufferPages: true,
-    info: { Title: `Nota de venta ${datos.codigo}`, Author: 'AML AgroTech', Subject: 'Nota de venta — documento sin valor fiscal' },
+    info: { Title: `Recibo de compra ${datos.codigo}`, Author: 'AML AgroTech', Subject: 'Recibo de compra — documento sin valor fiscal' },
   })
   const partes: Buffer[] = []
   doc.on('data', (parte: Buffer) => partes.push(parte))
@@ -215,7 +215,7 @@ export async function generarNotaPdf(datos: DatosNotaPdf): Promise<Buffer> {
   const finEntrega = bloque(doc, 'Entrega', lineasEntrega(datos), MARGEN + mitad + 24, y, mitad)
   y = Math.max(finCliente, finEntrega) + 10
 
-  const estadoPedido = datos.anulada ? 'Cancelado (nota anulada)' : INFO_ESTADO_PEDIDO[datos.estado].etiqueta
+  const estadoPedido = datos.anulada ? 'Cancelado (recibo anulado)' : INFO_ESTADO_PEDIDO[datos.estado].etiqueta
   const pago = [
     `Método: ${ETIQUETA_METODO[datos.metodo_pago]}`,
     `Estado del pago: ${textoPago(datos)}`,
@@ -224,7 +224,7 @@ export async function generarNotaPdf(datos: DatosNotaPdf): Promise<Buffer> {
   // Completado: la nota queda final. Antes, se aclara que el pedido sigue en curso.
   const estado = [estadoPedido]
   if (datos.entrega) estado.push(datos.entrega)
-  if (!datos.anulada) estado.push(datos.final ? 'NOTA FINAL: pedido entregado y pagado' : 'Pedido en curso: la nota queda final al completarse')
+  if (!datos.anulada) estado.push(datos.final ? 'RECIBO FINAL: pedido entregado y pagado' : 'Pedido en curso: el recibo queda final al completarse')
   const finPago = bloque(doc, 'Pago', pago, MARGEN, y, mitad)
   const finEstado = bloque(doc, 'Estado del pedido', estado, MARGEN + mitad + 24, y, mitad)
   y = Math.max(finPago, finEstado) + 18

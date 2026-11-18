@@ -31,7 +31,7 @@ interface ListaPedidosAdminProps {
 export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedidosAdminProps) {
   const [avanzando, setAvanzando] = useState<PedidoResumen | null>(null)
   const [cancelando, setCancelando] = useState<PedidoResumen | null>(null)
-  const [formulario, setFormulario] = useState({ nota: '', transportista: '', numero_guia: '' })
+  const [formulario, setFormulario] = useState({ transportista: '', numero_guia: '' })
   const [procesando, setProcesando] = useState(false)
   const [error, setError] = useState('')
 
@@ -44,7 +44,6 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
   const abrirAvance = (pedido: PedidoResumen) => {
     setError('')
     setFormulario({
-      nota: '',
       transportista: pedido.envios?.transportista ?? '',
       numero_guia: pedido.envios?.numero_guia ?? '',
     })
@@ -99,10 +98,10 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-b-2xl border-t border-borde bg-tarjeta-hover/40 px-4 py-3">
                 <span className="font-titulo text-xl font-bold tabular-nums text-texto">{formatoBs(pedido.total)}</span>
                 <div className="flex flex-wrap items-center justify-end gap-2">
-                  {/* Nota de venta (fase 7). Los cancelados se ven en el detalle: allí se sabe si se llegaron a confirmar */}
+                  {/* Recibo de compra (fase 7, nombre de la 9E). Los cancelados se ven en el detalle: allí se sabe si se llegaron a confirmar */}
                   {situacionNota(pedido) === 'disponible' && (
                     <a href={`/api/pedidos/${pedido.id}/nota`} download={nombreArchivoNota(pedido.codigo)} className={claseBoton('secundario', 'chico')}>
-                      <LuFileDown className="h-4 w-4" aria-hidden="true" /> Nota PDF
+                      <LuFileDown className="h-4 w-4" aria-hidden="true" /> Recibo PDF
                     </a>
                   )}
                   {puedeCancelarAdmin(pedido.estado) && (
@@ -132,7 +131,7 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
                     </span>
                   ) : (
                     <button onClick={() => abrirAvance(pedido)} className={claseBoton('primario', 'chico')}>
-                      Pasar a {INFO_ESTADO_PEDIDO[proximo].etiqueta}
+                      <LuTruck className="h-4 w-4" aria-hidden="true" /> Despachar por flota
                     </button>
                   ))}
                 </div>
@@ -143,7 +142,7 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
       </ul>
 
       {avanzando && siguiente && (
-        <Modal titulo={`${avanzando.codigo}: pasar a ${INFO_ESTADO_PEDIDO[siguiente].etiqueta}`} bloqueado={procesando} onCerrar={cerrar}>
+        <Modal titulo={`${avanzando.codigo}: despachar por flota`} bloqueado={procesando} onCerrar={cerrar}>
           <div className="flex flex-col gap-4">
             <AvisoError mensaje={error} />
             {siguiente === 'despachado' && (
@@ -158,17 +157,13 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
                 </div>
               </>
             )}
-            <div>
-              <label htmlFor="nota" className={claseEtiqueta}>Nota para el seguimiento (opcional)</label>
-              <input id="nota" maxLength={300} value={formulario.nota} onChange={(e) => setFormulario((f) => ({ ...f, nota: e.target.value }))} className={claseInput} />
-            </div>
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
               <button disabled={procesando} onClick={cerrar} className={claseBotonSecundario}>Volver</button>
               <button
                 disabled={procesando}
                 onClick={() => void ejecutar(() => enviarJson(`/api/pedidos/${avanzando.id}/estado`, 'PATCH', {
                   estado: siguiente,
-                  nota: formulario.nota.trim() || null,
+                  nota: null,
                   transportista: formulario.transportista.trim() || null,
                   numero_guia: formulario.numero_guia.trim() || null,
                 }))}

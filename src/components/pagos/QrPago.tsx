@@ -43,7 +43,7 @@ export default function QrPago({ monto, codigo }: QrPagoProps) {
         <ol className="list-decimal space-y-1 pl-5 text-sm text-texto">
           <li>Abre la app de tu banco y elige pagar con QR.</li>
           <li>Escanea el QR o súbelo desde tu galería con «Guardar QR».</li>
-          <li>Escribe {formatoBs(monto)} y el código {codigo} en el concepto, paga y guarda el comprobante.</li>
+          <li>Escribe {formatoBs(monto)} y el código {codigo} en el concepto, paga y saca una captura del pago.</li>
         </ol>
         <div className="flex flex-col gap-2 sm:flex-row">
           <a href={QR_TIENDA} download={`QR-AML-AgroTech-${codigo}.jpg`} target="_blank" rel="noopener noreferrer" className={claseBoton('secundario', 'chico')}>

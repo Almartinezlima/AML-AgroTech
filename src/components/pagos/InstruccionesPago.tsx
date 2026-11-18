@@ -35,7 +35,7 @@ export default function InstruccionesPago({ metodo, monto, codigo }: Instruccion
   if (metodo === 'contra_entrega') {
     return (
       <p className="text-sm text-texto">
-        Pagas en efectivo cuando recibes o recoges tu pedido{monto !== undefined ? `: ${formatoBs(monto)}` : ''}. No tienes que subir comprobante.
+        Pagas en efectivo cuando recibes o recoges tu pedido{monto !== undefined ? `: ${formatoBs(monto)}` : ''}. No tienes que subir ninguna foto.
       </p>
     )
   }
@@ -44,7 +44,7 @@ export default function InstruccionesPago({ metodo, monto, codigo }: Instruccion
     if (registrado) return <QrPago monto={monto} codigo={codigo} />
     return (
       <p className="text-sm text-texto">
-        Al confirmar tu pedido te mostramos el QR con el monto exacto. Pagas desde la app de tu banco y subes la foto del comprobante.
+        Al confirmar tu pedido te mostramos el QR con el monto exacto. Pagas desde la app de tu banco y subes la foto del pago.
       </p>
     )
   }
@@ -52,7 +52,7 @@ export default function InstruccionesPago({ metodo, monto, codigo }: Instruccion
   if (!registrado) {
     return (
       <p className="text-sm text-texto">
-        Al confirmar tu pedido te mostramos la cuenta y el monto exacto. Transfieres desde tu banco y subes la foto del comprobante.
+        Al confirmar tu pedido te mostramos la cuenta y el monto exacto. Transfieres desde tu banco y subes la foto del pago.
       </p>
     )
   }

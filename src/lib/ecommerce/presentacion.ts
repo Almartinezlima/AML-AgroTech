@@ -12,7 +12,7 @@ export const INFO_ESTADO_PEDIDO: Record<EstadoPedido, { etiqueta: string; color:
   preparando: { etiqueta: 'Preparando', color: AZUL },
   empacado: { etiqueta: 'Empacado', color: AZUL },
   listo_para_recoger: { etiqueta: 'Listo para recoger', color: AZUL },
-  despachado: { etiqueta: 'Despachado', color: AZUL },
+  despachado: { etiqueta: 'En camino', color: AZUL },
   entregado: { etiqueta: 'Entregado', color: VERDE },
   completado: { etiqueta: 'Completado', color: VERDE },
   cancelado: { etiqueta: 'Cancelado', color: ROJO },
@@ -65,16 +65,19 @@ export function estadoCliente({ estado, estado_pago, metodo_pago, tipoZona, mont
   switch (estado) {
     case 'pendiente':
       if (estado_pago === 'en_revision') {
-        return { etiqueta: 'Revisando tu pago', color: AZUL, queSigue: 'La tienda está revisando tu comprobante. Mira aquí el estado.' }
+        return { etiqueta: 'Revisando tu pago', color: AZUL, queSigue: 'La tienda está revisando tu comprobante (foto del pago). Mira aquí el estado.' }
       }
       if (estado_pago === 'rechazado') {
-        return { etiqueta: 'Pago rechazado', color: ROJO, queSigue: 'La tienda no pudo validar tu comprobante. Sube otro comprobante.' }
+        return { etiqueta: 'Pago rechazado', color: ROJO, queSigue: 'La tienda no pudo validar tu comprobante (foto del pago). Sube otra foto.' }
       }
       if (metodo_pago === 'contra_entrega') {
         return { etiqueta: 'Recibido', color: AMBAR, queSigue: 'La tienda revisará tu pedido para confirmarlo. Pagas en efectivo al recibirlo.' }
       }
-      return { etiqueta: 'Falta pagar', color: AMBAR, queSigue: `Paga con ${metodo_pago === 'qr' ? 'el QR' : 'transferencia'} y sube la foto de tu comprobante.` }
+      return { etiqueta: 'Falta pagar', color: AMBAR, queSigue: `Paga con ${metodo_pago === 'qr' ? 'el QR' : 'transferencia'} y sube la foto del pago.` }
     case 'confirmado':
+      if (metodo_pago === 'contra_entrega') {
+        return { etiqueta: 'Confirmado', color: VERDE, queSigue: `Tu pedido está confirmado y ya lo estamos preparando. Pagas ${bs(monto)} en efectivo al recibir.` }
+      }
       return { etiqueta: 'Confirmado', color: VERDE, queSigue: 'Tu pedido está confirmado. El siguiente paso es prepararlo.' }
     case 'preparando':
       return { etiqueta: 'Preparando', color: AZUL, queSigue: 'Estamos alistando tus productos.' }
@@ -127,7 +130,7 @@ export const ETIQUETA_SEGUIMIENTO_CLIENTE: Record<EstadoPedido, string> = {
 export const ETIQUETA_METODO: Record<MetodoPago, string> = {
   qr: 'QR',
   transferencia: 'Transferencia',
-  contra_entrega: 'Contra entrega',
+  contra_entrega: 'Efectivo al recibir',
 }
 
 // En palabras simples para el cliente (los valores de la base siguen siendo recojo/urbano/provincia)
@@ -137,16 +140,13 @@ export const ETIQUETA_TIPO_ZONA: Record<TipoZona, string> = {
   provincia: 'Por flota',
 }
 
-// Pasos que el admin avanza a mano (cambiar_estado_pedido, migración 0018). Preparar y empacar
-// se hacen en /almacen; a domicilio lo despacha el repartidor ("Tomar y salir") y nadie marca
-// "entregado" sin prueba: código de entrega, o por flota "Recibí mi pedido" / nota de la tienda.
-const SIGUIENTE: Partial<Record<EstadoPedido, EstadoPedido>> = {
-  pendiente: 'confirmado',
-}
+// Pasos que el admin avanza a mano (cambiar_estado_pedido). Desde la 9E solo queda despachar por
+// flota (con la empresa y el número de guía): QR y transferencia se confirman al verificar el pago,
+// el efectivo al recibir nace confirmado (0019), preparar y empacar se hacen en /almacen, a
+// domicilio despacha el repartidor y nadie marca "entregado" sin prueba (0018).
+const SIGUIENTE: Partial<Record<EstadoPedido, EstadoPedido>> = {}
 
-// Por flota el admin despacha con la empresa y el número de guía
 const SIGUIENTE_FLOTA: Partial<Record<EstadoPedido, EstadoPedido>> = {
-  pendiente: 'confirmado',
   empacado: 'despachado',
 }
 
@@ -166,9 +166,10 @@ export const ESTADOS_EN_ENTREGA: readonly EstadoPedido[] = ['empacado', 'listo_p
 // Pedido cerrado o entregado: ya se puede calificar la entrega
 export const estaEntregado = (estado: EstadoPedido) => estado === 'entregado' || estado === 'completado'
 
-// Estados en que el pago ya llegó o está por revisarse: el cliente no puede cancelar solo (0006)
-export const puedeCancelarCliente = (estado: EstadoPedido, estadoPago: EstadoPago) =>
-  estado === 'pendiente' && estadoPago === 'pendiente'
+// El cliente cancela solo si el pago no llegó ni está por revisarse (0006). Con efectivo al
+// recibir, el pedido nace confirmado: lo cancela mientras el almacén no empiece (0019).
+export const puedeCancelarCliente = (estado: EstadoPedido, estadoPago: EstadoPago, metodo?: MetodoPago) =>
+  (estado === 'pendiente' && estadoPago === 'pendiente') || (estado === 'confirmado' && metodo === 'contra_entrega')
 
 export function tiempoEntrega(zona: Pick<ZonaEnvio, 'dias_min' | 'dias_max'>) {
   if (zona.dias_max === 0) return 'Mismo día'

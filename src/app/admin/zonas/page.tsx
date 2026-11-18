@@ -79,7 +79,7 @@ export default function AdminZonasPage() {
                 <div className="min-w-0">
                   <p className="text-texto font-semibold break-words">{zona.nombre}</p>
                   <p className="text-texto-2 text-xs">
-                    {ETIQUETA_TIPO_ZONA[zona.tipo]} · {tiempoEntrega(zona)} · {zona.permite_contra_entrega ? 'Con contra entrega' : 'Sin contra entrega'}
+                    {ETIQUETA_TIPO_ZONA[zona.tipo]} · {tiempoEntrega(zona)} · {zona.permite_contra_entrega ? 'Con efectivo al recibir' : 'Sin efectivo al recibir'}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
@@ -109,7 +109,7 @@ export default function AdminZonasPage() {
               <div><label htmlFor="z-min" className={claseEtiqueta}>Días mínimos</label><input id="z-min" required type="number" min="0" value={form.dias_min} onChange={(e) => cambiar({ dias_min: e.target.value })} className={claseInput} /></div>
               <div><label htmlFor="z-max" className={claseEtiqueta}>Días máximos</label><input id="z-max" required type="number" min="0" value={form.dias_max} onChange={(e) => cambiar({ dias_max: e.target.value })} className={claseInput} /></div>
             </div>
-            <label className="flex items-center gap-2 text-texto text-sm"><input type="checkbox" className="accent-acento" checked={form.permite_contra_entrega} onChange={(e) => cambiar({ permite_contra_entrega: e.target.checked })} /> Permite contra entrega</label>
+            <label className="flex items-center gap-2 text-texto text-sm"><input type="checkbox" className="accent-acento" checked={form.permite_contra_entrega} onChange={(e) => cambiar({ permite_contra_entrega: e.target.checked })} /> Permite efectivo al recibir</label>
             {editando !== 'nueva' && (
               <label className="flex items-center gap-2 text-texto text-sm"><input type="checkbox" className="accent-acento" checked={form.activo} onChange={(e) => cambiar({ activo: e.target.checked })} /> Zona activa</label>
             )}
