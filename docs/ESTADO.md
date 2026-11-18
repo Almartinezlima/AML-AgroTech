@@ -62,3 +62,12 @@
 | 6 | `fase/6-pulido` | Cuentas demo y celular (el README se hizo en la 8A) |
 | 7 | — | Deploy en Render ✅ + Lab 10 ✅ entregado (Grupo 20) |
 | 8 | — | Documento final de la materia (los diagramas UML están en la 8B) |
+
+## Fase 9G (pulir el flujo, rama `fase/9g-pulir`)
+
+- «Por preparar»: el más nuevo arriba y «Empezar a preparar» en la lista (abre el detalle).
+- Recojo: «Tu pedido está listo. Ve a la tienda y dicta este código».
+- Entrega: «Entregado · registrado con tu nombre y hora» y el nombre de quien recibe ya escrito.
+- Se actualizan solas cada 10 s (y al volver a la pestaña): detalle del pedido, `/admin/pagos`, `/admin/preparar` y `/repartidor`.
+- Foto del comprobante a 1280 px y JPG 0,7, con «Subiendo…».
+- Migración `0021` (Telegram espera 10 s): escrita, **por correr**.

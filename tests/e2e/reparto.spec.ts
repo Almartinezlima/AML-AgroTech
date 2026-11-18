@@ -39,14 +39,22 @@ test.describe('Reparto con repartidor externo', () => {
     expect((await page.request.get('/api/repartidor/panel')).status()).toBe(403)
     expect((await page.request.post(`/api/entregas/${pedido.id}/aceptar`)).status()).toBe(403)
 
+    // El cliente deja abierto su pedido: se actualiza solo (fase 9G)
+    await page.goto(`/pedidos/${pedido.id}`)
+    await esperarCarga(page)
+
     // Admin: aprueba el pago, prepara y deja «Listo para salir» (ya no hay rol almacén)
     const admin = await paginaAdmin(browser)
     const conPago = (await (await admin.request.get(`/api/pedidos/${pedido.id}`)).json()) as { data: { pagos: { id: string } } }
     expect((await admin.request.patch(`/api/pagos/${conPago.data.pagos.id}/verificar`, { data: { aprobado: true } })).ok()).toBeTruthy()
 
-    await admin.goto(`/admin/preparar/pedidos/${pedido.id}`)
+    // Fase 9G: el más nuevo arriba y «Empezar a preparar» en la lista abre el detalle
+    await admin.goto('/admin/preparar')
     await esperarCarga(admin)
-    await admin.getByRole('button', { name: 'Empezar a preparar' }).click()
+    await expect(admin.getByRole('article').first()).toContainText(pedido.codigo)
+    await admin.getByRole('article').filter({ hasText: pedido.codigo }).getByRole('button', { name: 'Empezar a preparar' }).click()
+    await expect(admin).toHaveURL(new RegExp(`/admin/preparar/pedidos/${pedido.id}`))
+    await esperarCarga(admin)
     for (const casilla of await admin.getByRole('checkbox').all()) {
       await casilla.click()
       await expect(casilla).toHaveAttribute('aria-checked', 'true')
@@ -54,6 +62,9 @@ test.describe('Reparto con repartidor externo', () => {
     await admin.getByRole('button', { name: 'Listo para salir' }).click()
     await admin.getByRole('dialog').getByRole('button', { name: 'Listo para salir' }).click()
     await expect(admin.getByText('Se avisó al grupo de repartidores.')).toBeVisible()
+    // Sin recargar, el cliente ya ve «Listo para salir» y su código (cada 10 s)
+    await expect(page.getByText('Listo para salir').first()).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('region', { name: 'Código de entrega' })).toBeVisible()
     // El admin no usa el panel del repartidor: va a /admin/repartidores
     await admin.goto('/repartidor')
     await expect(admin).toHaveURL(/\/admin\/repartidores/)
@@ -108,6 +119,8 @@ test.describe('Reparto con repartidor externo', () => {
       await esperarCarga(repartidor)
       await expect(repartidor.getByText('Ya está pagado con QR: no cobres nada.')).toBeVisible()
       await repartidor.getByLabel('Código del cliente').fill(codigo!)
+      // Fase 9G: el nombre viene escrito con el del cliente y se puede cambiar
+      await expect(repartidor.getByLabel('Nombre de quien recibe')).not.toHaveValue('')
       await repartidor.getByLabel('Nombre de quien recibe').fill('Cliente E2E')
       await repartidor.getByRole('button', { name: 'Entregar', exact: true }).click()
       await expect(repartidor.getByRole('heading', { name: '¡Entregado!' })).toBeVisible()

@@ -1,13 +1,13 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { LuBellRing, LuHandCoins, LuPackageSearch, LuSend, LuWallet } from 'react-icons/lu'
 import { Cifra } from '@/components/admin/TarjetasResumen'
 import { Aviso, BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import ModalConfirmacion from '@/components/ui/ModalConfirmacion'
 import PasosAyuda from '@/components/ui/PasosAyuda'
 import { claseBoton, clasePagina, claseTituloAdmin, claseTituloSeccion } from '@/components/ui/estilos'
-import { enviarJson, mensajeDeError, pedirApi } from '@/lib/api/cliente'
-import { useDatosApi } from '@/lib/api/useDatosApi'
+import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
+import { CADA_10_S, useDatosApi } from '@/lib/api/useDatosApi'
 import { diaHora } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import type { EntregaDisponible, EntregaMia, PanelRepartidor } from '@/types/entrega'
@@ -15,40 +15,18 @@ import { TarjetaDisponible, TarjetaMia } from './_components/TarjetasEntrega'
 
 // Enlace de invitación al grupo de Telegram (se carga en Render antes del build)
 const GRUPO_TELEGRAM = process.env.NEXT_PUBLIC_TELEGRAM_GRUPO_REPARTIDORES?.trim() || null
-// Cada cuánto se vuelve a mirar si hay entregas nuevas (o si otro ya tomó una)
-const CADA_MS = 15_000
 
 type Confirmar = { tipo: 'aceptar'; entrega: EntregaDisponible } | { tipo: 'recoger'; entrega: EntregaMia } | null
 
 // Panel del repartidor externo (fase 9F), pensado para el celular: disponible / no disponible,
 // entregas disponibles (el primero que acepta se la lleva), mis entregas, lo ganado y por cobrar.
 export default function RepartidorPage() {
-  const { datos: panel, cargando, error, recargar, setDatos } = useDatosApi<PanelRepartidor>('/api/repartidor/panel')
+  // Se actualiza en silencio cada 10 s y al volver a la pestaña: la que tomó otro desaparece (9G)
+  const { datos: panel, cargando, error, recargar, refrescar } = useDatosApi<PanelRepartidor>('/api/repartidor/panel', { cadaMs: CADA_10_S })
   const [confirmar, setConfirmar] = useState<Confirmar>(null)
   const [procesando, setProcesando] = useState(false)
   const [errorAccion, setErrorAccion] = useState('')
   const [aviso, setAviso] = useState('')
-
-  // Se actualiza en silencio cada 15 s y al volver a la pestaña: la que tomó otro desaparece
-  const refrescar = useCallback(async () => {
-    try {
-      setDatos(await pedirApi<PanelRepartidor>('/api/repartidor/panel'))
-    } catch {
-      // Sin conexión un momento: se mantiene lo último que se vio
-    }
-  }, [setDatos])
-
-  useEffect(() => {
-    const intervalo = window.setInterval(() => { if (document.visibilityState === 'visible') void refrescar() }, CADA_MS)
-    const alVolver = () => { if (document.visibilityState === 'visible') void refrescar() }
-    document.addEventListener('visibilitychange', alVolver)
-    window.addEventListener('focus', alVolver)
-    return () => {
-      window.clearInterval(intervalo)
-      document.removeEventListener('visibilitychange', alVolver)
-      window.removeEventListener('focus', alVolver)
-    }
-  }, [refrescar])
 
   const cambiarDisponible = async (disponible: boolean) => {
     setProcesando(true)

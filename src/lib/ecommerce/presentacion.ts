@@ -84,7 +84,7 @@ export function estadoCliente({ estado, estado_pago, tipoZona, monto }: DatosEst
           : 'Tu pedido está listo: un repartidor lo recoge en la tienda y lo lleva a tu dirección. Ten a mano tu código de entrega.',
       }
     case 'listo_para_recoger':
-      return { etiqueta: 'Listo para recoger', color: AZUL, queSigue: 'Pasa por la tienda de Villa Charcas. Da tu código de entrega cuando tengas tu pedido en la mano.' }
+      return { etiqueta: 'Listo para recoger', color: AZUL, queSigue: 'Tu pedido está listo. Ve a la tienda de Villa Charcas y dicta tu código de entrega al recibirlo.' }
     case 'despachado':
       return {
         etiqueta: 'En camino',

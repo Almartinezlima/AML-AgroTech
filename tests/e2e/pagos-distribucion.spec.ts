@@ -5,10 +5,13 @@ import {
 } from './utilidades'
 
 // Fase 9F: el admin prepara (sin rol almacén) y deja «Listo para salir»
-async function prepararYDejarListo(admin: Page, id: string) {
-  await admin.goto(`/admin/preparar/pedidos/${id}`)
+async function prepararYDejarListo(admin: Page, id: string, codigo: string) {
+  // Fase 9G: «Empezar a preparar» en la lista empieza y abre el detalle
+  await admin.goto('/admin/preparar')
   await esperarCarga(admin)
-  await admin.getByRole('button', { name: 'Empezar a preparar' }).click()
+  await admin.getByRole('article').filter({ hasText: codigo }).getByRole('button', { name: 'Empezar a preparar' }).click()
+  await expect(admin).toHaveURL(new RegExp(`/admin/preparar/pedidos/${id}`))
+  await esperarCarga(admin)
   for (const casilla of await admin.getByRole('checkbox').all()) {
     await casilla.click()
     await expect(casilla).toHaveAttribute('aria-checked', 'true')
@@ -54,7 +57,7 @@ test.describe('Pagos y distribución', () => {
     await expect(tarjeta.getByText('Pago verificado')).toBeVisible()
 
     const guia = `E2E-${Date.now()}`
-    await prepararYDejarListo(admin, pedido.id)
+    await prepararYDejarListo(admin, pedido.id, pedido.codigo)
     await admin.goto('/admin/pedidos')
     const lista = admin.locator('li', { has: admin.getByRole('link', { name: pedido.codigo, exact: true }) })
     await lista.getByRole('button', { name: 'Despachar por flota' }).click()

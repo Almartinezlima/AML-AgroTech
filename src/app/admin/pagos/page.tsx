@@ -6,7 +6,7 @@ import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import ModalConfirmacion from '@/components/ui/ModalConfirmacion'
 import { claseFilaFiltros, claseFiltro, clasePagina } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
-import { useDatosApi } from '@/lib/api/useDatosApi'
+import { CADA_10_S, useDatosApi } from '@/lib/api/useDatosApi'
 import { INFO_ESTADO_PAGO } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import { ESTADOS_PAGO, type EstadoPago, type PagoAdmin } from '@/types/comercio'
@@ -22,10 +22,20 @@ const OPCIONES_FILTRO: Array<{ valor: Filtro; texto: string }> = [
   ...ESTADOS_PAGO.map((e) => ({ valor: e, texto: INFO_ESTADO_PAGO[e].etiqueta })),
 ]
 
+// Fase 9G: la lista se actualiza sola cada 10 s. Cada lectura firma URL nuevas: si el comprobante
+// es el mismo, se conserva la URL que ya se ve para no volver a bajar la foto.
+function conservarUrls(anterior: PagoAdmin[], nuevo: PagoAdmin[]): PagoAdmin[] {
+  const vistos = new Map(anterior.map((p) => [p.id, p]))
+  return nuevo.map((p) => {
+    const antes = vistos.get(p.id)
+    return antes?.comprobante_url && antes.comprobante_path === p.comprobante_path ? { ...p, comprobante_url: antes.comprobante_url } : p
+  })
+}
+
 export default function AdminPagosPage() {
   const [estado, setEstado] = useState<Filtro>('en_revision')
   const url = `/api/pagos${estado ? `?estado=${estado}` : ''}`
-  const { datos, cargando, error, recargar } = useDatosApi<PagoAdmin[]>(url)
+  const { datos, cargando, error, recargar } = useDatosApi<PagoAdmin[]>(url, { cadaMs: CADA_10_S, combinar: conservarUrls })
   const [aprobando, setAprobando] = useState<PagoAdmin | null>(null)
   const [rechazando, setRechazando] = useState<PagoAdmin | null>(null)
   const [reembolsando, setReembolsando] = useState<PagoAdmin | null>(null)

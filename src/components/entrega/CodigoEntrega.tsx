@@ -1,15 +1,17 @@
 import { TEXTO_CODIGO_CLIENTE } from '@/lib/entrega/presentacion'
 import type { CodigoEntrega as DatosCodigo } from '@/types/entrega'
-import { LuKeyRound, LuLock } from 'react-icons/lu'
+import { LuKeyRound, LuLock, LuStore } from 'react-icons/lu'
 
 interface CodigoEntregaProps {
   codigo: DatosCodigo
   // En la lista de Mis pedidos va más compacto
   compacto?: boolean
+  // Recojo listo (fase 9G): el cliente va a la tienda y dicta el código
+  enTienda?: boolean
 }
 
 // Código de entrega de 4 dígitos (fase 9D). Solo lo recibe el dueño del pedido desde la API.
-export default function CodigoEntrega({ codigo, compacto = false }: CodigoEntregaProps) {
+export default function CodigoEntrega({ codigo, compacto = false, enTienda = false }: CodigoEntregaProps) {
   if (codigo.bloqueado || !codigo.codigo) {
     return (
       <div role="status" className="flex items-start gap-3 rounded-2xl border border-estado-pendiente bg-estado-pendiente/10 px-4 py-3 text-estado-pendiente-texto">
@@ -27,16 +29,23 @@ export default function CodigoEntrega({ codigo, compacto = false }: CodigoEntreg
       aria-label="Código de entrega"
       className={`rounded-2xl border-2 border-acento bg-tarjeta text-center ${compacto ? 'px-4 py-3' : 'px-5 py-6'}`}
     >
-      <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-acento">
-        <LuKeyRound className="h-4 w-4" aria-hidden="true" /> Tu código de entrega
-      </p>
+      {enTienda ? (
+        <p className={`font-semibold text-texto text-balance ${compacto ? 'text-base' : 'text-lg'}`}>
+          <LuStore className="mr-1.5 inline h-5 w-5 align-[-3px] text-acento" aria-hidden="true" />
+          Tu pedido está listo. Ve a la tienda y dicta este código:
+        </p>
+      ) : (
+        <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-acento">
+          <LuKeyRound className="h-4 w-4" aria-hidden="true" /> Tu código de entrega
+        </p>
+      )}
       <p
         className={`font-titulo font-bold tabular-nums text-texto tracking-[0.3em] pl-[0.3em] ${compacto ? 'text-4xl mt-1' : 'text-6xl mt-2'}`}
         aria-label={`Código ${codigo.codigo.split('').join(' ')}`}
       >
         {codigo.codigo}
       </p>
-      <p className={`text-texto ${compacto ? 'text-xs mt-1' : 'text-sm mt-3'} text-balance`}>{TEXTO_CODIGO_CLIENTE}</p>
+      <p className={`text-texto ${compacto ? 'text-xs mt-1' : 'text-sm mt-3'} text-balance`}>{enTienda ? 'Te entregamos el pedido y lo revisas; el código lo dices al final.' : TEXTO_CODIGO_CLIENTE}</p>
     </section>
   )
 }

@@ -6,7 +6,7 @@ import { Cifra } from '@/components/admin/TarjetasResumen'
 import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import PasosAyuda from '@/components/ui/PasosAyuda'
 import { clasePagina, claseTituloAdmin } from '@/components/ui/estilos'
-import { useDatosApi } from '@/lib/api/useDatosApi'
+import { CADA_10_S, useDatosApi } from '@/lib/api/useDatosApi'
 import type { PedidoCola } from '@/types/almacen'
 import type { EstadoPedido } from '@/types/comercio'
 import TarjetaCola from './_components/TarjetaCola'
@@ -20,12 +20,15 @@ const GRUPOS: Array<{ id: Grupo; titulo: string; vacio: string; estados: EstadoP
 ]
 
 // "Por preparar" (fase 9C; desde la 9F lo hace el admin): la cola de pedidos con el pago
-// verificado, el más antiguo primero. "Listo para salir" avisa al grupo de repartidores.
+// verificado, el más nuevo arriba (9G) y actualizada cada 10 s. "Listo para salir" avisa al grupo de repartidores.
 export default function AlmacenPage() {
-  const { datos, cargando, error, recargar } = useDatosApi<PedidoCola[]>('/api/almacen/pedidos')
+  const { datos, cargando, error, recargar } = useDatosApi<PedidoCola[]>('/api/almacen/pedidos', { cadaMs: CADA_10_S })
   const [activo, setActivo] = useState<Grupo>('por_preparar')
 
-  const delGrupo = (grupo: (typeof GRUPOS)[number]) => (datos ?? []).filter((p) => grupo.estados.includes(p.estado))
+  // Fase 9G: el más nuevo arriba (la base los da del más antiguo al más nuevo)
+  const delGrupo = (grupo: (typeof GRUPOS)[number]) => (datos ?? [])
+    .filter((p) => grupo.estados.includes(p.estado))
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
   const grupo = GRUPOS.find((g) => g.id === activo) ?? GRUPOS[0]
   const lista = delGrupo(grupo)
 
@@ -35,7 +38,7 @@ export default function AlmacenPage() {
         <header className="mb-6">
           <p className="text-sm font-semibold text-trigo">Preparación</p>
           <h1 className={claseTituloAdmin}>Preparación y empaque</h1>
-          <p className="mt-1 text-texto-2">Prepara primero el pedido más antiguo. Cada paso queda registrado con tu nombre.</p>
+          <p className="mt-1 text-texto-2">Lo más nuevo va arriba y la lista se actualiza sola. Cada paso queda registrado con tu nombre.</p>
         </header>
 
         <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -64,7 +67,7 @@ export default function AlmacenPage() {
 
         <div className="mt-8">
           <PasosAyuda pasos={[
-            'Abre el pedido más antiguo de «Por preparar» y toca «Empezar a preparar».',
+            'En «Por preparar», toca «Empezar a preparar» en el pedido: empieza y se abre para marcar los productos.',
             'Marca cada producto cuando lo pongas en la caja. Si falta algo, toca «Reportar faltante»: el cliente ve «Revisando un producto de tu pedido» hasta que lo resuelvas.',
             'Con todo marcado, toca «Listo para salir», indica cuántos bultos son e imprime una etiqueta por bulto. Si es a domicilio, se avisa al grupo de repartidores.',
           ]} />

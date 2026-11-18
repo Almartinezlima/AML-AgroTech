@@ -16,7 +16,7 @@ El **sistema** avisa al admin de lo que pasa en la tienda sin que esté mirando 
 
 ## Criterios de aceptación
 
-- **Salen de la base, no de Next.js:** triggers de Postgres que encolan el mensaje con `pg_net` (HTTP asíncrono, timeout de 3 s).
+- **Salen de la base, no de Next.js:** triggers de Postgres que encolan el mensaje con `pg_net` (HTTP asíncrono; espera hasta 10 s desde la 0021: con 3 s se perdieron 3 avisos el 18/11).
   - El mensaje se manda **después del commit**. Si Telegram falla o tarda, la compra, el comprobante o el movimiento ya están guardados.
   - Si la operación falla, la cola se deshace con ella y no sale ningún aviso.
   - Cubren todos los caminos (web, API, panel) y no dependen de que Render esté despierto.
