@@ -17,10 +17,11 @@ test.describe('Inventario', () => {
     await mas.click()
     // Codo PVC a Bs. 11,00 × 3
     await expect(page.getByText('Bs. 33,00').first()).toBeVisible()
-    const pedido = await finalizarCompra(page, { zona: 'Distrito 1', metodo: 'Contra entrega' })
+    const pedido = await finalizarCompra(page, { zona: 'Distrito 1', metodo: 'Efectivo al recibir' })
     expect(await stockDe(page, productoId)).toBe(inicial - 3)
 
-    // El cliente cancela: el stock vuelve (la limpieza final ve que ya está cancelado y no repite)
+    // Efectivo al recibir nace confirmado (0019), y el cliente igual puede cancelarlo mientras el
+    // almacén no empiece: el stock vuelve (la limpieza final ve que ya está cancelado y no repite)
     await page.goto(`/pedidos/${pedido.id}`)
     await page.getByRole('button', { name: 'Cancelar pedido' }).click()
     await page.getByRole('dialog').getByRole('button', { name: 'Sí, cancelar' }).click()
