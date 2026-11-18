@@ -71,3 +71,13 @@
 - Se actualizan solas cada 10 s (y al volver a la pestaña): detalle del pedido, `/admin/pagos`, `/admin/preparar` y `/repartidor`.
 - Foto del comprobante a 1280 px y JPG 0,7, con «Subiendo…».
 - Migración `0021` (Telegram espera 10 s): escrita, **por correr**.
+
+## Base limpia para la feria (migración 0022, 17 nov 2026)
+
+- Migraciones `0001` a `0022` corridas. La `0021` (Telegram espera 10 s) y la `0022` (limpieza total) se corrieron el 17 nov 2026.
+- **0 pedidos y 0 órdenes de compra.** El próximo pedido es **AML-000001** y la próxima orden **OC-000001**.
+- Kardex: solo las 3 entradas de «Stock inicial (migración 0008)» de AGR-012 a 014. El stock de los 8 productos que se habían vendido volvió a su valor anterior (por ejemplo, AGR-001 120 y HER-001 50).
+- Bucket `comprobantes` vacío. El schema `respaldo_20261115` ya no existe.
+- **8 cuentas:** `aldomartinezlima@gmail.com` (admin), `aldo.mtz.lima@gmail.com` (cliente, Google), `alenav161201@gmail.com` (Miguel), `repartidor@amlagrotech.test`, los 2 distribuidores demo y las 2 cuentas de las E2E (`admin@amlagrotech.com`, `cliente@amlagrotech.test`). La cuenta `almacen@amlagrotech.test` se borró.
+- Sin cambios: 36 productos, categorías, 9 zonas (8 activas), distribuidores y sus 22 presentaciones, Vault (token y chat del admin y del grupo de repartidores).
+
