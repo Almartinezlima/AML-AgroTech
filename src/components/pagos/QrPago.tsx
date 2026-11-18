@@ -61,7 +61,7 @@ export default function QrPago({ monto, codigo }: QrPagoProps) {
         className="group relative w-full max-w-sm rounded-2xl border border-borde bg-white p-2 shadow-tarjeta transition hover:border-acento sm:max-w-md">
         {/* eslint-disable-next-line @next/next/no-img-element -- imagen estática o externa del QR del negocio */}
         <img src={QR_TIENDA} alt={alt} width={990} height={1561} className="h-auto w-full rounded-xl" />
-        <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/75 px-3 py-1.5 text-sm font-semibold text-white">
+        <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/75 px-3 py-1.5 text-sm font-semibold text-white">
           <LuMaximize2 className="h-4 w-4" aria-hidden="true" /> Ver en grande
         </span>
       </button>
