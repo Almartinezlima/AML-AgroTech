@@ -39,6 +39,10 @@ export const claseEnlace = 'font-semibold text-acento underline-offset-2 hover:u
 // ───── Campos ─────
 export const claseInput =
   'w-full min-w-0 bg-tarjeta-hover border border-borde hover:border-borde-fuerte focus:border-acento focus-visible:outline-none focus:ring-2 focus:ring-acento/25 text-texto rounded-xl px-4 py-3 outline-none transition-colors'
+// Campo con error (fase 9E): borde rojo; el mensaje va debajo con <ErrorCampo>
+export const claseInputError =
+  'w-full min-w-0 bg-tarjeta-hover border-2 border-estado-error focus:border-estado-error focus-visible:outline-none focus:ring-2 focus:ring-estado-error/25 text-texto rounded-xl px-4 py-3 outline-none transition-colors'
+export const claseCampo = (error?: string) => (error ? claseInputError : claseInput)
 export const claseEtiqueta = 'text-texto-2 text-sm font-medium mb-2 block'
 export const claseAyuda = 'text-texto-2 text-xs mt-1.5'
 
