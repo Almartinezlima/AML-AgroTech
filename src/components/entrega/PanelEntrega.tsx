@@ -60,7 +60,7 @@ export default function PanelEntrega({ pedidoId, esAdmin, onActualizado }: Panel
   }
 
   if (entregado) {
-    return <Aviso tipo="ok">Entrega registrada con tu nombre y la hora. El pedido ya no está por entregar.</Aviso>
+    return <Aviso tipo="ok">Entregado · registrado con tu nombre y hora.</Aviso>
   }
   if (cargando && !detalle) return <BloqueCarga filas={1} alto="h-32" />
   if (error || !detalle) return <BloqueError mensaje={error || 'No se pudo cargar la entrega.'} onReintentar={() => void recargar()} />

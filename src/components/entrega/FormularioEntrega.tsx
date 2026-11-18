@@ -23,7 +23,8 @@ interface FormularioEntregaProps {
 // Con 5 códigos incorrectos se bloquea. Desde la 9F todo está pagado con QR: no se cobra nada.
 export default function FormularioEntrega({ detalle, enTienda = false, onCambio, onEntregado }: FormularioEntregaProps) {
   const [codigo, setCodigo] = useState('')
-  const [nombre, setNombre] = useState('')
+  // Fase 9G: viene escrito con el nombre del cliente (si recibe otra persona, se cambia)
+  const [nombre, setNombre] = useState(detalle.cliente ?? '')
   const [ci, setCi] = useState('')
   const [procesando, setProcesando] = useState(false)
   const [error, setError] = useState('')
@@ -55,7 +56,7 @@ export default function FormularioEntrega({ detalle, enTienda = false, onCambio,
   }
 
   if (entregado) {
-    return <Aviso tipo="ok">Entrega registrada. Queda en la línea de tiempo con tu nombre y la hora.</Aviso>
+    return <Aviso tipo="ok">Entregado · registrado con tu nombre y hora.</Aviso>
   }
 
   if (detalle.codigo_bloqueado) {

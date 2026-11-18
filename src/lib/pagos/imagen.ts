@@ -1,9 +1,10 @@
-// Prepara la foto del comprobante en el celular antes de subirla: la achica a 1600 px como
-// máximo y la pasa a JPG. Una foto de galería pesa 4 a 8 MB; así queda en unos cientos de KB.
+// Prepara la foto del comprobante en el celular antes de subirla: la achica a 1280 px como
+// máximo y la pasa a JPG 0,7 (fase 9G; antes 1600 px y 0,82). Una foto de galería pesa 4 a 8 MB;
+// así queda en ~150-300 KB y se sigue leyendo el monto. Si aún pesa de más, baja la calidad.
 
 export const MAX_BYTES_COMPROBANTE = 3 * 1024 * 1024
-const LADO_MAXIMO = 1600
-const CALIDADES = [0.82, 0.7, 0.55]
+const LADO_MAXIMO = 1280
+const CALIDADES = [0.7, 0.55, 0.45]
 
 export class ErrorImagen extends Error {}
 

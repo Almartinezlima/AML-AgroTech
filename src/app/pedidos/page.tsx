@@ -49,7 +49,7 @@ export default function PedidosPage() {
                     </div>
                     <p className="mt-3 text-sm text-texto">{estado.queSigue}</p>
                     {/* Código de entrega de los pedidos en camino (fase 9D, solo los propios) */}
-                    {pedido.codigo_entrega && <div className="mt-3"><CodigoEntrega codigo={pedido.codigo_entrega} compacto /></div>}
+                    {pedido.codigo_entrega && <div className="mt-3"><CodigoEntrega codigo={pedido.codigo_entrega} compacto enTienda={pedido.estado === 'listo_para_recoger'} /></div>}
                     <div className="flex items-end justify-between gap-3 mt-3">
                       <p className="text-texto-2 text-sm min-w-0">
                         {pedido.zonas_envio?.nombre} · {ETIQUETA_METODO[pedido.metodo_pago]}

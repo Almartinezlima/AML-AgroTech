@@ -116,7 +116,7 @@ export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: st
           )}
           <div className="flex flex-col gap-2 sm:flex-row">
             <button onClick={() => void enviar()} disabled={subiendo} className={claseBotonPrimario}>
-              <LuSend className="h-5 w-5" aria-hidden="true" /> {subiendo ? 'Enviando…' : 'Enviar'}
+              <LuSend className="h-5 w-5" aria-hidden="true" /> {subiendo ? 'Subiendo…' : 'Enviar'}
             </button>
             <button onClick={() => setArchivo(null)} disabled={subiendo} className={claseBotonSecundario}>
               <LuRefreshCw className="h-4 w-4" aria-hidden="true" /> Elegir otra foto

@@ -8,7 +8,7 @@ import Insignia from '@/components/ui/Insignia'
 import { claseBoton, claseBotonPeligro, claseBotonSecundario, clasePagina, claseTarjeta } from '@/components/ui/estilos'
 import { useAuth } from '@/context/AuthContext'
 import { ErrorPedidoApi, enviarJson, mensajeDeError } from '@/lib/api/cliente'
-import { useDatosApi } from '@/lib/api/useDatosApi'
+import { CADA_10_S, useDatosApi } from '@/lib/api/useDatosApi'
 import { ESTADOS_EN_ENTREGA, INFO_ESTADO_ENVIO, estadoCliente, fechaHora, puedeCancelarCliente } from '@/lib/ecommerce/presentacion'
 import CodigoEntrega from '@/components/entrega/CodigoEntrega'
 import PanelEntrega from '@/components/entrega/PanelEntrega'
@@ -26,7 +26,7 @@ const NUMERO_WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA
 export default function PedidoDetallePage() {
   const { id } = useParams<{ id: string }>()
   const { user, perfil } = useAuth()
-  const { datos: pedido, cargando, error, estadoError, recargar } = useDatosApi<PedidoDetalle>(`/api/pedidos/${id}`)
+  const { datos: pedido, cargando, error, estadoError, recargar } = useDatosApi<PedidoDetalle>(`/api/pedidos/${id}`, { cadaMs: CADA_10_S })
   const [cancelando, setCancelando] = useState(false)
   const [procesando, setProcesando] = useState(false)
   const [errorCancelar, setErrorCancelar] = useState('')
@@ -96,7 +96,7 @@ export default function PedidoDetallePage() {
           <span className="font-semibold">Qué sigue: </span>{estado.queSigue}
         </p>
         {/* Solo el dueño lo recibe de la API (fase 9D) */}
-        {pedido.codigo_entrega && <CodigoEntrega codigo={pedido.codigo_entrega} />}
+        {pedido.codigo_entrega && <CodigoEntrega codigo={pedido.codigo_entrega} enTienda={pedido.estado === 'listo_para_recoger'} />}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
