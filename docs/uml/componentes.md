@@ -18,7 +18,7 @@ flowchart TB
     MW["Middleware<br/>sesión + rol por ruta"]
     API["API REST<br/>Route Handlers src/app/api/**"]
     LIBAPI["lib/api<br/>sesion · validacion zod · respuestas"]
-    PDF["Nota de venta<br/>pdfkit · qrcode"]
+    PDF["Recibo de compra<br/>pdfkit · qrcode"]
     SBS["supabase-js servidor<br/>@supabase/ssr · cookies"]
   end
   subgraph SUP["«componente» Supabase"]

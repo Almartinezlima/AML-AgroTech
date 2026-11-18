@@ -33,7 +33,7 @@ Cliente, Administrador, Distribuidor, Almacén y Repartidor **heredan** de Visit
 | CU-10 | Cancelar pedido | Cliente, Administrador | E-commerce | HU-E07 |
 | CU-11 | Gestionar productos | Administrador | E-commerce | HU-E08 |
 | CU-12 | Ver panel de control | Administrador | Todos | HU-E10, P06, A06 |
-| CU-13 | Pagar pedido (QR / transferencia / contra entrega) | Cliente | Pagos | HU-P01, P02 |
+| CU-13 | Pagar pedido (QR / transferencia / efectivo al recibir) | Cliente | Pagos | HU-P01, P02 |
 | CU-14 | Subir comprobante de pago | Cliente | Pagos | HU-P03, P05 |
 | CU-15 | Verificar pago y reembolsar | Administrador | Pagos | HU-P04 |
 | CU-16 | Elegir zona de envío | Cliente | Distribución | HU-D01 |
@@ -52,7 +52,7 @@ Cliente, Administrador, Distribuidor, Almacén y Repartidor **heredan** de Visit
 | CU-29 | Recibir orden de compra | Administrador | Almacenamiento (abastecimiento) | HU-B07 |
 | CU-30 | Seguir orden de compra | Administrador, Distribuidor | Almacenamiento (abastecimiento) | HU-B09 |
 | CU-31 | Consultar margen | Administrador | Almacenamiento (abastecimiento) | HU-B08 |
-| CU-32 | Descargar nota de venta (PDF) | Cliente, Administrador | E-commerce | HU-E11 |
+| CU-32 | Descargar recibo de compra (PDF) | Cliente, Administrador | E-commerce | HU-E11 |
 | CU-33 | Avisar al administrador por Telegram | Supabase (secundario: Telegram) | Todos | HU-T01 a T05 |
 | CU-34 | Preparar pedido (empezar y marcar productos) | Almacén, Administrador | Distribución | HU-AL01, AL02, AL03 |
 | CU-35 | Reportar faltante | Almacén, Administrador | Almacenamiento | HU-AL04 |
@@ -61,7 +61,7 @@ Cliente, Administrador, Distribuidor, Almacén y Repartidor **heredan** de Visit
 | CU-38 | Imprimir etiquetas de bultos | Almacén, Administrador | Distribución | HU-AL07 |
 | CU-39 | Ver código de entrega | Cliente | Distribución | HU-EN01 |
 | CU-40 | Tomar y salir | Repartidor, Administrador | Distribución | HU-EN02, EN03 |
-| CU-41 | Registrar cobro contra entrega | Repartidor, Almacén, Administrador | Pagos | HU-EN04 |
+| CU-41 | Registrar cobro efectivo al recibir | Repartidor, Almacén, Administrador | Pagos | HU-EN04 |
 | CU-42 | Entregar con código | Repartidor, Almacén, Administrador | Distribución | HU-EN05, EN06, EN12 |
 | CU-43 | Desbloquear código de entrega | Administrador | Seguridad | HU-EN07 |
 | CU-44 | Confirmar recepción por flota | Cliente, Administrador | Distribución | HU-EN08 |
@@ -89,10 +89,11 @@ Las HU de abastecimiento (HU-B…) están en [`08-abastecimiento.md`](08-abastec
 ### «extend» (pasa solo si se cumple la condición)
 
 - CU-14 Subir comprobante **«extend»** CU-13 Pagar pedido: solo con QR o transferencia.
-- CU-32 Descargar nota de venta **«extend»** CU-09 Consultar mis pedidos: solo desde que el pedido se confirma.
+- CU-32 Descargar recibo de compra **«extend»** CU-09 Consultar mis pedidos: solo desde que el pedido se confirma.
 - CU-35 Reportar faltante **«extend»** CU-34 Preparar pedido: solo si falta algún producto. Bloquea CU-37 hasta que se cumpla CU-36.
 - CU-38 Imprimir etiquetas **«extend»** CU-37 Empacar pedido: una etiqueta por bulto.
-- CU-41 Registrar cobro **«extend»** CU-42 Entregar con código: solo contra entrega, y antes del código.
+- CU-41 Registrar cobro **«extend»** CU-42 Entregar con código: solo efectivo al recibir, y antes del código.
+- CU-14 Subir comprobante (foto del pago) **«extend»** CU-08 Realizar pedido desde la 9E: va en la misma pantalla del QR, sin pasar por «Ya pagué». Con efectivo al recibir, CU-08 deja el pedido confirmado y entra a CU-34 Preparar pedido sin que el admin intervenga.
 - CU-43 Desbloquear código **«extend»** CU-42: solo después de 5 intentos fallidos.
 - CU-33 Avisar por Telegram **«extend»**:
   - CU-08 Realizar pedido (pedido nuevo);

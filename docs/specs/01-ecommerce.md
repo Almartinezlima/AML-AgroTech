@@ -1,6 +1,6 @@
 # 01 — E-commerce
 
-Rama real: `fase/2-comercio` (nota de venta: `fase/7-nota-venta`). ✅ Programado. Migraciones corridas en la base real y probado E2E.
+Rama real: `fase/2-comercio` (recibo de compra: `fase/7-nota-venta`). ✅ Programado. Migraciones corridas en la base real y probado E2E.
 
 ## Historias de usuario
 
@@ -16,7 +16,7 @@ Rama real: `fase/2-comercio` (nota de venta: `fase/7-nota-venta`). ✅ Programad
 | ✅ HU-E08 | Como **administrador** quiero crear, editar, activar/desactivar productos con imagen | Alta |
 | ✅ HU-E09 | Como **administrador** quiero ver todos los pedidos con filtros por estado | Alta |
 | ✅ HU-E10 | Como **administrador** quiero un panel con ventas del día/mes, pedidos por estado, productos más vendidos y alertas, con datos reales | Alta |
-| ✅ HU-E11 | Como **cliente** quiero descargar la nota de venta de mi pedido en PDF para mostrarla al recoger o guardarla; el **administrador** también la descarga desde el panel | Media |
+| ✅ HU-E11 | Como **cliente** quiero descargar la recibo de compra de mi pedido en PDF para mostrarla al recoger o guardarla; el **administrador** también la descarga desde el panel | Media |
 
 ## Criterios de aceptación clave
 
@@ -26,16 +26,27 @@ Rama real: `fase/2-comercio` (nota de venta: `fase/7-nota-venta`). ✅ Programad
   - El total lo calcula **el servidor** (`crear_pedido`): si el navegador manda otro precio, se ignora.
   - Si un producto no tiene stock suficiente → `409` con el nombre del producto, y el carrito se ajusta.
   - Al crear: pedido con código legible (`AML-000001`), stock descontado y movimiento de salida en el kardex, todo en una transacción.
-  - Pantalla de éxito con el código y el siguiente paso (pagar con QR / esperar contra entrega).
+  - Pantalla de éxito con el código y el siguiente paso (pagar con QR / esperar efectivo al recibir).
+- **Compra en 3 clics (fase 9E, HU-E12):**
+  1. Carrito → «Ir a pagar».
+  2. `/checkout` es **una sola pantalla**: zona, datos recordados de la última compra y forma de pago con **QR marcado**. «Confirmar pedido · Bs. X» va dentro del cuadro «Tu compra» (sticky); en celular, en una **barra fija abajo** con el total. El total exacto lo pide al servidor al elegir la zona (`/api/pedidos/cotizar`).
+  3. `/checkout/exito`: el QR (o la cuenta) con el monto y, **justo debajo**, la subida de la foto del pago con «Enviar». Ya no existe «Ya pagué».
+  - Barra de pasos: Carrito → Datos y pago → Pagar → Listo.
+  - **Errores junto a cada campo** (borde rojo, mensaje debajo, `aria-invalid`); al confirmar, la vista va al primer error y le da el foco. Los errores que no son de un campo (sin stock, sesión vencida) van junto al botón, nunca arriba.
+  - Con efectivo al recibir la pantalla de éxito dice «¡Pedido confirmado!»: el pedido ya está en el almacén (0019).
 - **HU-E06:** `/pedidos` lista los pedidos del usuario; `/pedidos/[id]` muestra items, totales, pago, envío y línea de tiempo.
 - **HU-E07:** cancelar devuelve el stock (movimiento `devolucion`) y queda en el seguimiento.
 - **HU-E08:** sin borrado físico; imagen subida al bucket `productos` (jpg/png/webp, máx. 2 MB); precio > 0.
 - **HU-E10:** ninguna cifra inventada; todo sale de `/api/dashboard`, con los datos de todas las cuentas. Incluye la tarjeta «Margen promedio» (ver [`08-abastecimiento.md`](08-abastecimiento.md)).
-- **HU-E11:** `GET /api/pedidos/{id}/nota`, PDF hecho en el servidor con pdfkit. Dice «Nota de venta — documento sin valor fiscal» (no es factura).
+- **HU-E11:** `GET /api/pedidos/{id}/nota`, PDF hecho en el servidor con pdfkit. Dice «Recibo de compra — documento sin valor fiscal» (no es factura).
   - Disponible desde que el pedido se **confirma**. Pendiente: `409`. Cancelado que se llegó a confirmar: sale con la marca **ANULADA**. Cancelado sin confirmar nunca: `409`.
   - Solo el dueño o el admin. Pedido ajeno o inexistente: `404` (no revela que existe). Sin sesión: `401`.
   - Trae la tienda, el código, la fecha y hora de Bolivia, el cliente, la entrega (dirección o quién recoge con su CI), los productos con su unidad, el envío, el total, el pago, el estado y un QR con el enlace al pedido.
 
+| HU | Historia (fase 9E) |
+|---|---|
+| HU-E12 | Como **cliente** quiero comprar con QR en 3 clics: confirmar en una sola pantalla con mis datos recordados y subir la foto del pago justo debajo del QR |
+
 ## Pantallas
 
-`/`, `/catalogo`, `/producto/[id]`, `/carrito`, `/checkout`, `/checkout/exito`, `/pedidos`, `/pedidos/[id]` (botón «Descargar nota de venta (PDF)»), `/admin`, `/admin/productos`, `/admin/pedidos` («Nota PDF»).
+`/`, `/catalogo`, `/producto/[id]`, `/carrito`, `/checkout`, `/checkout/exito`, `/pedidos`, `/pedidos/[id]` (botón «Descargar recibo de compra (PDF)»), `/admin`, `/admin/productos`, `/admin/pedidos` («Recibo PDF»). Desde la 9E el PDF se llama **Recibo de compra** (sin valor fiscal) y el archivo `Recibo-AML-….pdf`; la ruta sigue siendo `/api/pedidos/{id}/nota`.
