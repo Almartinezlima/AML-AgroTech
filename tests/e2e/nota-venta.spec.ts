@@ -7,7 +7,8 @@ import {
   imagenComprobante, limpiarDatosDePrueba, paginaAdmin, paginaDistribuidor, test,
 } from './utilidades'
 
-// Fase 7: nota de venta en PDF. Los PDF de ejemplo y las capturas quedan en test-results/notas/.
+// Fase 7: recibo de compra en PDF (se llamaba «nota de venta» hasta la 9E; la ruta sigue siendo /nota).
+// Los PDF de ejemplo y las capturas quedan en test-results/notas/.
 const CARPETA = path.join(process.cwd(), 'test-results', 'notas')
 
 function guardar(nombre: string, contenido: Buffer) {
@@ -64,64 +65,68 @@ async function capturar(pagina: Page, ancho: number, archivo: string, objetivo: 
   await pagina.screenshot({ path: path.join(CARPETA, archivo) })
 }
 
-test.describe('Nota de venta', () => {
-  test('contra entrega: pendiente sin nota (409) → confirmado → la descargan el cliente y el admin', async ({ page, browser }) => {
+test.describe('Recibo de compra', () => {
+  test('efectivo al recibir: nace confirmado, sin «Pasar a confirmado», y el recibo lo descargan el cliente y el admin', async ({ page, browser }) => {
     await entrarComoCliente(page)
     await agregarAlCarrito(page, PRODUCTO_A)
-    const pedido = await finalizarCompra(page, { zona: 'Distrito 1', metodo: 'Contra entrega' })
+    const pedido = await finalizarCompra(page, { zona: 'Distrito 1', metodo: 'Efectivo al recibir' })
 
-    // Pendiente: todavía no hay venta
-    const pendiente = await page.request.get(`/api/pedidos/${pedido.id}/nota`)
-    expect(pendiente.status()).toBe(409)
-    expect(((await pendiente.json()) as { error: { codigo: string } }).error.codigo).toBe('NOTA_NO_DISPONIBLE')
-    await page.goto(`/pedidos/${pedido.id}`)
-    await esperarCarga(page)
-    await expect(page.getByText('La nota de venta estará disponible cuando la tienda confirme tu pedido.')).toBeVisible()
-    await expect(page.getByRole('link', { name: /Descargar nota de venta/ })).toHaveCount(0)
-
-    // El admin confirma
-    const admin = await paginaAdmin(browser)
-    const confirmar = await admin.request.patch(`/api/pedidos/${pedido.id}/estado`, { data: { estado: 'confirmado', nota: 'E2E: confirmado' } })
-    expect(confirmar.ok()).toBeTruthy()
+    // Nace confirmado (0019): la pantalla lo dice y el recibo ya está disponible
+    await expect(page.getByRole('heading', { name: '¡Pedido confirmado!' })).toBeVisible()
+    const detalle = (await (await page.request.get(`/api/pedidos/${pedido.id}`)).json()) as { data: { estado: string } }
+    expect(detalle.data.estado).toBe('confirmado')
 
     // Cliente: botón en el detalle
-    await page.reload()
+    await page.goto(`/pedidos/${pedido.id}`)
     await esperarCarga(page)
-    const cliente = await descargarConBoton(page, /Descargar nota de venta/, 'nota-contra-entrega.pdf')
-    expect(cliente.sugerido).toBe(`Nota-${pedido.codigo}.pdf`)
+    const cliente = await descargarConBoton(page, /Descargar recibo de compra/, 'recibo-efectivo.pdf')
+    expect(cliente.sugerido).toBe(`Recibo-${pedido.codigo}.pdf`)
     const texto = textoDelPdf(cliente.pdf)
     expect(texto).toContain(pedido.codigo)
+    expect(texto).toContain('RECIBO DE COMPRA')
     expect(texto).toContain('sin valor fiscal')
-    expect(texto).toContain('Se paga al recibir')
-    expect(texto).not.toContain('ANULADA')
-    await capturar(page, 360, 'cliente-360.png', 'Descargar nota de venta')
-    await capturar(page, 1280, 'cliente-1280.png', 'Descargar nota de venta')
+    expect(texto).toContain('Efectivo al recibir')
+    expect(texto).not.toContain('ANULADO')
+    await capturar(page, 360, 'cliente-360.png', 'Descargar recibo de compra')
+    await capturar(page, 1280, 'cliente-1280.png', 'Descargar recibo de compra')
 
-    // Admin: "Nota PDF" en la tarjeta del panel
+    // Admin: el pedido ya no ofrece «Pasar a confirmado»; «Recibo PDF» en la tarjeta del panel
+    const admin = await paginaAdmin(browser)
     await admin.goto('/admin/pedidos')
     await esperarCarga(admin)
     const tarjeta = admin.locator('li', { has: admin.getByRole('link', { name: pedido.codigo, exact: true }) })
-    await expect(tarjeta.getByRole('link', { name: /Nota PDF/ })).toBeVisible()
+    await expect(tarjeta.getByRole('button', { name: /Pasar a/ })).toHaveCount(0)
+    await expect(tarjeta.getByRole('link', { name: /Recibo PDF/ })).toBeVisible()
     const descarga = admin.waitForEvent('download')
-    await tarjeta.getByRole('link', { name: /Nota PDF/ }).click()
+    await tarjeta.getByRole('link', { name: /Recibo PDF/ }).click()
     const delAdmin = await descarga
-    expect(delAdmin.suggestedFilename()).toBe(`Nota-${pedido.codigo}.pdf`)
-    await capturar(admin, 360, 'admin-360.png', 'Nota PDF')
-    await capturar(admin, 1280, 'admin-1280.png', 'Nota PDF')
+    expect(delAdmin.suggestedFilename()).toBe(`Recibo-${pedido.codigo}.pdf`)
+    await capturar(admin, 360, 'admin-360.png', 'Recibo PDF')
+    await capturar(admin, 1280, 'admin-1280.png', 'Recibo PDF')
     await admin.context().close()
   })
 
-  test('QR verificado: nota del cliente; ajeno o inventado 404, sin sesión 401; al anularse sale ANULADA', async ({ page, browser }) => {
+  test('QR: sin pagar no hay recibo (409); verificado lo baja el cliente; ajeno o inventado 404, sin sesión 401; al anularse sale ANULADO', async ({ page, browser }) => {
     await entrarComoCliente(page)
     await agregarAlCarrito(page, PRODUCTO_A)
     const pedido = await finalizarCompra(page, { zona: 'Distrito 1', metodo: 'QR' })
 
-    // Comprobante (en revisión todavía no hay nota) y el admin aprueba el pago
-    await page.goto(`/pedidos/${pedido.id}`)
-    await page.getByLabel('Elegir foto del comprobante de la galería').setInputFiles({ name: 'comprobante-e2e.png', mimeType: 'image/png', buffer: imagenComprobante() })
-    await page.getByRole('button', { name: 'Enviar comprobante' }).click()
-    await expect(page.getByText('En revisión')).toBeVisible()
+    // Pendiente con QR: todavía no hay venta
+    const pendiente = await page.request.get(`/api/pedidos/${pedido.id}/nota`)
+    expect(pendiente.status()).toBe(409)
+    expect(((await pendiente.json()) as { error: { codigo: string } }).error.codigo).toBe('NOTA_NO_DISPONIBLE')
+
+    // Clic 3 (fase 9E): la foto del pago se sube en la misma pantalla del QR, con «Enviar»
+    await expect(page.getByRole('heading', { name: '2. Sube la foto del pago' })).toBeVisible()
+    await page.getByLabel('Elegir la foto del pago de la galería').setInputFiles({ name: 'comprobante-e2e.png', mimeType: 'image/png', buffer: imagenComprobante() })
+    await page.getByRole('button', { name: 'Enviar', exact: true }).click()
+    await expect(page.getByRole('heading', { name: '¡Recibimos tu comprobante!' })).toBeVisible()
+    // En revisión todavía no hay recibo
     expect((await page.request.get(`/api/pedidos/${pedido.id}/nota`)).status()).toBe(409)
+    await page.goto(`/pedidos/${pedido.id}`)
+    await esperarCarga(page)
+    await expect(page.getByText('El recibo de compra estará disponible cuando la tienda confirme tu pedido.')).toBeVisible()
+    await expect(page.getByRole('link', { name: /Descargar recibo de compra/ })).toHaveCount(0)
 
     const admin = await paginaAdmin(browser)
     const detalle = (await (await admin.request.get(`/api/pedidos/${pedido.id}`)).json()) as { data: { pagos: { id: string } } }
@@ -133,7 +138,7 @@ test.describe('Nota de venta', () => {
 
     const pdfQr = await esPdf(await page.request.get(`/api/pedidos/${pedido.id}/nota`))
     expect(textoDelPdf(pdfQr)).toContain('Pago verificado')
-    guardar('nota-qr-verificado.pdf', pdfQr)
+    guardar('recibo-qr-verificado.pdf', pdfQr)
 
     // Inventado → 404; sin sesión → 401
     expect((await page.request.get('/api/pedidos/00000000-0000-4000-8000-000000000000/nota')).status()).toBe(404)
@@ -141,19 +146,19 @@ test.describe('Nota de venta', () => {
     expect((await anonimo.get(`/api/pedidos/${pedido.id}/nota`)).status()).toBe(401)
     await anonimo.dispose()
 
-    // Ajeno: otra cuenta (el distribuidor de prueba) no puede bajar la nota del cliente
+    // Ajeno: otra cuenta (el distribuidor de prueba) no puede bajar el recibo del cliente
     const otro = await paginaDistribuidor(browser, 1)
     expect((await otro.request.get(`/api/pedidos/${pedido.id}/nota`)).status()).toBe(404)
     await otro.context().close()
 
-    // La limpieza lo anula (se había confirmado): la nota sigue disponible, marcada ANULADA
+    // La limpieza lo anula (se había confirmado): el recibo sigue disponible, marcado ANULADO
     await limpiarDatosDePrueba(browser)
-    await page.reload()
+    await page.goto(`/pedidos/${pedido.id}`)
     await esperarCarga(page)
-    await expect(page.getByText('la nota sale marcada como ANULADA')).toBeVisible()
-    const anulada = await descargarConBoton(page, /Descargar nota de venta/, 'nota-anulada.pdf')
+    await expect(page.getByText('el recibo sale marcado como ANULADO')).toBeVisible()
+    const anulada = await descargarConBoton(page, /Descargar recibo de compra/, 'recibo-anulado.pdf')
     const texto = textoDelPdf(anulada.pdf)
-    expect(texto).toContain('ANULADA')
+    expect(texto).toContain('ANULADO')
     expect(texto).toContain(pedido.codigo)
   })
 })
