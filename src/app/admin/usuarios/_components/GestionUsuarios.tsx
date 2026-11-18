@@ -65,7 +65,7 @@ export default function GestionUsuarios() {
       usuario,
       cambios: { rol },
       titulo: 'Cambiar rol',
-      mensaje: `${usuario.nombre} pasará de ${ETIQUETA_ROL[usuario.rol]} a ${ETIQUETA_ROL[rol]}.`,
+      mensaje: `${usuario.nombre} pasará de ${ETIQUETA_ROL[usuario.rol]} a ${ETIQUETA_ROL[rol]}.${rol === 'repartidor' ? ' Al entrar verá su panel de entregas y el enlace al grupo de Telegram.' : ''}`,
       textoConfirmar: 'Cambiar rol',
       peligro: rol === 'admin',
     })

@@ -5,7 +5,7 @@ import type { EventoSeguimiento } from '@/types/comercio'
 import { ETIQUETA_ROL, type RolUsuario } from '@/types/usuarios'
 
 // Rol que se muestra al lado del nombre (el del cliente no hace falta)
-const ROLES_PERSONAL: RolUsuario[] = ['admin', 'almacen', 'repartidor']
+const ROLES_PERSONAL: RolUsuario[] = ['admin', 'repartidor']
 
 // "por Aldo Martínez (Administrador) · 16/11 14:32" en hora de Bolivia (migración 0017).
 // Sin la 0017 no hay nombres: queda solo la hora.

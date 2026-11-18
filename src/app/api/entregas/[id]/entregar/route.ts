@@ -5,10 +5,10 @@ import { esquemaEntregar } from '@/lib/entrega/esquemas'
 import type { ResultadoEntrega } from '@/types/entrega'
 
 // POST /api/entregas/:id/entregar — Entrega con el código de 4 dígitos del cliente.
-// Repartidor (domicilio), almacén (recojo en tienda) o admin.
+// Repartidor que la lleva (domicilio) o admin (también recojo en tienda).
 // 422 CODIGO_INCORRECTO con los intentos que quedan · 409 CODIGO_BLOQUEADO a los 5 intentos.
 export const POST = manejarRuta<{ params: { id: string } }>(async (request, { params }) => {
-  const { supabase } = await requerirRol(['repartidor', 'almacen'])
+  const { supabase } = await requerirRol(['repartidor'])
   const id = validarUuid(params.id)
   const entrega = await validarCuerpo(request, esquemaEntregar)
 

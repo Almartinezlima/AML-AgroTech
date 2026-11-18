@@ -9,7 +9,7 @@ interface ListaFaltantesProps {
   accion?: (faltante: FaltantePedido) => ReactNode
 }
 
-// Faltantes reportados por el almacén: abiertos en rojo, resueltos en verde (almacén y admin)
+// Faltantes reportados al preparar: abiertos en rojo, resueltos en verde (admin)
 export default function ListaFaltantes({ faltantes, accion }: ListaFaltantesProps) {
   return (
     <ul className="flex flex-col gap-2">

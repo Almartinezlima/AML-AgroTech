@@ -5,10 +5,16 @@ const DATOS_INVALIDOS = { error: 'Los datos enviados no son válidos.' }
 const nota = (mensaje: string) =>
   z.string({ error: mensaje }).trim().min(3, { error: mensaje }).max(300, { error: 'Máximo 300 caracteres.' })
 
-// Contra entrega: lo que recibió en efectivo (la base exige que sea igual al total)
-export const esquemaCobro = z.strictObject(
+// "Estoy disponible / No disponible" (repartidor, 0020)
+export const esquemaDisponibilidad = z.strictObject(
+  { disponible: z.boolean({ error: 'Indica si estás disponible.' }) },
+  DATOS_INVALIDOS
+)
+
+// "Pagado" al repartidor: el monto que el admin vio (la base frena si cambió)
+export const esquemaPagarRepartidor = z.strictObject(
   {
-    monto: z.number({ error: 'Indica cuánto recibiste.' }).positive({ error: 'El monto tiene que ser mayor a cero.' })
+    monto: z.number({ error: 'El monto no es válido.' }).positive({ error: 'El monto tiene que ser mayor a cero.' })
       .max(99_999_999, { error: 'El monto no es válido.' }),
   },
   DATOS_INVALIDOS

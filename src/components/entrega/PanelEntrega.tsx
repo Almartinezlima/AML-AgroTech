@@ -9,7 +9,7 @@ import { useDatosApi } from '@/lib/api/useDatosApi'
 import { diaHora } from '@/lib/ecommerce/presentacion'
 import type { DetalleEntrega } from '@/types/entrega'
 import FormularioEntrega from './FormularioEntrega'
-import { LuLockOpen, LuTruck } from 'react-icons/lu'
+import { LuLockOpen, LuRotateCcw, LuTruck } from 'react-icons/lu'
 
 interface PanelEntregaProps {
   pedidoId: string
@@ -17,11 +17,12 @@ interface PanelEntregaProps {
   onActualizado: () => void
 }
 
-type Accion = 'desbloquear' | 'flota' | null
+type Accion = 'desbloquear' | 'flota' | 'liberar' | null
 
-// Entrega desde el detalle del pedido (admin) o el almacén (fase 9D):
-// recojo → "Entregar en tienda" con el código; a domicilio → lo entrega el repartidor;
-// por flota → el admin confirma con una nota. El admin desbloquea un código bloqueado.
+// Entrega desde el detalle del pedido o "Por preparar" (admin, fase 9D y 9F):
+// recojo → "Entregar en tienda" con el código; a domicilio → lo lleva el repartidor que acepta
+// (el admin puede liberarla si no aparece); por flota → el admin confirma con una nota.
+// El admin desbloquea un código bloqueado.
 export default function PanelEntrega({ pedidoId, esAdmin, onActualizado }: PanelEntregaProps) {
   const { datos: detalle, cargando, error, recargar } = useDatosApi<DetalleEntrega>(`/api/entregas/${pedidoId}`)
   const [accion, setAccion] = useState<Accion>(null)
@@ -42,11 +43,12 @@ export default function PanelEntrega({ pedidoId, esAdmin, onActualizado }: Panel
   }
 
   const guardar = async () => {
-    if (nota.trim().length < 3) return setErrorAccion('Escribe una nota (al menos 3 letras).')
+    if (accion !== 'liberar' && nota.trim().length < 3) return setErrorAccion('Escribe una nota (al menos 3 letras).')
     setProcesando(true)
     setErrorAccion('')
     try {
-      if (accion === 'desbloquear') await enviarJson(`/api/entregas/${pedidoId}/desbloquear`, 'POST', { nota: nota.trim() })
+      if (accion === 'liberar') await enviarJson(`/api/entregas/${pedidoId}/liberar`, 'POST', {})
+      else if (accion === 'desbloquear') await enviarJson(`/api/entregas/${pedidoId}/desbloquear`, 'POST', { nota: nota.trim() })
       else await enviarJson(`/api/pedidos/${pedidoId}/recibido`, 'POST', { nota: nota.trim() })
       setAccion(null)
       actualizar()
@@ -93,11 +95,20 @@ export default function PanelEntrega({ pedidoId, esAdmin, onActualizado }: Panel
           <p className="text-texto">
             {detalle.estado === 'despachado'
               ? `En camino con ${detalle.despachado_por ?? 'el repartidor'}${detalle.despachado_en ? ` desde las ${diaHora(detalle.despachado_en)}` : ''}. Lo entrega con el código del cliente.`
-              : 'Espera al repartidor: lo saca con «Tomar y salir» y lo entrega con el código del cliente.'}
+              : detalle.repartidor
+                ? `${detalle.repartidor} aceptó la entrega${detalle.aceptado_en ? ` a las ${diaHora(detalle.aceptado_en)}` : ''}: pasa a recogerlo a la tienda.`
+                : 'Esperando que un repartidor acepte la entrega (se avisó al grupo de Telegram).'}
           </p>
-          <Link href={detalle.estado === 'despachado' ? `/repartidor/pedidos/${pedidoId}` : '/repartidor'} className={`${claseBoton('secundario', 'chico')} self-start`}>
-            <LuTruck className="h-4 w-4" aria-hidden="true" /> Ver en reparto
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            {esAdmin && detalle.estado === 'empacado' && detalle.repartidor && (
+              <button type="button" onClick={() => abrir('liberar')} className={claseBoton('peligro', 'chico')}>
+                <LuRotateCcw className="h-4 w-4" aria-hidden="true" /> Liberar entrega
+              </button>
+            )}
+            <Link href="/admin/repartidores" className={claseBoton('secundario', 'chico')}>
+              <LuTruck className="h-4 w-4" aria-hidden="true" /> Ver reparto
+            </Link>
+          </div>
         </div>
       )}
 
@@ -108,7 +119,24 @@ export default function PanelEntrega({ pedidoId, esAdmin, onActualizado }: Panel
         </div>
       )}
 
-      {accion && (
+      {accion === 'liberar' && (
+        <Modal titulo="Liberar entrega" bloqueado={procesando} onCerrar={() => setAccion(null)}>
+          <div className="flex flex-col gap-4">
+            <AvisoError mensaje={errorAccion} />
+            <p className="text-texto">
+              {detalle.repartidor ?? 'El repartidor'} ya no la lleva. La entrega vuelve a estar disponible y se avisa otra vez al grupo de repartidores.
+            </p>
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button type="button" disabled={procesando} onClick={() => setAccion(null)} className={claseBotonSecundario}>Volver</button>
+              <button type="button" disabled={procesando} onClick={() => void guardar()} className={claseBoton('peligro')}>
+                {procesando ? 'Liberando…' : 'Sí, liberar'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {accion && accion !== 'liberar' && (
         <Modal titulo={accion === 'desbloquear' ? 'Desbloquear código de entrega' : 'Confirmar entrega en la flota'} bloqueado={procesando} onCerrar={() => setAccion(null)}>
           <div className="flex flex-col gap-4">
             <AvisoError mensaje={errorAccion} />

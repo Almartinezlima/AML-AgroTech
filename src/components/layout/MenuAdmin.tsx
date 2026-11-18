@@ -11,11 +11,11 @@ const OPCIONES: Array<{ href: string; texto: string; icono: IconType }> = [
   { href: '/admin', texto: 'Panel', icono: LuChartColumn },
   { href: '/admin/pedidos', texto: 'Pedidos', icono: LuShoppingCart },
   { href: '/admin/pagos', texto: 'Pagos', icono: LuCreditCard },
-  // El panel de almacén está fuera de /admin: lo usan el admin y la cuenta de almacén
-  { href: '/almacen', texto: 'Almacén', icono: LuPackageCheck },
+  // Fase 9F: preparar y "Listo para salir" lo hace el admin (ya no hay rol almacén)
+  { href: '/admin/preparar', texto: 'Por preparar', icono: LuPackageCheck },
   { href: '/admin/envios', texto: 'Envíos', icono: LuTruck },
-  // Panel del repartidor (fase 9D): fuera de /admin, lo usan el admin y la cuenta de reparto
-  { href: '/repartidor', texto: 'Reparto', icono: LuHandshake },
+  // Repartidores externos: entregas en curso y lo que se les debe
+  { href: '/admin/repartidores', texto: 'Repartidores', icono: LuHandshake },
   { href: '/admin/productos', texto: 'Productos', icono: LuPackage },
   { href: '/admin/inventario', texto: 'Inventario', icono: LuWarehouse },
   { href: '/admin/abastecimiento', texto: 'Abastecimiento', icono: LuBuilding2 },
@@ -37,7 +37,7 @@ export default function MenuAdmin() {
   }, [ruta])
 
   return (
-    <nav aria-label="Administración" className="bg-tarjeta border-b lg:border-b-0 lg:border-r border-borde lg:w-60 lg:shrink-0 py-2 lg:p-3">
+    <nav aria-label="Administración" className="print:hidden bg-tarjeta border-b lg:border-b-0 lg:border-r border-borde lg:w-60 lg:shrink-0 py-2 lg:p-3">
       <p className="hidden lg:block px-3 pt-2 pb-3 text-xs font-semibold text-trigo">Administración</p>
       <ul ref={lista} className="relative flex gap-1 overflow-x-auto px-3 lg:grid lg:grid-cols-1 lg:overflow-visible lg:px-0">
         {OPCIONES.map(({ href, texto, icono: Icono }) => {

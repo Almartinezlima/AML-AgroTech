@@ -1,12 +1,12 @@
 import { manejarRuta, respuestaOk } from '@/lib/api/respuestas'
-import { requerirRol } from '@/lib/api/sesion'
+import { requerirAdmin } from '@/lib/api/sesion'
 import { validarCuerpo, validarUuid } from '@/lib/api/validacion'
 import { esquemaEmpacar } from '@/lib/almacen/esquemas'
 
-// POST /api/almacen/pedidos/:id/empacar — Almacén o admin. Exige todo marcado y ningún faltante abierto.
+// POST /api/almacen/pedidos/:id/empacar — Solo admin (fase 9F: ya no hay rol almacén). Exige todo marcado y ningún faltante abierto.
 // Recojo queda "listo para recoger"; el resto, "empacado" para el repartidor.
 export const POST = manejarRuta<{ params: { id: string } }>(async (request, { params }) => {
-  const { supabase } = await requerirRol(['almacen'])
+  const { supabase } = await requerirAdmin()
   const id = validarUuid(params.id)
   const { bultos } = await validarCuerpo(request, esquemaEmpacar)
 
