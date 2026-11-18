@@ -1,14 +1,15 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { LuCamera, LuFileText, LuImage, LuRefreshCw, LuSend } from 'react-icons/lu'
-import { AvisoError } from '@/components/ui/Estados'
+import ErrorCampo from '@/components/ui/ErrorCampo'
 import { claseBotonPrimario, claseBotonSecundario, claseEnlace } from '@/components/ui/estilos'
 import { mensajeDeError, pedirApi } from '@/lib/api/cliente'
 import { ErrorImagen, MAX_BYTES_COMPROBANTE, prepararFotoComprobante } from '@/lib/pagos/imagen'
 
 // Tres caminos: sacar la foto con la cámara, elegirla de la galería (sin «capture», así el
 // celular muestra Galería/Fotos) o subir un PDF. Las fotos se achican a JPG antes de enviar.
-// Muestra una vista previa antes de enviar.
+// Muestra una vista previa antes de enviar. Fase 9E: va justo debajo del QR, con el botón «Enviar»
+// y el error debajo de la zona de subida.
 export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: string; onEnviado: () => void }) {
   const [archivo, setArchivo] = useState<File | null>(null)
   const [vista, setVista] = useState<string | null>(null)
@@ -57,7 +58,7 @@ export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: st
   }
 
   const enviar = async () => {
-    if (!archivo) return setError('Primero saca o elige la foto del comprobante; después toca «Enviar comprobante».')
+    if (!archivo) return setError('Primero saca o elige la foto del pago; después toca «Enviar».')
     setSubiendo(true)
     setError('')
     try {
@@ -74,9 +75,8 @@ export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: st
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-acento/40 bg-acento/5 p-4">
-      <p className="font-semibold text-texto">Envíanos tu comprobante</p>
-      <AvisoError mensaje={error} />
+    <div id="comprobante" className={`flex min-w-0 flex-col gap-3 rounded-2xl border border-dashed p-4 ${error ? 'border-estado-error bg-estado-error/5' : 'border-acento/40 bg-acento/5'}`}>
+      <p className="font-semibold text-texto">Sube tu comprobante (foto del pago)</p>
 
       {preparando ? (
         <p className="rounded-xl border border-borde bg-tarjeta px-4 py-3 text-sm text-texto-2" role="status">Preparando la foto…</p>
@@ -87,12 +87,12 @@ export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: st
             <label className={`${claseBotonPrimario} cursor-pointer`}>
               <LuCamera className="h-5 w-5" aria-hidden="true" /> Sacar foto
               <input type="file" accept="image/*" capture="environment" className="sr-only"
-                aria-label="Sacar foto del comprobante con la cámara" onChange={(e) => void elegirFoto(e.currentTarget)} />
+                aria-label="Sacar la foto del pago con la cámara" onChange={(e) => void elegirFoto(e.currentTarget)} />
             </label>
             <label className={`${claseBotonSecundario} cursor-pointer`}>
               <LuImage className="h-5 w-5" aria-hidden="true" /> Elegir de la galería
               <input type="file" accept="image/*" className="sr-only"
-                aria-label="Elegir foto del comprobante de la galería" onChange={(e) => void elegirFoto(e.currentTarget)} />
+                aria-label="Elegir la foto del pago de la galería" onChange={(e) => void elegirFoto(e.currentTarget)} />
             </label>
           </div>
           <p className="text-sm text-texto-2">
@@ -100,7 +100,7 @@ export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: st
             <label className={`${claseEnlace} inline-flex min-h-11 cursor-pointer items-center`}>
               Subir PDF
               <input type="file" accept="application/pdf" className="sr-only"
-                aria-label="Subir comprobante en PDF" onChange={(e) => elegirPdf(e.currentTarget)} />
+                aria-label="Subir el comprobante en PDF" onChange={(e) => elegirPdf(e.currentTarget)} />
             </label>
           </p>
         </div>
@@ -108,15 +108,15 @@ export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: st
         <div className="flex flex-col gap-3">
           {vista ? (
             // eslint-disable-next-line @next/next/no-img-element -- vista previa local (blob:), no pasa por el optimizador
-            <img src={vista} alt="Vista previa del comprobante" className="max-h-72 w-full rounded-xl border border-borde bg-white object-contain" />
+            <img src={vista} alt="Vista previa de la foto del pago" className="max-h-72 w-full max-w-full rounded-xl border border-borde bg-white object-contain" />
           ) : (
             <p className="flex items-center gap-2 rounded-xl border border-borde bg-tarjeta px-4 py-3 text-sm text-texto">
-              <LuFileText className="h-5 w-5 text-acento" aria-hidden="true" /> {archivo.name}
+              <LuFileText className="h-5 w-5 shrink-0 text-acento" aria-hidden="true" /> <span className="min-w-0 break-all">{archivo.name}</span>
             </p>
           )}
           <div className="flex flex-col gap-2 sm:flex-row">
             <button onClick={() => void enviar()} disabled={subiendo} className={claseBotonPrimario}>
-              <LuSend className="h-5 w-5" aria-hidden="true" /> {subiendo ? 'Enviando…' : 'Enviar comprobante'}
+              <LuSend className="h-5 w-5" aria-hidden="true" /> {subiendo ? 'Enviando…' : 'Enviar'}
             </button>
             <button onClick={() => setArchivo(null)} disabled={subiendo} className={claseBotonSecundario}>
               <LuRefreshCw className="h-4 w-4" aria-hidden="true" /> Elegir otra foto
@@ -124,6 +124,7 @@ export default function SubirComprobante({ pedidoId, onEnviado }: { pedidoId: st
           </div>
         </div>
       )}
+      <ErrorCampo campo="comprobante" mensaje={error} />
       <p className="text-sm text-texto-2">Foto o PDF. Las fotos se achican solas antes de enviarse.</p>
     </div>
   )

@@ -1,10 +1,10 @@
 import Link from 'next/link'
 import { LuCheck } from 'react-icons/lu'
 
-// Barra de pasos de la compra (fase 4): el cliente siempre sabe en qué paso está.
-// Carrito → Datos y envío → Pago → Listo. Los pasos hechos se pueden tocar para volver,
-// salvo cuando el pedido ya está registrado (Listo).
-export const PASOS_COMPRA = ['Carrito', 'Datos y envío', 'Pago', 'Listo'] as const
+// Barra de pasos de la compra (fase 4, 9E): el cliente siempre sabe en qué paso está.
+// Carrito → Datos y pago (confirmar) → Pagar (QR y foto del pago) → Listo. El carrito se
+// puede tocar para volver mientras no se confirmó el pedido.
+export const PASOS_COMPRA = ['Carrito', 'Datos y pago', 'Pagar', 'Listo'] as const
 export type PasoCompra = 0 | 1 | 2 | 3
 
 interface PasosCompraProps {
@@ -20,7 +20,7 @@ export default function PasosCompra({ actual, onVolver }: PasosCompraProps) {
         {PASOS_COMPRA.map((nombre, i) => {
           const hecho = i < actual
           const esActual = i === actual
-          const sePuedeVolver = hecho && actual < 3
+          const sePuedeVolver = hecho && actual < 2
 
           const contenido = (
             <>

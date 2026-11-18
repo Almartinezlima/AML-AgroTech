@@ -7,7 +7,7 @@ import { claseTarjeta } from '@/components/ui/estilos'
 import { ETIQUETA_METODO, INFO_ESTADO_PAGO } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import type { PedidoDetalle } from '@/types/comercio'
-import SubirComprobante from './SubirComprobante'
+import SubirComprobante from '@/components/pagos/SubirComprobante'
 
 interface BloquePagoProps {
   pedido: PedidoDetalle
@@ -32,7 +32,7 @@ export default function BloquePago({ pedido, esDueno, onActualizado }: BloquePag
       </div>
 
       {pago.estado === 'rechazado' && pago.motivo_rechazo && (
-        <Aviso tipo="error">La tienda rechazó tu comprobante. Motivo: {pago.motivo_rechazo}. Sube otro comprobante aquí abajo.</Aviso>
+        <Aviso tipo="error">La tienda rechazó tu comprobante (foto del pago). Motivo: {pago.motivo_rechazo}. Sube otra foto aquí abajo.</Aviso>
       )}
 
       {pago.estado === 'reembolso_pendiente' && (
@@ -45,14 +45,14 @@ export default function BloquePago({ pedido, esDueno, onActualizado }: BloquePag
       )}
 
       {pago.estado === 'en_revision' && esDueno && (
-        <Aviso tipo="ok">Recibimos tu comprobante. La tienda lo está revisando; mira aquí el estado.</Aviso>
+        <Aviso tipo="ok">Recibimos tu comprobante (foto del pago). La tienda lo está revisando; mira aquí el estado.</Aviso>
       )}
 
       {puedeSubir && <InstruccionesPago metodo={pago.metodo} monto={pago.monto} codigo={pedido.codigo} />}
 
       {pedido.comprobante_url && (
         <a href={pedido.comprobante_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-acento hover:underline">
-          Ver comprobante subido <LuExternalLink className="h-4 w-4" aria-hidden="true" />
+          Ver comprobante (foto del pago) <LuExternalLink className="h-4 w-4" aria-hidden="true" />
         </a>
       )}
 
