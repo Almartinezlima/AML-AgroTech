@@ -15,22 +15,20 @@ import ModalRechazo from './_components/ModalRechazo'
 import TarjetaPago from './_components/TarjetaPago'
 import VisorComprobante from './_components/VisorComprobante'
 
-// Filtros por estado del pago: "Todos", cada estado y el efectivo por rendir (fase 9D)
-type Filtro = EstadoPago | '' | 'efectivo'
+// Filtros por estado del pago: "Todos" y cada estado (desde la 9F solo hay QR)
+type Filtro = EstadoPago | ''
 const OPCIONES_FILTRO: Array<{ valor: Filtro; texto: string }> = [
   { valor: '', texto: 'Todos' },
   ...ESTADOS_PAGO.map((e) => ({ valor: e, texto: INFO_ESTADO_PAGO[e].etiqueta })),
-  { valor: 'efectivo', texto: 'Efectivo por rendir' },
 ]
 
 export default function AdminPagosPage() {
   const [estado, setEstado] = useState<Filtro>('en_revision')
-  const url = estado === 'efectivo' ? '/api/pagos?vista=efectivo' : `/api/pagos${estado ? `?estado=${estado}` : ''}`
+  const url = `/api/pagos${estado ? `?estado=${estado}` : ''}`
   const { datos, cargando, error, recargar } = useDatosApi<PagoAdmin[]>(url)
   const [aprobando, setAprobando] = useState<PagoAdmin | null>(null)
   const [rechazando, setRechazando] = useState<PagoAdmin | null>(null)
   const [reembolsando, setReembolsando] = useState<PagoAdmin | null>(null)
-  const [recibiendo, setRecibiendo] = useState<PagoAdmin | null>(null)
   const [viendo, setViendo] = useState<PagoAdmin | null>(null)
   const [motivo, setMotivo] = useState('')
   const [procesando, setProcesando] = useState(false)
@@ -40,7 +38,6 @@ export default function AdminPagosPage() {
     setAprobando(null)
     setRechazando(null)
     setReembolsando(null)
-    setRecibiendo(null)
     setViendo(null)
     setMotivo('')
     setErrorAccion('')
@@ -64,13 +61,12 @@ export default function AdminPagosPage() {
     }
   }
 
-  // reembolso: el dinero ya se devolvió al cliente (0006) · efectivo: "Recibí el efectivo" que
-  // cobró el repartidor o el almacén → pago verificado y pedido completado (0018)
-  const accionPago = async (pago: PagoAdmin, accion: 'reembolso' | 'efectivo') => {
+  // Reembolso: el dinero ya se devolvió al cliente (0006)
+  const reembolsar = async (pago: PagoAdmin) => {
     setProcesando(true)
     setErrorAccion('')
     try {
-      await enviarJson(`/api/pagos/${pago.id}/${accion}`, 'POST', accion === 'reembolso' ? { nota: null } : {})
+      await enviarJson(`/api/pagos/${pago.id}/reembolso`, 'POST', { nota: null })
       cerrar()
       await recargar()
     } catch (causa) {
@@ -84,14 +80,14 @@ export default function AdminPagosPage() {
   const lista = datos ?? []
   const monto = lista.reduce((suma, p) => suma + Number(p.monto), 0)
   const conComprobante = lista.filter((p) => p.comprobante_url).length
-  const textoFiltro = estado === 'efectivo' ? 'efectivo por rendir' : estado ? INFO_ESTADO_PAGO[estado].etiqueta.toLowerCase() : 'todos los estados'
+  const textoFiltro = estado ? INFO_ESTADO_PAGO[estado].etiqueta.toLowerCase() : 'todos los estados'
 
   return (
     <div className={clasePagina}>
       <div className="max-w-5xl mx-auto">
         <EncabezadoAdmin
           titulo="Pagos"
-          descripcion="Revisa los comprobantes (fotos del pago), aprueba o rechaza, recibe el efectivo de las entregas y marca los reembolsos."
+          descripcion="Revisa los comprobantes (fotos del pago con QR), aprueba o rechaza y marca los reembolsos."
         />
 
         <div role="group" aria-label="Filtrar por estado del pago" className={`${claseFilaFiltros} mb-5`}>
@@ -125,7 +121,6 @@ export default function AdminPagosPage() {
                     onAprobar={() => { setErrorAccion(''); setAprobando(pago) }}
                     onRechazar={() => { setErrorAccion(''); setRechazando(pago) }}
                     onReembolsar={() => { setErrorAccion(''); setReembolsando(pago) }}
-                    onRecibirEfectivo={() => { setErrorAccion(''); setRecibiendo(pago) }}
                     onVerComprobante={() => setViendo(pago)}
                   />
                 ))}
@@ -164,19 +159,7 @@ export default function AdminPagosPage() {
           textoConfirmar="Sí, ya lo devolví"
           procesando={procesando}
           error={errorAccion}
-          onConfirmar={() => void accionPago(reembolsando, 'reembolso')}
-          onCancelar={cerrar}
-        />
-      )}
-
-      {recibiendo && (
-        <ModalConfirmacion
-          titulo="Recibí el efectivo"
-          mensaje={`Confirmas que ${recibiendo.cobrado_por ?? 'el personal'} te entregó ${formatoBs(recibiendo.monto_cobrado ?? recibiendo.monto)} del pedido ${recibiendo.pedidos?.codigo ?? ''}. El pago queda verificado con tu nombre y, si ya se entregó, el pedido queda completado.`}
-          textoConfirmar="Sí, lo recibí"
-          procesando={procesando}
-          error={errorAccion}
-          onConfirmar={() => void accionPago(recibiendo, 'efectivo')}
+          onConfirmar={() => void reembolsar(reembolsando)}
           onCancelar={cerrar}
         />
       )}

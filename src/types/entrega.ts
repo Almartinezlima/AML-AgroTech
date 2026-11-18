@@ -1,5 +1,5 @@
-// Entrega y cierre del pedido (fase 9D, migración 0018). Lo devuelven las funciones de la base:
-// el repartidor no lee tablas directo y nadie (salvo el dueño) recibe el código de entrega.
+// Entrega y cierre del pedido (fase 9D, 0018; repartidores externos 9F, 0020). Lo devuelven las
+// funciones de la base: el repartidor no lee tablas directo y nadie (salvo el dueño) recibe el código.
 import type { EstadoPago, EstadoPedido, MetodoPago, TipoZona } from './comercio'
 
 // Solo para el dueño del pedido (mi_codigo_entrega). Bloqueado: el código no viene.
@@ -27,12 +27,44 @@ export interface CalificacionEntrega {
   created_at: string
 }
 
-// Cola del repartidor (cola_reparto)
+// Panel del repartidor externo (panel_repartidor, migración 0020)
+// Disponibles: sin nombre ni teléfono del cliente hasta que la acepta.
+export interface EntregaDisponible {
+  id: string
+  codigo: string
+  zona: string | null
+  direccion_entrega: string | null
+  bultos: number | null
+  ganas: number
+  empacado_en: string | null
+}
+
+// Las que aceptó: listas para recoger en la tienda (empacado) o en camino (despachado)
+export interface EntregaMia extends EntregaDisponible {
+  estado: EstadoPedido
+  cliente: string | null
+  telefono: string | null
+  notas: string | null
+  aceptado_en: string
+  despachado_en: string | null
+  codigo_bloqueado: boolean
+}
+
+export interface PanelRepartidor {
+  disponible: boolean
+  disponibles: EntregaDisponible[]
+  mias: EntregaMia[]
+  ganado: number
+  por_cobrar: number
+  entregas_hechas: number
+  ultimo_pago: { monto: number; entregas: number; pagado_en: string } | null
+}
+
+// Cola del admin (cola_reparto): a domicilio listos para salir o en camino
 export interface PedidoReparto {
   id: string
   codigo: string
   estado: EstadoPedido
-  metodo_pago: MetodoPago
   total: number
   created_at: string
   cliente: string | null
@@ -41,12 +73,41 @@ export interface PedidoReparto {
   direccion_entrega: string | null
   notas: string | null
   bultos: number | null
+  ganas: number
   empacado_en: string | null
-  despachado_por: string | null
+  repartidor: string | null
+  aceptado_en: string | null
   despachado_en: string | null
-  es_mio: boolean
-  cobrado: boolean
   codigo_bloqueado: boolean
+}
+
+// /admin/repartidores (deudas_repartidores)
+export interface DeudaRepartidor {
+  id: string
+  nombre: string
+  telefono: string | null
+  activo: boolean
+  es_repartidor: boolean
+  disponible: boolean
+  en_curso: number
+  entregas_por_pagar: number
+  por_pagar: number
+  total_pagado: number
+  ultimo_pago_en: string | null
+}
+
+export interface PagoRepartidor {
+  id: string
+  repartidor: string | null
+  monto: number
+  entregas: number
+  pagado_por: string | null
+  pagado_en: string
+}
+
+export interface DeudasRepartidores {
+  repartidores: DeudaRepartidor[]
+  pagos: PagoRepartidor[]
 }
 
 // Para entregar (detalle_entrega): nunca trae el código
@@ -67,15 +128,16 @@ export interface DetalleEntrega {
   recoge_ci: string | null
   notas: string | null
   bultos: number | null
+  ganas: number
   empacado_en: string | null
+  repartidor: string | null
+  es_mia: boolean
+  aceptado_en: string | null
   despachado_por: string | null
   despachado_en: string | null
   entregado_por: string | null
   entregado_en: string | null
   recibe_nombre: string | null
-  cobrado: boolean
-  cobrado_por: string | null
-  cobrado_en: string | null
   tiene_codigo: boolean
   codigo_bloqueado: boolean
   intentos_restantes: number | null

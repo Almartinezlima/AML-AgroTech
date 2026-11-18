@@ -10,7 +10,6 @@ import Insignia from '@/components/ui/Insignia'
 import { claseBoton, claseBotonPrimario, claseBotonSecundario, clasePagina, claseTarjeta, claseTituloSeccion } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
-import { useAuth } from '@/context/AuthContext'
 import { INFO_ESTADO_PEDIDO, diaHora } from '@/lib/ecommerce/presentacion'
 import type { DetallePreparacion, ItemPreparacion } from '@/types/almacen'
 import DatosEntrega from './_components/DatosEntrega'
@@ -18,11 +17,10 @@ import ListaProductos from './_components/ListaProductos'
 import ModalEmpacar from './_components/ModalEmpacar'
 import ModalFaltante from './_components/ModalFaltante'
 
-// Preparar un pedido: empezar, marcar cada producto al ponerlo en la caja, reportar
-// faltantes y empacar. Cada paso queda con el nombre de quién lo hizo.
+// Preparar un pedido (admin, fase 9F): empezar, marcar cada producto al ponerlo en la caja,
+// reportar faltantes y "Listo para salir". Cada paso queda con el nombre de quién lo hizo.
 export default function PrepararPedidoPage() {
   const { id } = useParams<{ id: string }>()
-  const { perfil } = useAuth()
   const { datos: pedido, cargando, error, estadoError, recargar, setDatos } = useDatosApi<DetallePreparacion>(`/api/almacen/pedidos/${id}`)
   const [modal, setModal] = useState<'faltante' | 'empacar' | null>(null)
   const [guardando, setGuardando] = useState<string | null>(null)
@@ -35,12 +33,12 @@ export default function PrepararPedidoPage() {
   const envoltura = (contenido: React.ReactNode) => (
     <div className={clasePagina}><div className="mx-auto max-w-3xl">{contenido}</div></div>
   )
-  const volver = <Link href="/almacen" className={claseBotonSecundario}>Volver al almacén</Link>
+  const volver = <Link href="/admin/preparar" className={claseBotonSecundario}>Volver a Por preparar</Link>
 
   if (cargando && !pedido) return envoltura(<BloqueCarga filas={3} alto="h-32" />)
   if (error || !pedido) {
     if (estadoError === 400 || estadoError === 404) {
-      return envoltura(<BloqueError titulo="Este pedido no está en el almacén" mensaje="Puede que ya haya salido o que se haya cancelado.">{volver}</BloqueError>)
+      return envoltura(<BloqueError titulo="Este pedido no está por preparar" mensaje="Puede que ya haya salido o que se haya cancelado.">{volver}</BloqueError>)
     }
     return envoltura(<BloqueError mensaje={error || 'No se pudo cargar el pedido.'} onReintentar={() => void recargar()}>{volver}</BloqueError>)
   }
@@ -82,8 +80,8 @@ export default function PrepararPedidoPage() {
 
   return envoltura(
     <>
-      <Link href="/almacen" className="mb-4 inline-flex min-h-11 items-center gap-1.5 font-semibold text-acento hover:underline">
-        <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Almacén
+      <Link href="/admin/preparar" className="mb-4 inline-flex min-h-11 items-center gap-1.5 font-semibold text-acento hover:underline">
+        <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Por preparar
       </Link>
 
       <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
@@ -129,14 +127,14 @@ export default function PrepararPedidoPage() {
               <p className="inline-flex items-start gap-2 text-sm text-texto-2">
                 <LuCircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 {faltantesAbiertos > 0
-                  ? 'Hay un faltante sin resolver: la tienda tiene que resolverlo antes de empacar.'
-                  : `Marca ${sinMarcar === 1 ? 'el producto que falta' : `los ${sinMarcar} productos que faltan`} para poder empacar.`}
+                  ? 'Hay un faltante sin resolver: resuélvelo en el detalle del pedido antes de dejarlo listo.'
+                  : `Marca ${sinMarcar === 1 ? 'el producto que falta' : `los ${sinMarcar} productos que faltan`} para dejarlo listo.`}
               </p>
             )}
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button type="button" onClick={() => setModal('faltante')} className={claseBoton('peligro')}>Reportar faltante</button>
               <button type="button" onClick={() => setModal('empacar')} disabled={!puedeEmpacar} className={`${claseBotonPrimario} sm:min-w-48`}>
-                <LuPackageCheck className="h-5 w-5" aria-hidden="true" /> Empacado
+                <LuPackageCheck className="h-5 w-5" aria-hidden="true" /> Listo para salir
               </button>
             </div>
           </div>
@@ -145,11 +143,11 @@ export default function PrepararPedidoPage() {
         {empacado && (
           <section className={`${claseTarjeta} flex flex-col gap-3 p-5`}>
             <p className="text-texto">
-              Empacado por <span className="font-semibold">{pedido.empacado_por ?? '—'}</span>
+              Listo por <span className="font-semibold">{pedido.empacado_por ?? '—'}</span>
               {pedido.empacado_en ? ` · ${diaHora(pedido.empacado_en)}` : ''} · {pedido.bultos} {pedido.bultos === 1 ? 'bulto' : 'bultos'}.
-              {' '}{pedido.estado === 'listo_para_recoger' ? 'Espera al cliente en la tienda.' : 'Listo para salir.'}
+              {' '}{pedido.estado === 'listo_para_recoger' ? 'Espera al cliente en la tienda.' : pedido.tipo_zona === 'urbano' ? 'Se avisó al grupo de repartidores.' : 'Despáchalo por flota desde Envíos.'}
             </p>
-            <Link href={`/almacen/pedidos/${pedido.id}/etiqueta`} className={`${claseBotonPrimario} w-full sm:w-auto sm:self-start`}>
+            <Link href={`/admin/preparar/pedidos/${pedido.id}/etiqueta`} className={`${claseBotonPrimario} w-full sm:w-auto sm:self-start`}>
               <LuPrinter className="h-5 w-5" aria-hidden="true" /> Imprimir {pedido.bultos === 1 ? 'etiqueta' : `${pedido.bultos} etiquetas`}
             </Link>
           </section>
@@ -157,7 +155,7 @@ export default function PrepararPedidoPage() {
 
         {/* Recojo: "Entregar en tienda" con el código del cliente (fase 9D) */}
         {pedido.estado === 'listo_para_recoger' && (
-          <PanelEntrega pedidoId={pedido.id} esAdmin={perfil?.rol === 'admin'} onActualizado={() => undefined} />
+          <PanelEntrega pedidoId={pedido.id} esAdmin onActualizado={() => undefined} />
         )}
       </div>
 
@@ -165,7 +163,7 @@ export default function PrepararPedidoPage() {
         <ModalFaltante pedidoId={pedido.id} codigo={pedido.codigo} items={pedido.items} onCerrar={cerrar} onReportado={listo} />
       )}
       {modal === 'empacar' && (
-        <ModalEmpacar pedidoId={pedido.id} codigo={pedido.codigo} esRecojo={pedido.tipo_zona === 'recojo'} onCerrar={cerrar} onEmpacado={listo} />
+        <ModalEmpacar pedidoId={pedido.id} codigo={pedido.codigo} esRecojo={pedido.tipo_zona === 'recojo'} esDomicilio={pedido.tipo_zona === 'urbano'} onCerrar={cerrar} onEmpacado={listo} />
       )}
     </>
   )

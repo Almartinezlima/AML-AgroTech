@@ -26,14 +26,14 @@ export default function EtiquetaPage() {
     return () => { vigente = false }
   }, [pedido])
 
-  const volver = <Link href={`/almacen/pedidos/${id}`} className={claseBotonSecundario}>Volver al pedido</Link>
+  const volver = <Link href={`/admin/preparar/pedidos/${id}`} className={claseBotonSecundario}>Volver al pedido</Link>
 
   if (cargando && !pedido) return <div className={clasePagina}><div className="mx-auto max-w-3xl"><BloqueCarga filas={1} alto="h-96" /></div></div>
   if (error || !pedido) {
     return <div className={clasePagina}><div className="mx-auto max-w-3xl"><BloqueError mensaje={error || 'No se pudo cargar el pedido.'} onReintentar={() => void recargar()}>{volver}</BloqueError></div></div>
   }
 
-  // Antes de empacar todavía no se sabe cuántos bultos son: se imprime una sola
+  // Antes de dejarlo listo todavía no se sabe cuántos bultos son: se imprime una sola
   const total = pedido.bultos ?? 1
 
   return (
@@ -41,7 +41,7 @@ export default function EtiquetaPage() {
       <style>{'@media print { @page { margin: 8mm; } }'}</style>
       <div className="mx-auto max-w-3xl">
         <div className="mb-6 flex flex-col gap-3 print:hidden sm:flex-row sm:items-center sm:justify-between">
-          <Link href={`/almacen/pedidos/${id}`} className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-acento hover:underline">
+          <Link href={`/admin/preparar/pedidos/${id}`} className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-acento hover:underline">
             <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> {pedido.codigo}
           </Link>
           <button type="button" onClick={() => window.print()} disabled={!qr} className={claseBotonPrimario}>

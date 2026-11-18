@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     .maybeSingle()
 
   if (perfil?.activo === false) return NextResponse.redirect(new URL('/cuenta-desactivada', origin))
-  // El proveedor y el almacén entran a su panel si no venían de otra pantalla
+  // El proveedor y el repartidor entran a su panel si no venían de otra pantalla
   const inicio = inicioPorRol(perfil?.rol)
   return NextResponse.redirect(new URL(siguiente || inicio, origin))
 }

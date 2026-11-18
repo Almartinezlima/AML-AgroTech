@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { LuArrowLeft, LuCircleCheck, LuClipboardList } from 'react-icons/lu'
 import PasosCompra from '@/components/compra/PasosCompra'
-import InstruccionesPago from '@/components/pagos/InstruccionesPago'
+import QrPago from '@/components/pagos/QrPago'
 import SubirComprobante from '@/components/pagos/SubirComprobante'
 import { BloqueCarga, BloqueError } from '@/components/ui/Estados'
 import Insignia from '@/components/ui/Insignia'
@@ -14,8 +14,8 @@ import { estadoCliente } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import type { PedidoDetalle } from '@/types/comercio'
 
-// Clic 3 de la compra (fase 9E): con QR o transferencia, el cobro y justo debajo la subida de la
-// foto del pago con «Enviar». Con efectivo al recibir, el pedido ya está confirmado.
+// Clic 3 de la compra (fase 9E): el QR con el monto exacto y justo debajo la subida de la foto
+// del pago con «Enviar». Desde la 9F solo se paga con QR.
 function ContenidoExito() {
   const id = useSearchParams().get('id')
   const { datos: pedido, cargando, error, recargar } = useDatosApi<PedidoDetalle>(id ? `/api/pedidos/${id}` : null)
@@ -27,9 +27,8 @@ function ContenidoExito() {
     return <BloqueError mensaje={error || 'No encontramos el pedido.'} onReintentar={() => void recargar()}>{verPedidos}</BloqueError>
   }
 
-  const efectivo = pedido.metodo_pago === 'contra_entrega'
   const estadoPago = pedido.pagos?.estado ?? pedido.estado_pago
-  const faltaPagar = !efectivo && pedido.estado !== 'cancelado' && (estadoPago === 'pendiente' || estadoPago === 'rechazado')
+  const faltaPagar = pedido.estado !== 'cancelado' && (estadoPago === 'pendiente' || estadoPago === 'rechazado')
   const estado = estadoCliente({
     estado: pedido.estado,
     estado_pago: pedido.estado_pago,
@@ -60,7 +59,7 @@ function ContenidoExito() {
             </span>
           )}
           <h1 className="mb-2 font-titulo text-3xl font-bold text-texto">
-            {faltaPagar ? `Paga ${formatoBs(pedido.total)}` : efectivo ? '¡Pedido confirmado!' : '¡Recibimos tu comprobante!'}
+            {faltaPagar ? `Paga ${formatoBs(pedido.total)}` : '¡Recibimos tu comprobante!'}
           </h1>
           <p className="text-texto-2">Tu pedido es <span className="font-titulo font-bold text-acento">{pedido.codigo}</span></p>
           <div className="mt-3 flex justify-center"><Insignia info={estado} /></div>
@@ -70,9 +69,9 @@ function ContenidoExito() {
           <div className="flex flex-col gap-5">
             <section aria-labelledby="como-pagar" className="min-w-0">
               <h2 id="como-pagar" className={`${claseTituloSeccion} mb-3`}>
-                {pedido.metodo_pago === 'qr' ? '1. Paga con el QR' : '1. Transfiere a la cuenta de la tienda'}
+                1. Paga con el QR
               </h2>
-              <InstruccionesPago metodo={pedido.metodo_pago} monto={pedido.total} codigo={pedido.codigo} />
+              <QrPago monto={pedido.total} codigo={pedido.codigo} />
             </section>
             <section aria-label="2. Sube la foto del pago" className="min-w-0">
               <h2 className={`${claseTituloSeccion} mb-3`}>2. Sube la foto del pago</h2>

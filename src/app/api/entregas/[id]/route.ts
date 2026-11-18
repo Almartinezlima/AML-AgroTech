@@ -5,10 +5,10 @@ import type { DetalleEntrega } from '@/types/entrega'
 
 export const dynamic = 'force-dynamic'
 
-// GET /api/entregas/:id — Datos para entregar. Repartidor (domicilio), almacén (recojo) o admin.
+// GET /api/entregas/:id — Datos para entregar. Repartidor que la aceptó (domicilio) o admin.
 // La base decide qué pedido puede ver cada uno; el código de entrega nunca viene.
 export const GET = manejarRuta<{ params: { id: string } }>(async (_request, { params }) => {
-  const { supabase } = await requerirRol(['repartidor', 'almacen'])
+  const { supabase } = await requerirRol(['repartidor'])
   const id = validarUuid(params.id)
 
   const { data, error } = await supabase.rpc('detalle_entrega', { p_pedido_id: id })

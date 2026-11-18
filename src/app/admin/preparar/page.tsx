@@ -16,11 +16,11 @@ type Grupo = 'por_preparar' | 'preparando' | 'listos'
 const GRUPOS: Array<{ id: Grupo; titulo: string; vacio: string; estados: EstadoPedido[]; icono: IconType }> = [
   { id: 'por_preparar', titulo: 'Por preparar', vacio: 'No hay pedidos por preparar', estados: ['confirmado'], icono: LuClipboardList },
   { id: 'preparando', titulo: 'En preparación', vacio: 'No hay pedidos en preparación', estados: ['preparando'], icono: LuPackageOpen },
-  { id: 'listos', titulo: 'Empacados', vacio: 'No hay pedidos empacados esperando', estados: ['empacado', 'listo_para_recoger'], icono: LuPackageCheck },
+  { id: 'listos', titulo: 'Listos', vacio: 'No hay pedidos listos esperando', estados: ['empacado', 'listo_para_recoger'], icono: LuPackageCheck },
 ]
 
-// Panel de almacén (fase 9C): la cola de pedidos con pago verificado o contra entrega
-// confirmado, el más antiguo primero. Lo usan la cuenta de almacén y el admin.
+// "Por preparar" (fase 9C; desde la 9F lo hace el admin): la cola de pedidos con el pago
+// verificado, el más antiguo primero. "Listo para salir" avisa al grupo de repartidores.
 export default function AlmacenPage() {
   const { datos, cargando, error, recargar } = useDatosApi<PedidoCola[]>('/api/almacen/pedidos')
   const [activo, setActivo] = useState<Grupo>('por_preparar')
@@ -33,7 +33,7 @@ export default function AlmacenPage() {
     <div className={clasePagina}>
       <div className="mx-auto max-w-4xl">
         <header className="mb-6">
-          <p className="text-sm font-semibold text-trigo">Almacén</p>
+          <p className="text-sm font-semibold text-trigo">Preparación</p>
           <h1 className={claseTituloAdmin}>Preparación y empaque</h1>
           <p className="mt-1 text-texto-2">Prepara primero el pedido más antiguo. Cada paso queda registrado con tu nombre.</p>
         </header>
@@ -65,8 +65,8 @@ export default function AlmacenPage() {
         <div className="mt-8">
           <PasosAyuda pasos={[
             'Abre el pedido más antiguo de «Por preparar» y toca «Empezar a preparar».',
-            'Marca cada producto cuando lo pongas en la caja. Si falta algo, toca «Reportar faltante»: la tienda recibe el aviso.',
-            'Con todo marcado, toca «Empacado», indica cuántos bultos son e imprime una etiqueta por bulto.',
+            'Marca cada producto cuando lo pongas en la caja. Si falta algo, toca «Reportar faltante»: el cliente ve «Revisando un producto de tu pedido» hasta que lo resuelvas.',
+            'Con todo marcado, toca «Listo para salir», indica cuántos bultos son e imprime una etiqueta por bulto. Si es a domicilio, se avisa al grupo de repartidores.',
           ]} />
         </div>
       </div>

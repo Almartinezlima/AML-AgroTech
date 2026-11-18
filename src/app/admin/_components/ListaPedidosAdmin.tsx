@@ -7,7 +7,7 @@ import Modal from '@/components/ui/Modal'
 import ModalConfirmacion from '@/components/ui/ModalConfirmacion'
 import { claseBoton, claseBotonPrimario, claseBotonSecundario, claseEnlace, claseEtiqueta, claseInput, claseTarjeta, claseTextoPendiente } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
-import { ESTADOS_ALMACEN, ETIQUETA_METODO, INFO_ESTADO_PAGO, INFO_ESTADO_PEDIDO, fechaHora, puedeCancelarAdmin, siguienteEstado } from '@/lib/ecommerce/presentacion'
+import { ESTADOS_PREPARACION, ETIQUETA_METODO, INFO_ESTADO_PAGO, INFO_ESTADO_PEDIDO, fechaHora, puedeCancelarAdmin, siguienteEstado } from '@/lib/ecommerce/presentacion'
 import { nombreArchivoNota, situacionNota } from '@/lib/ecommerce/notaVenta'
 import { formatoBs } from '@/lib/utils'
 import type { PedidoResumen } from '@/types/comercio'
@@ -71,7 +71,7 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
       <ul className="flex flex-col gap-3">
         {pedidos.map((pedido) => {
           const proximo = siguienteEstado(pedido.estado, pedido.zonas_envio?.tipo)
-          const esperaPago = pedido.metodo_pago !== 'contra_entrega' && pedido.estado_pago !== 'verificado'
+          const esperaPago = pedido.estado_pago !== 'verificado'
           const tipoZona = pedido.zonas_envio?.tipo
           return (
             <li key={pedido.id} className={claseTarjeta}>
@@ -107,16 +107,16 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
                   {puedeCancelarAdmin(pedido.estado) && (
                     <button onClick={() => { setError(''); setCancelando(pedido) }} className={claseBoton('peligro', 'chico')}>Cancelar</button>
                   )}
-                  {/* Preparar y empacar se hace en el panel de almacén (fase 9C) */}
-                  {ESTADOS_ALMACEN.includes(pedido.estado) && (
-                    <Link href={`/almacen/pedidos/${pedido.id}`} className={claseBoton('primario', 'chico')}>
-                      <LuPackageCheck className="h-4 w-4" aria-hidden="true" /> Ver en almacén
+                  {/* Preparar y "Listo para salir" (fase 9F: lo hace el admin) */}
+                  {ESTADOS_PREPARACION.includes(pedido.estado) && (
+                    <Link href={`/admin/preparar/pedidos/${pedido.id}`} className={claseBoton('primario', 'chico')}>
+                      <LuPackageCheck className="h-4 w-4" aria-hidden="true" /> Preparar
                     </Link>
                   )}
-                  {/* A domicilio lo despacha y lo entrega el repartidor con el código (fase 9D) */}
+                  {/* A domicilio lo lleva un repartidor externo que acepta la entrega (fase 9F) */}
                   {tipoZona === 'urbano' && (pedido.estado === 'empacado' || pedido.estado === 'despachado') && (
-                    <Link href={pedido.estado === 'empacado' ? '/repartidor' : `/repartidor/pedidos/${pedido.id}`} className={claseBoton('secundario', 'chico')}>
-                      <LuTruck className="h-4 w-4" aria-hidden="true" /> Ver en reparto
+                    <Link href="/admin/repartidores" className={claseBoton('secundario', 'chico')}>
+                      <LuTruck className="h-4 w-4" aria-hidden="true" /> Ver reparto
                     </Link>
                   )}
                   {/* En tienda (con el código) o por flota (con nota): desde el detalle del pedido */}
@@ -179,7 +179,7 @@ export default function ListaPedidosAdmin({ pedidos, onActualizado }: ListaPedid
       {cancelando && (
         <ModalConfirmacion
           titulo="Cancelar pedido"
-          mensaje={`El pedido ${cancelando.codigo} se cancelará y sus productos volverán al inventario${cancelando.estado === 'preparando' || cancelando.estado === 'empacado' ? ' (avisa al almacén para que deshaga la caja)' : ''}.`}
+          mensaje={`El pedido ${cancelando.codigo} se cancelará y sus productos volverán al inventario${cancelando.estado === 'preparando' || cancelando.estado === 'empacado' ? ' (deshaz la caja y avisa al repartidor si ya la aceptó)' : ''}.`}
           textoConfirmar="Sí, cancelar"
           peligro
           procesando={procesando}

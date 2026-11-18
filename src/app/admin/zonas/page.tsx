@@ -12,7 +12,7 @@ import { formatoBs } from '@/lib/utils'
 import { TIPOS_ZONA, type TipoZona, type ZonaEnvio } from '@/types/comercio'
 import { LuMapPin, LuPlus } from 'react-icons/lu'
 
-const VACIO = { nombre: '', tipo: 'provincia' as TipoZona, costo: '0', dias_min: '1', dias_max: '2', permite_contra_entrega: false, orden: '10', activo: true }
+const VACIO = { nombre: '', tipo: 'provincia' as TipoZona, costo: '0', dias_min: '1', dias_max: '2', orden: '10', activo: true }
 
 export default function AdminZonasPage() {
   const { datos, cargando, error, recargar } = useDatosApi<ZonaEnvio[]>('/api/zonas-envio?alcance=todas')
@@ -32,7 +32,6 @@ export default function AdminZonasPage() {
       costo: String(zona.costo),
       dias_min: String(zona.dias_min),
       dias_max: String(zona.dias_max),
-      permite_contra_entrega: zona.permite_contra_entrega,
       orden: String(zona.orden),
       activo: zona.activo,
     })
@@ -79,7 +78,7 @@ export default function AdminZonasPage() {
                 <div className="min-w-0">
                   <p className="text-texto font-semibold break-words">{zona.nombre}</p>
                   <p className="text-texto-2 text-xs">
-                    {ETIQUETA_TIPO_ZONA[zona.tipo]} · {tiempoEntrega(zona)} · {zona.permite_contra_entrega ? 'Con efectivo al recibir' : 'Sin efectivo al recibir'}
+                    {ETIQUETA_TIPO_ZONA[zona.tipo]} · {tiempoEntrega(zona)}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
@@ -109,7 +108,6 @@ export default function AdminZonasPage() {
               <div><label htmlFor="z-min" className={claseEtiqueta}>Días mínimos</label><input id="z-min" required type="number" min="0" value={form.dias_min} onChange={(e) => cambiar({ dias_min: e.target.value })} className={claseInput} /></div>
               <div><label htmlFor="z-max" className={claseEtiqueta}>Días máximos</label><input id="z-max" required type="number" min="0" value={form.dias_max} onChange={(e) => cambiar({ dias_max: e.target.value })} className={claseInput} /></div>
             </div>
-            <label className="flex items-center gap-2 text-texto text-sm"><input type="checkbox" className="accent-acento" checked={form.permite_contra_entrega} onChange={(e) => cambiar({ permite_contra_entrega: e.target.checked })} /> Permite efectivo al recibir</label>
             {editando !== 'nueva' && (
               <label className="flex items-center gap-2 text-texto text-sm"><input type="checkbox" className="accent-acento" checked={form.activo} onChange={(e) => cambiar({ activo: e.target.checked })} /> Zona activa</label>
             )}

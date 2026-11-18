@@ -1,5 +1,5 @@
-// almacen y repartidor: migración 0017. Solo el admin asigna roles.
-export const ROLES_USUARIO = ['admin', 'cliente', 'distribuidor', 'almacen', 'repartidor'] as const
+// repartidor: migración 0017. El rol almacén se quitó en la 0020 (lo hace el admin). Solo el admin asigna roles.
+export const ROLES_USUARIO = ['admin', 'cliente', 'distribuidor', 'repartidor'] as const
 
 export type RolUsuario = (typeof ROLES_USUARIO)[number]
 
@@ -7,7 +7,6 @@ export const ETIQUETA_ROL: Record<RolUsuario, string> = {
   admin: 'Administrador',
   cliente: 'Cliente',
   distribuidor: 'Distribuidor',
-  almacen: 'Almacén',
   repartidor: 'Repartidor',
 }
 

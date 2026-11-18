@@ -180,7 +180,7 @@ function marcaAnulada(doc: Doc) {
   doc.save()
   doc.rotate(-35, { origin: [ANCHO / 2, ALTO / 2] })
   doc.fillColor(ROJO).fillOpacity(0.18).font('Helvetica-Bold').fontSize(120)
-    .text('ANULADA', 0, ALTO / 2 - 60, { width: ANCHO, align: 'center', lineBreak: false })
+    .text('ANULADO', 0, ALTO / 2 - 60, { width: ANCHO, align: 'center', lineBreak: false })
   doc.restore()
   doc.fillOpacity(1)
 }

@@ -14,8 +14,8 @@ interface FaltantesAdminProps {
   onActualizado: () => void
 }
 
-// Faltantes del almacén en el detalle del pedido (solo admin). "Repuesto, continuar" lo
-// marca resuelto con una nota y el almacén ya puede empacar. Si no hay cómo reponer, se cancela.
+// Faltantes en el detalle del pedido (solo admin). "Repuesto, continuar" lo marca resuelto con
+// una nota y ya se puede dejar listo para salir. Si no hay cómo reponer, se cancela.
 export default function FaltantesAdmin({ pedidoId, faltantes, onActualizado }: FaltantesAdminProps) {
   const [resolviendo, setResolviendo] = useState<FaltantePedido | null>(null)
   const [nota, setNota] = useState('')
@@ -47,8 +47,8 @@ export default function FaltantesAdmin({ pedidoId, faltantes, onActualizado }: F
   return (
     <section className={`${claseTarjeta} p-5`}>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 className={claseTituloSeccion}>Faltantes del almacén</h2>
-        <Link href={`/almacen/pedidos/${pedidoId}`} className={claseEnlace}>Ver en almacén</Link>
+        <h2 className={claseTituloSeccion}>Faltantes</h2>
+        <Link href={`/admin/preparar/pedidos/${pedidoId}`} className={claseEnlace}>Ver en Por preparar</Link>
       </div>
       <ListaFaltantes
         faltantes={faltantes}
@@ -66,7 +66,7 @@ export default function FaltantesAdmin({ pedidoId, faltantes, onActualizado }: F
               <label htmlFor="resolucion" className={claseEtiqueta}>¿Cómo se resolvió?</label>
               <textarea id="resolucion" rows={3} maxLength={300} value={nota} onChange={(e) => setNota(e.target.value)}
                 placeholder="Ej.: se repuso del depósito, ya está en el estante" className={claseInput} />
-              <p className={claseAyuda}>Queda en la línea de tiempo con tu nombre. El almacén ya podrá empacar.</p>
+              <p className={claseAyuda}>Queda en la línea de tiempo con tu nombre. Ya podrás dejarlo listo para salir.</p>
             </div>
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button type="button" disabled={procesando} onClick={() => setResolviendo(null)} className={claseBotonSecundario}>Volver</button>

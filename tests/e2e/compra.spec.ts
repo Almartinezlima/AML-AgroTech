@@ -1,4 +1,4 @@
-import { PRODUCTO_A, PRODUCTO_B, abrirCheckout, agregarAlCarrito, entrarComoCliente, expect, finalizarCompra, test } from './utilidades'
+import { PRODUCTO_A, PRODUCTO_B, abrirCheckout, agregarAlCarrito, botonConfirmar, entrarComoCliente, expect, finalizarCompra, test } from './utilidades'
 
 // Costo de Culpina por flota desde la migración 0010
 const ENVIO_CULPINA = 25
@@ -23,28 +23,39 @@ test.describe('Compra completa', () => {
     await expect(page.getByRole('link', { name: 'Seguir comprando' })).toHaveAttribute('href', '/catalogo')
     await expect(page.getByRole('link', { name: /Ir a pagar/ })).toHaveAttribute('href', '/checkout')
 
-    // En provincia no se ofrece contra entrega
+    // Una sola pantalla (fase 9E): zona y datos. Fase 9F: solo QR, sin «¿Cómo quieres pagar?»
     await abrirCheckout(page)
+    await expect(page.getByRole('heading', { name: 'Pagas con QR' })).toBeVisible()
+    await expect(page.getByText('¿Cómo quieres pagar?')).toHaveCount(0)
+    await expect(page.getByRole('radio', { name: /Efectivo al recibir|Transferencia/ })).toHaveCount(0)
     await page.getByRole('radio', { name: /Culpina/ }).check()
-    // Por flota se pide quién recoge, no una dirección. Se vacían los datos recordados para probar los avisos.
+
+    // Por flota se pide quién recoge, no una dirección. Se vacían los datos recordados para probar los errores.
     await expect(page.getByLabel(/Dirección/)).toHaveCount(0)
-    await page.getByLabel('Nombre de quien recoge').fill('')
-    await page.getByLabel('CI de quien recoge').fill('')
-    await page.getByRole('button', { name: 'Elegir cómo pagar' }).click()
-    await expect(page.getByRole('alert').filter({ hasText: 'nombre de quien recoge' })).toBeVisible()
-    await page.getByLabel('Nombre de quien recoge').fill('Juan Mamani E2E')
-    await page.getByLabel('CI de quien recoge').fill('12')
-    await page.getByRole('button', { name: 'Elegir cómo pagar' }).click()
-    await expect(page.getByRole('alert').filter({ hasText: 'CI válido' })).toBeVisible()
-    await page.getByLabel('CI de quien recoge').fill('1234567')
+    const nombre = page.getByLabel('Nombre de quien recoge')
+    const ci = page.getByLabel('CI de quien recoge')
+    await nombre.fill('')
+    await ci.fill('')
+    await botonConfirmar(page).click()
+    // El error va debajo del campo (borde rojo y aria-invalid), nunca arriba, y el foco va al primero
+    await expect(page.locator('#recoge-nombre-error')).toContainText('nombre de quien recoge')
+    await expect(nombre).toHaveAttribute('aria-invalid', 'true')
+    await expect(nombre).toBeFocused()
+    await expect(page.locator('#recoge-ci-error')).toContainText('CI válido')
+    await expect(page).toHaveURL(/\/checkout$/)
+
+    // Al escribir, el error de ese campo se va
+    await nombre.fill('Juan Mamani E2E')
+    await expect(page.locator('#recoge-nombre-error')).toHaveCount(0)
+    await ci.fill('12')
+    await botonConfirmar(page).click()
+    await expect(page.locator('#recoge-ci-error')).toContainText('CI válido')
+    await expect(ci).toBeFocused()
+    await ci.fill('1234567')
     await page.getByLabel('Teléfono / WhatsApp').fill('70012345')
-    await page.getByRole('button', { name: 'Elegir cómo pagar' }).click()
-    await expect(page.getByRole('radio', { name: /QR/ })).toBeVisible()
-    await expect(page.getByRole('radio', { name: /Contra entrega/ })).toHaveCount(0)
-    await expect(page.getByText('El pago contra entrega no está disponible para envíos a Culpina.')).toBeVisible()
 
     // El pedido se anula solo al terminar la prueba (fixture `limpieza`)
-    const pedido = await finalizarCompra(page, { zona: 'Culpina', metodo: 'QR', recogeNombre: 'Juan Mamani E2E', recogeCi: '1234567' })
+    const pedido = await finalizarCompra(page, { zona: 'Culpina', recogeNombre: 'Juan Mamani E2E', recogeCi: '1234567' })
     expect(pedido.envio).toBe(ENVIO_CULPINA)
     expect(pedido.total).toBeCloseTo(pedido.subtotal + ENVIO_CULPINA, 2)
     expect(pedido.codigo).toMatch(/^AML-/)
@@ -53,7 +64,10 @@ test.describe('Compra completa', () => {
     const contadorCarrito = page.locator('a[aria-label^="Carrito,"]:visible')
     await expect(contadorCarrito).toHaveAttribute('aria-label', 'Carrito, 0 productos')
     await page.reload()
-    await expect(page.getByRole('heading', { name: '¡Pedido registrado!' })).toBeVisible()
+    // Clic 3: el QR con el monto y la subida de la foto del pago justo debajo (sin «Ya pagué»)
+    await expect(page.getByRole('heading', { name: /^Paga Bs\./ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '2. Sube la foto del pago' })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Ya pagué/ })).toHaveCount(0)
     await expect(contadorCarrito).toHaveAttribute('aria-label', 'Carrito, 0 productos')
     await page.goBack()
     await expect(page).not.toHaveURL(/\/checkout\/exito/)
@@ -65,12 +79,13 @@ test.describe('Compra completa', () => {
     await page.reload()
     await expect(page.getByText('Tu carrito está vacío')).toBeVisible()
 
-    // La pantalla de éxito lleva a Mis pedidos
+    // Desde la pantalla del pago se puede pagar después: lleva al pedido
     await page.goto(`/checkout/exito?id=${pedido.id}`)
-    await page.getByRole('link', { name: 'Mis pedidos', exact: true }).click()
-    await expect(page).toHaveURL(/\/pedidos$/)
+    await page.getByRole('link', { name: /Pagar después/ }).click()
+    await expect(page).toHaveURL(new RegExp(`/pedidos/${pedido.id}$`))
 
     // El pedido aparece en Mis pedidos, con quién recoge en el detalle
+    await page.goto('/pedidos')
     await expect(page.getByText(pedido.codigo)).toBeVisible()
     await page.goto(`/pedidos/${pedido.id}`)
     await expect(page.getByText(/Juan Mamani E2E/)).toBeVisible()

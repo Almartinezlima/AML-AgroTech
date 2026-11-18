@@ -36,7 +36,7 @@ export default function Footer() {
           <div>
             <p className={claseTituloColumna}>Atención</p>
             <ul className="flex flex-col gap-2 text-sm text-texto-2">
-              <li>Pago por QR, transferencia o efectivo al recibir</li>
+              <li>Pago con QR desde la app de tu banco</li>
               <li>Envíos por flota y encomienda</li>
               {NUMERO_WHATSAPP && (
                 <li>

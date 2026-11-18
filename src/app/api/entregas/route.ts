@@ -1,13 +1,12 @@
 import { manejarRuta, respuestaOk } from '@/lib/api/respuestas'
-import { requerirRol } from '@/lib/api/sesion'
+import { requerirAdmin } from '@/lib/api/sesion'
 import type { PedidoReparto } from '@/types/entrega'
 
 export const dynamic = 'force-dynamic'
 
-// GET /api/repartidor/pedidos — Repartidor o admin. Pedidos a domicilio empacados (el más
-// antiguo primero) y los que ya van en camino. Nunca trae el código de entrega.
+// GET /api/entregas — Solo admin. A domicilio listos para salir o en camino, con quién la lleva.
 export const GET = manejarRuta(async () => {
-  const { supabase } = await requerirRol(['repartidor'])
+  const { supabase } = await requerirAdmin()
 
   const { data, error } = await supabase.rpc('cola_reparto')
   if (error) throw error

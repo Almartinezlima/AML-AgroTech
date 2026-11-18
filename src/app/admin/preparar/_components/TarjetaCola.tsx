@@ -10,7 +10,7 @@ export default function TarjetaCola({ pedido }: { pedido: PedidoCola }) {
   const avance = pedido.productos > 0 ? Math.round((pedido.marcados / pedido.productos) * 100) : 0
 
   return (
-    <Link href={`/almacen/pedidos/${pedido.id}`} className={`${claseTarjeta} block p-4 transition-colors hover:border-acento`}>
+    <Link href={`/admin/preparar/pedidos/${pedido.id}`} className={`${claseTarjeta} block p-4 transition-colors hover:border-acento`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="font-titulo text-lg font-bold text-texto">{pedido.codigo}</p>
@@ -49,7 +49,7 @@ export default function TarjetaCola({ pedido }: { pedido: PedidoCola }) {
       )}
 
       {pedido.bultos && pedido.empacado_en && (
-        <p className="mt-3 text-sm text-texto-2">Empacado el {diaHora(pedido.empacado_en)} · {pedido.bultos} {pedido.bultos === 1 ? 'bulto' : 'bultos'}</p>
+        <p className="mt-3 text-sm text-texto-2">Listo el {diaHora(pedido.empacado_en)} · {pedido.bultos} {pedido.bultos === 1 ? 'bulto' : 'bultos'}</p>
       )}
     </Link>
   )

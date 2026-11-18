@@ -11,7 +11,7 @@ Fuente: [`../specs/06-casos-de-uso.md`](../specs/06-casos-de-uso.md) (catálogo,
 | Flecha punteada `«include»` / `«extend»` | Relación entre casos de uso |
 | Flecha `hereda` | Generalización entre actores |
 
-Para que se lea, va un diagrama por pilar. En todos, los casos de uso del Administrador, del Distribuidor, del Almacén y del Repartidor «incluyen» CU-02 Iniciar sesión con su rol; no se dibuja esa línea en cada uno.
+Para que se lea, va un diagrama por pilar. En todos, los casos de uso del Administrador, del Distribuidor y del Repartidor «incluyen» CU-02 Iniciar sesión con su rol; no se dibuja esa línea en cada uno.
 
 ## 1. Actores
 
@@ -21,14 +21,12 @@ flowchart BT
   C["«actor»<br/>Cliente"]
   A["«actor»<br/>Administrador"]
   D["«actor»<br/>Distribuidor"]
-  AL["«actor»<br/>Almacén"]
   R["«actor»<br/>Repartidor"]
   S["«actor» «sistema»<br/>Supabase"]
   T["«actor» «sistema»<br/>Telegram"]
   C -->|hereda| V
   A -->|hereda| V
   D -->|hereda| V
-  AL -->|hereda| V
   R -->|hereda| V
   S ~~~ T
 ```
@@ -109,14 +107,14 @@ flowchart LR
   A["«actor»<br/>Administrador"]
   S["«actor» «sistema»<br/>Supabase Storage"]
   subgraph PAG["AML AgroTech · Pagos"]
-    CU13(["CU-13 Pagar pedido<br/>QR · transferencia · efectivo al recibir"])
+    CU13(["CU-13 Pagar pedido con QR"])
     CU14(["CU-14 Subir comprobante de pago"])
     CU15(["CU-15 Verificar pago y reembolsar"])
   end
   C --- CU13
   C --- CU14
   A --- CU15
-  CU14 -.->|«extend»<br/>solo QR o transferencia| CU13
+  CU14 -.->|«extend»<br/>hasta que queda en revisión| CU13
   CU14 --- S
   CU15 --- S
 ```
@@ -209,77 +207,82 @@ flowchart LR
 
 Condición de todos los «extend» de CU-33: la cuenta no es de prueba y los secretos de Telegram están en Vault. El resumen diario de las 20:00 lo inicia `pg_cron` (actor Supabase) sin otro caso de uso.
 
-## 8. Preparación y empaque (fase 9C)
+## 8. Preparación y «Listo para salir» (fase 9C; desde la 9F, solo el admin)
 
 ```mermaid
 flowchart LR
-  AL["«actor»<br/>Almacén"]
   A["«actor»<br/>Administrador"]
-  subgraph PRE["AML AgroTech · Preparación y empaque"]
+  T["«actor» «sistema»<br/>Telegram"]
+  subgraph PRE["AML AgroTech · Preparación"]
     CU34(["CU-34 Preparar pedido<br/>empezar y marcar productos"])
     CU35(["CU-35 Reportar faltante"])
     CU36(["CU-36 Resolver faltante"])
-    CU37(["CU-37 Empacar pedido"])
+    CU37(["CU-37 Dejar «Listo para salir»"])
     CU38(["CU-38 Imprimir etiquetas"])
+    CU52(["CU-52 Avisar al grupo<br/>de repartidores"])
     VER(["Verificar todo marcado<br/>y sin faltantes abiertos"])
   end
-  AL --- CU34
-  AL --- CU35
-  AL --- CU37
-  AL --- CU38
   A --- CU34
+  A --- CU35
   A --- CU36
   A --- CU37
+  A --- CU38
   CU35 -.->|«extend»<br/>si falta un producto| CU34
   CU37 -.->|«include»| VER
   CU38 -.->|«extend»<br/>una por bulto| CU37
+  CU52 -.->|«extend»<br/>a domicilio| CU37
+  CU52 --- T
 ```
 
-- El Administrador puede hacer todo lo del Almacén (también CU-35 y CU-38; se omiten esas líneas para que se lea).
+- Desde la 9F no hay rol Almacén: todo lo hace el Administrador en «Por preparar».
 - Mientras un faltante (CU-35) siga abierto, CU-37 no se puede completar: lo destraba CU-36.
 - Cada caso deja su paso en la línea de tiempo del pedido con **quién** y **cuándo** (CU-17 Seguir pedido).
-- Los casos de uso del Repartidor (entregar con código) están en la sección 9.
 
-## 9. Entrega y cierre (fase 9D)
+## 9. Entrega, reparto externo y cierre (fases 9D y 9F)
 
 ```mermaid
 flowchart LR
   C["«actor»<br/>Cliente"]
-  R["«actor»<br/>Repartidor"]
-  AL["«actor»<br/>Almacén"]
+  R["«actor»<br/>Repartidor externo"]
   A["«actor»<br/>Administrador"]
   T["«actor» «sistema»<br/>Telegram"]
-  subgraph ENT["AML AgroTech · Entrega y cierre"]
+  subgraph ENT["AML AgroTech · Entrega y reparto"]
     CU39(["CU-39 Ver código de entrega"])
-    CU40(["CU-40 Tomar y salir"])
-    CU41(["CU-41 Registrar cobro<br/>efectivo al recibir"])
+    CU47(["CU-47 Marcar disponibilidad"])
+    CU48(["CU-48 Aceptar entrega"])
+    CU40(["CU-40 Recoger el pedido<br/>en la tienda"])
     CU42(["CU-42 Entregar con código"])
+    CU49(["CU-49 Ver ganado<br/>y por cobrar"])
     CU43(["CU-43 Desbloquear código"])
     CU44(["CU-44 Confirmar recepción<br/>por flota"])
     CU45(["CU-45 Calificar entrega<br/>Recibí conforme"])
-    CU46(["CU-46 Recibir el efectivo"])
+    CU50(["CU-50 Liberar entrega"])
+    CU51(["CU-51 Pagar al repartidor"])
+    BLO(["Bloquear la entrega:<br/>el primero se la lleva"])
     VER(["Verificar código<br/>máx. 5 intentos"])
-    CER(["Completar pedido<br/>entregado + pagado"])
   end
   C --- CU39
   C --- CU44
   C --- CU45
+  R --- CU47
+  R --- CU48
   R --- CU40
-  R --- CU41
   R --- CU42
-  AL --- CU41
-  AL --- CU42
+  R --- CU49
+  A --- CU42
   A --- CU43
   A --- CU44
-  A --- CU46
+  A --- CU50
+  A --- CU51
+  CU48 -.->|«include»| BLO
   CU42 -.->|«include»| VER
-  CU42 -.->|«include»| CER
-  CU46 -.->|«include»| CER
-  CU41 -.->|«extend»<br/>efectivo al recibir| CU42
   CU43 -.->|«extend»<br/>5 intentos fallidos| CU42
+  CU50 -.->|«extend»<br/>si no la recogió| CU48
   CU42 --- T
 ```
 
-- El Repartidor entrega a domicilio; el Almacén entrega en tienda (recojo). El Administrador puede hacer todo lo de ambos (se omiten esas líneas).
-- CU-39 lo ve **solo el dueño**: ni el repartidor, ni el almacén, ni el admin.
-- Telegram avisa al admin de la entrega, del código bloqueado y de una calificación de 1 o 2 estrellas (CU-33).
+- El Repartidor entrega a domicilio; el Administrador entrega en tienda (recojo) y puede entregar a domicilio si lo lleva él.
+- CU-48 exige que el repartidor esté disponible (CU-47). Las entregas disponibles no muestran el nombre ni el teléfono del cliente hasta que se aceptan.
+- CU-39 lo ve **solo el dueño**: ni el repartidor ni el admin.
+- Telegram avisa al grupo de repartidores (CU-52, sección 8) y al admin de la entrega, del código bloqueado y de una calificación de 1 o 2 estrellas (CU-33).
+- CU-41 (cobro en efectivo) y CU-46 (recibir el efectivo) se retiraron en la 9F: solo se paga con QR.

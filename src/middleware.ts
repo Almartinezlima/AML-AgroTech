@@ -51,10 +51,11 @@ export async function middleware(request: NextRequest) {
   const ruta = request.nextUrl.pathname
   const esRutaAdmin = coincide(ruta, '/admin')
   const esRutaDistribuidor = coincide(ruta, '/distribuidor')
-  // Paneles del personal (fase 9C): el admin entra a todos
-  const esRutaAlmacen = coincide(ruta, '/almacen')
+  // Fase 9F: el panel de almacén pasó a /admin/preparar (los enlaces viejos siguen sirviendo)
+  if (coincide(ruta, '/almacen')) return redirigir(ruta.replace(/^\/almacen/, '/admin/preparar'))
+  // Panel del repartidor externo: solo el rol repartidor (el admin tiene /admin/repartidores)
   const esRutaRepartidor = coincide(ruta, '/repartidor')
-  const esRutaPersonal = esRutaAlmacen || esRutaRepartidor
+  const esRutaPersonal = esRutaRepartidor
   const esRutaConSesion = RUTAS_CON_SESION.some((base) => coincide(ruta, base))
   const esAvisoDesactivada = coincide(ruta, RUTA_CUENTA_DESACTIVADA)
 
@@ -78,8 +79,8 @@ export async function middleware(request: NextRequest) {
     if (esRutaAdmin && perfil?.rol !== 'admin') return redirigir('/')
     // El panel del proveedor es solo para el rol distribuidor (el admin tiene el suyo)
     if (esRutaDistribuidor && perfil?.rol !== 'distribuidor') return redirigir('/')
-    if (esRutaAlmacen && perfil?.rol !== 'almacen' && perfil?.rol !== 'admin') return redirigir('/')
-    if (esRutaRepartidor && perfil?.rol !== 'repartidor' && perfil?.rol !== 'admin') return redirigir('/')
+    if (esRutaRepartidor && perfil?.rol === 'admin') return redirigir('/admin/repartidores')
+    if (esRutaRepartidor && perfil?.rol !== 'repartidor') return redirigir('/')
   }
 
   if (!user && esAvisoDesactivada) {

@@ -1,8 +1,8 @@
 # AML AgroTech — Estado
 
-**Actualizado:** 15 nov 2026 (rama `docs/uml-revision`; las fases 7, 8A y 8A-2 se unieron con los PR #17, #18 y #19). Revisado contra el código y las migraciones. Diagramas UML en [`uml/`](uml/README.md).
+**Actualizado:** 17 nov 2026 (fase 9F, rama `fase/9f-flujo-final`: flujo final con 3 roles de compra, solo QR y repartidores externos con Telegram). Antes: 15 nov 2026 (rama `docs/uml-revision`; las fases 7, 8A y 8A-2 se unieron con los PR #17, #18 y #19). Revisado contra el código y las migraciones. Diagramas UML en [`uml/`](uml/README.md).
 
-> ✅ Migraciones `0001` a `0015` corridas en la base real (la `0012`, avisos por Telegram; la `0013` y la `0014`, proveedores y demostración, el 14 nov 2026; la `0015`, órdenes de compra, el 15 nov 2026). Token y chat del admin en Supabase Vault.
+> ✅ Migraciones `0001` a `0020` corridas en la base real (la `0020`, flujo final, el 17 nov 2026). Token y chat del admin en Supabase Vault; falta cargar `aml_telegram_chat_repartidores` (pasos en [`specs/12-reparto-externo.md`](specs/12-reparto-externo.md)).
 >
 > ✅ Deploy activo en Render: https://aml-agrotech.onrender.com (plan gratis: la primera visita tras un rato sin uso tarda unos 45 s en despertar; abrirla unos minutos antes de la demo).
 
@@ -14,18 +14,18 @@
 |---|---|---|---|
 | E-commerce | ✅ Probado E2E | Catálogo y portada con datos reales, ficha, carrito persistente, checkout en 3 pasos, pedidos con línea de tiempo, cancelación, nota de venta en PDF (fase 7), panel con cifras reales; recorrido admin probado E2E (10 nov) | Paginar `/admin/pedidos` |
 | Seguridad | ✅ Probada E2E | Roles protegidos en base (`es_admin`, `proteger_campos_perfil`), RLS reescrita, middleware con rol verificado en servidor, `/admin/usuarios` real, recuperación de contraseña segura (solo con enlace de recuperación), mensajes de Auth reales, carrito por cuenta, `/cuenta`, encabezados de seguridad | En Supabase Auth: mínimo de contraseña 8 y Redirect URLs |
-| Pagos | ✅ Probado E2E | QR de cobro real de la tienda (BNB, sin monto: el cliente escribe el monto que le muestra la app), transferencia con cuenta de demostración, contra entrega, comprobante en bucket privado, verificación con motivo de rechazo, reembolsos | Probar el rechazo en E2E; cargar la cuenta real de transferencia |
-| Distribución | ✅ Probada E2E | Zonas editables, flota y guía, panel de envíos, recojo "Listo para recoger", WhatsApp | Definir `NEXT_PUBLIC_WHATSAPP_TIENDA`; confirmar los costos de referencia |
+| Pagos | ✅ Programado (9F) | **Solo QR** (0020): QR de cobro real de la tienda (BNB, sin monto) grande y con «Ver en grande», comprobante en bucket privado, verificación con motivo de rechazo, reembolsos. Efectivo al recibir y transferencia retirados (sin borrar datos) | Renovar el QR del BNB antes del 23/11/2026; correr las E2E de la 9F |
+| Distribución | ✅ Programada (9F) | Zonas editables, «Por preparar» del admin (sin rol almacén), código de entrega, recojo con el código, flota con guía y «Recibí mi pedido», **repartidores externos** (disponible, aceptar atómico, recoger, entregar, ganado y por cobrar), aviso al grupo de Telegram, «Liberar entrega» y pago al repartidor en `/admin/repartidores` | Crear el grupo de Telegram y cargar su chat en Vault y el enlace en Render; correr las E2E de la 9F |
 | Almacenamiento | ✅ Probado E2E | Kardex, entradas y ajustes, stock protegido, niveles, alertas, CSV, valor del inventario | — |
 | Abastecimiento | ✅ Probado E2E | Proveedores (rol distribuidor) con presentaciones y fraccionamiento, órdenes de compra, recepción al kardex con costo promedio ponderado, margen, avisos por Telegram ([`specs/08-abastecimiento.md`](specs/08-abastecimiento.md)) | Mostrar el costo unitario en el kardex |
-| API REST | ✅ Programada | 42 rutas y 50 operaciones en `src/app/api/**`, todas en `docs/api/openapi.yaml` (revisado el 15 nov), Swagger en `/api-docs` | — |
+| API REST | ✅ Programada | 63 rutas y 71 operaciones en `src/app/api/**`, todas en `docs/api/openapi.yaml` (revisado el 17 nov, fase 9F), Swagger en `/api-docs` | — |
 | UML | 🟡 En revisión | Casos de uso, clases, componentes, despliegue, secuencia y estados en Mermaid ([`uml/`](uml/README.md)) | Revisar en GitHub que se dibujen |
 | Pruebas | ✅ 43/43 en verde (fase 7, 15 nov) | Playwright: seguridad, registro, compra, pagos, distribución, inventario, abastecimiento, nota de venta, admin, 360 px. Solo usan cuentas fijas `@amlagrotech.test` y cada prueba anula lo que crea ([`PRUEBAS.md`](PRUEBAS.md)). Historial de corridas: fase 4 31/31, fase 5 31/31, fase 6A 35/35, fase 6B 41/41, fase 7 **43/43 en 10,9 min**, siempre con la base intacta (huella de stock 3179, `costos_producto` vacía, 0 avisos de Telegram de prueba). La fase 8A-2 cambió `compra.spec` (carrito vacío tras el pedido) y quitó el interruptor de las pruebas: **todavía no se corrió** | Correr la suite completa con lo de la 8A-2; GitHub Actions |
 | Deploy | ✅ Activo | Render: https://aml-agrotech.onrender.com | Next 14.2.35 es el último 14.2.x y `npm audit` aún marca una crítica en `next`: solo se arregla con Next 16 (cambio mayor), después de la feria |
 
 ## Base de datos real (15 nov 2026)
 
-- Migraciones `0001` a `0015` corridas. Buckets `productos` (público) y `comprobantes` (privado). Extensiones `pg_net` y `pg_cron`; trabajo `aml-resumen-diario` (00:00 UTC = 20:00 de Bolivia). Secretos en Vault: `aml_telegram_token`, `aml_telegram_chat_admin`.
+- Migraciones `0001` a `0020` corridas. Buckets `productos` (público) y `comprobantes` (privado). Extensiones `pg_net` y `pg_cron`; trabajo `aml-resumen-diario` (00:00 UTC = 20:00 de Bolivia). Secretos en Vault: `aml_telegram_token`, `aml_telegram_chat_admin` (falta `aml_telegram_chat_repartidores`). Roles: admin, cliente, distribuidor y repartidor (la cuenta `almacen@` pasó a cliente en la 0020).
 - Datos: antes de la revisión del 16 nov la base quedó limpia: 0 pedidos, 0 órdenes de compra y sin datos de prueba. Quedan los 36 productos, las 8 zonas activas (Sucre inactiva) y los 2 proveedores de demostración (`0014`, cuentas `@amlagrotech.test`).
 - El panel admin muestra **siempre** los datos de todas las cuentas (desde la 8A-2 no hay interruptor). Los avisos de Telegram y el resumen de las 20:00 siguen sin contar las cuentas de prueba, así que las órdenes de los 2 proveedores de demostración no avisan.
 - "Confirm email" apagado (para la feria).

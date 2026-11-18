@@ -1,6 +1,6 @@
 # AML AgroTech — Arquitectura
 
-Revisada contra el código y las migraciones `0001` a `0017` (16 nov 2026; la 0017 está escrita y por correr). Los diagramas UML (casos de uso, clases, componentes, despliegue, secuencia y estados) están en [`uml/`](uml/README.md).
+Revisada contra el código y las migraciones `0001` a `0020` (17 nov 2026, fase 9F: solo QR, sin rol almacén y repartidores externos). Los diagramas UML (casos de uso, clases, componentes, despliegue, secuencia y estados) están en [`uml/`](uml/README.md).
 
 ## 1. Estilo
 
@@ -58,18 +58,19 @@ Diagramas: [componentes](uml/componentes.md) y [despliegue](uml/despliegue.md).
 
 ## 3. Modelo de datos
 
-19 tablas en `public`. El diagrama de clases con multiplicidad está en [`uml/clases.md`](uml/clases.md).
+21 tablas en `public`. El diagrama de clases con multiplicidad está en [`uml/clases.md`](uml/clases.md).
 
 ```
-perfiles (id=auth.users.id, nombre, email, rol[admin|cliente|distribuidor|almacen|repartidor], telefono, activo)
+perfiles (id=auth.users.id, nombre, email, rol[admin|cliente|distribuidor|repartidor], telefono, activo)
 categorias (id, nombre, icono, descripcion, activo)
 productos (id, sku, nombre, descripcion, precio, stock, stock_minimo, unidad, categoria_id, icono, imagen_url, activo,
            composicion, cultivos, modo_uso, dosis, banda_toxicologica,
            precio_referencia, fuente_precio, fecha_precio, tendencia_precio)
-zonas_envio (id, nombre, tipo[recojo|urbano|provincia], costo, dias_min, dias_max, permite_contra_entrega, activo, orden)
+zonas_envio (id, nombre, tipo[recojo|urbano|provincia], costo, dias_min, dias_max, permite_contra_entrega (siempre false desde la 0020), activo, orden)
 pedidos (id, codigo, usuario_id, estado, subtotal, costo_envio, total, zona_envio_id,
          direccion_entrega, recoge_nombre, recoge_ci, telefono_contacto, notas, metodo_pago, estado_pago,
          preparacion_por, preparacion_en, empacado_por, empacado_en, bultos,
+         repartidor_id, aceptado_en, pago_repartidor_id,                      ← reparto externo (0020)
          despachado_por, despachado_en, entregado_por, entregado_en, recibe_nombre, recibe_ci,
          completado_en, conforme_en)                                          ← quién entregó a quién (0018)
 pedido_items (id, pedido_id, producto_id, nombre_producto, precio_unitario, cantidad, subtotal,
@@ -77,12 +78,14 @@ pedido_items (id, pedido_id, producto_id, nombre_producto, precio_unitario, cant
 faltantes_pedido (id, pedido_id, pedido_item_id, nota, reportado_por, created_at,
                   resuelto_en, resuelto_por, nota_resolucion)                 ← solo admin por RLS
 pagos (id, pedido_id, metodo, monto, comprobante_path, estado, motivo_rechazo, revisado_por, revisado_en,
-       cobrado_por, cobrado_en, monto_cobrado)                               ← efectivo por rendir (0018)
+       cobrado_por, cobrado_en, monto_cobrado)                               ← efectivo (0018), solo pedidos viejos
 codigos_entrega (pedido_id, codigo, intentos_fallidos, bloqueado_en, desbloqueado_por, desbloqueado_en,
                  usado_en)                                                    ← RLS sin políticas: nadie la lee
 calificaciones_entrega (id, pedido_id, usuario_id, estrellas, comentario, created_at)  ← dueño y admin
 envios (id, pedido_id, zona_envio_id, transportista, numero_guia, estado, despachado_en, entregado_en)
 seguimiento_pedido (id, pedido_id, estado, nota, creado_por, created_at, faltante_id)  ← línea de tiempo
+repartidores_estado (usuario_id, disponible, cambiado_en)                    ← RLS sin políticas (0020)
+pagos_repartidor (id, repartidor_id, monto, entregas, pagado_por, pagado_en) ← RLS sin políticas (0020)
 movimientos_inventario (id, producto_id, tipo[entrada|salida|ajuste|devolucion], cantidad,
                         stock_anterior, stock_nuevo, motivo, pedido_id, usuario_id, created_at,
                         costo_unitario, orden_compra_id, costo_promedio_anterior)   ← kardex
@@ -102,16 +105,17 @@ seguimiento_orden_compra (id, orden_compra_id, estado, nota, creado_por, created
 Diagramas en [`uml/estados.md`](uml/estados.md).
 
 - **Pedido:**
-  - recojo en tienda: `pendiente` → `confirmado` → `preparando` → *(empacar)* → `listo_para_recoger` → *(código)* → `entregado` → `completado`;
-  - a domicilio: … → `empacado` → *(Tomar y salir)* → `despachado` → *(cobro si efectivo al recibir, código)* → `entregado` → `completado`;
-  - por flota: … → `empacado` → *(flota y guía)* → `despachado` → *(Recibí mi pedido o nota del admin)* → `entregado` → `completado`;
-  - preparar y empacar solo con las funciones del almacén; entregar solo con el código de 4 dígitos del cliente (0018), que nadie más que el dueño ve;
-  - `completado` = entregado + pago verificado (con efectivo por rendir, espera a que el admin lo reciba);
+  - recojo en tienda: `pendiente` → `confirmado` → `preparando` → *(Listo para salir)* → `listo_para_recoger` → *(el admin con el código)* → `completado`;
+  - a domicilio: … → `empacado` («Listo para salir»; aviso al grupo de repartidores) → *(un repartidor acepta y «Recogí el pedido»)* → `despachado` → *(código)* → `completado`;
+  - por flota: … → `empacado` → *(flota y guía)* → `despachado` → *(Recibí mi pedido o nota del admin)* → `completado`;
+  - preparar y dejar listo solo el admin con sus funciones (0020); entregar solo con el código de 4 dígitos del cliente (0018), que nadie más que el dueño ve;
+  - `completado` = entregado + pago verificado; como desde la 9F todo se paga con QR antes de preparar, pasan juntos;
   - `cancelado` desde `pendiente` (cliente o admin) o `confirmado`, `preparando` y `empacado` (admin).
-- **Pago:** `pendiente` → `en_revision` (subió comprobante) → `verificado` | `rechazado` (puede volver a subir). Si la tienda cancela con el pago en revisión o verificado: `reembolso_pendiente` → `reembolsado`. Efectivo al recibir: quien entrega registra el cobro (igual al total); si no es el admin, queda «por rendir» (`pendiente` con `cobrado_en`) hasta que el admin lo recibe y pasa a `verificado`.
+- **Pago:** `pendiente` → `en_revision` (subió comprobante) → `verificado` | `rechazado` (puede volver a subir). Si la tienda cancela con el pago en revisión o verificado: `reembolso_pendiente` → `reembolsado`. Solo QR desde la 0020.
 - **Envío:** `por_despachar` → `listo_para_recoger` o `en_camino` → `entregado`.
 - **Orden de compra:** `borrador` → `enviada` → `aceptada` → `despachada` → `recibida`; `rechazada` (proveedor, desde enviada o aceptada); `cancelada` (admin, desde borrador, enviada o aceptada).
-- Un pedido con pago QR o transferencia **no pasa a `confirmado` hasta que el pago esté `verificado`**. Efectivo al recibir nace `confirmado` al crear el pedido (0019, solo en zonas que lo permiten).
+- Un pedido **no pasa a `confirmado` hasta que el pago QR esté `verificado`**.
+- **Pago al repartidor:** entrega completada sin `pago_repartidor_id` = por cobrar; «Pagado» (`pagar_repartidor`) crea una fila en `pagos_repartidor` y marca esas entregas.
 
 ### Funciones SQL transaccionales
 
@@ -119,17 +123,20 @@ Toda escritura que mueve stock, dinero o estados pasa por una de estas funciones
 
 | Función | Qué hace |
 |---|---|
-| `crear_pedido(items, zona, direccion, telefono, metodo_pago, notas, recoge_nombre, recoge_ci)` | Bloquea los productos, lee precios reales, valida stock, calcula subtotal + envío, crea pedido + items + pago + envío + seguimiento, descuenta stock y registra la salida en el kardex. Con efectivo al recibir el pedido nace `confirmado` (0019) |
-| `cancelar_pedido(pedido_id, motivo)` | Valida quién y desde qué estado, devuelve stock (kardex `devolucion`), deja el pago en reembolso pendiente si correspondía y registra el seguimiento. El cliente cancela si está pendiente, o con efectivo al recibir mientras el almacén no empiece (0019) |
+| `crear_pedido(items, zona, direccion, telefono, metodo_pago, notas, recoge_nombre, recoge_ci)` | Bloquea los productos, lee precios reales, valida stock, calcula subtotal + envío, crea pedido + items + pago + envío + seguimiento, descuenta stock y registra la salida en el kardex. Solo QR (0020): cualquier otro método → AML02 |
+| `cancelar_pedido(pedido_id, motivo)` | Valida quién y desde qué estado, devuelve stock (kardex `devolucion`), deja el pago en reembolso pendiente si correspondía y registra el seguimiento. El cliente cancela solo si está pendiente (0020) |
 | `cambiar_estado_pedido(pedido_id, estado, nota, transportista, guia)` | Solo admin: confirma y despacha por flota. Desde la 0017 no prepara ni empaca; desde la 0018 no despacha a domicilio ni marca entregado |
-| `empezar_preparacion` · `marcar_item_pedido` · `empacar_pedido(pedido_id, bultos)` | Almacén o admin: preparando con responsable, casilla por producto, empaque (exige todo marcado y sin faltantes) |
-| `reportar_faltante` · `resolver_faltante` | El almacén reporta (aviso por Telegram); solo el admin resuelve |
-| `cola_almacen()` · `detalle_preparacion(pedido_id)` | Lo único que lee el almacén: código, cliente, teléfono, zona, dirección, productos y faltantes |
-| `linea_tiempo_pedido(pedido_id)` | Seguimiento con el nombre corto y el rol de quién hizo cada paso (dueño, admin, almacén o repartidor). La nota de un faltante, completa solo para el admin y el almacén |
+| `empezar_preparacion` · `marcar_item_pedido` · `empacar_pedido(pedido_id, bultos)` | Solo admin (0020): preparando con responsable, casilla por producto, «Listo para salir» (exige todo marcado y sin faltantes; a domicilio avisa al grupo de repartidores) |
+| `reportar_faltante` · `resolver_faltante` | El admin reporta y resuelve; el cliente ve «Revisando un producto de tu pedido» |
+| `cola_almacen()` · `detalle_preparacion(pedido_id)` | Cola y detalle de «Por preparar» (solo admin) |
+| `linea_tiempo_pedido(pedido_id)` | Seguimiento con el nombre corto y el rol de quién hizo cada paso (dueño, admin o el repartidor que lleva el pedido). La nota de un faltante, completa solo para el admin |
 | `mi_codigo_entrega(pedido_id)` · `mis_codigos_entrega()` | El código de entrega, **solo para el dueño** (ni el admin lo ve) |
-| `cola_reparto()` · `detalle_entrega(pedido_id)` | Lo que lee el repartidor (y el almacén para recojo): destino, contacto, bultos y si hay que cobrar. Nunca el código |
-| `tomar_pedido` · `registrar_cobro_entrega` · `entregar_pedido(pedido_id, codigo, nombre, ci)` | Tomar y salir, cobro efectivo al recibir (monto = total) y entrega con código (5 intentos; un intento fallido responde sin error para que quede contado) |
-| `desbloquear_codigo_entrega` · `confirmar_recepcion` · `confirmar_efectivo` · `calificar_entrega` | Admin desbloquea con nota; flota la confirma el cliente o el admin; admin recibe el efectivo (completa); el cliente califica |
+| `cambiar_disponibilidad(bool)` · `panel_repartidor()` | Repartidor: «Estoy disponible» y todo su panel (disponibles sin datos del cliente, mis entregas, ganado, por cobrar) |
+| `aceptar_entrega(pedido_id)` · `liberar_entrega(pedido_id)` | El repartidor acepta (bloquea la fila: el primero se la lleva); el admin la libera si no aparece |
+| `cola_reparto()` · `detalle_entrega(pedido_id)` | Entregas en curso (admin) y datos para entregar (admin o el repartidor que la aceptó). Nunca el código |
+| `tomar_pedido` · `entregar_pedido(pedido_id, codigo, nombre, ci)` | «Recogí el pedido» (solo quien la aceptó) y entrega con código (5 intentos; un intento fallido responde sin error para que quede contado) |
+| `desbloquear_codigo_entrega` · `confirmar_recepcion` · `calificar_entrega` | Admin desbloquea con nota; flota la confirma el cliente o el admin; el cliente califica |
+| `deudas_repartidores()` · `pagar_repartidor(repartidor_id, monto)` | Solo admin: lo que se debe a cada repartidor y «Pagado» (frena si el monto cambió) |
 | `registrar_comprobante(pedido_id, path)` | Pago a `en_revision` (solo el dueño) |
 | `verificar_pago(pago_id, aprobado, motivo)` | Aprueba (y confirma el pedido) o rechaza con motivo (solo admin) |
 | `marcar_reembolsado(pago_id, nota)` | Cierra un reembolso pendiente (solo admin) |
@@ -138,13 +145,13 @@ Toda escritura que mueve stock, dinero o estados pasa por una de estas funciones
 | `crear_ordenes_compra(lineas)` · `guardar_linea_orden_compra(...)` | Arma los borradores (uno por proveedor) y edita sus líneas |
 | `enviar_` · `cancelar_` · `aceptar_` · `rechazar_` · `despachar_orden_compra(...)` | Cambios de estado de la orden, cada uno con su rol |
 | `recibir_orden_compra(orden_id, lineas, nota)` | Entrada fraccionada al kardex con costo, costo promedio ponderado y faltantes |
-| `es_admin()` · `es_distribuidor()` · `es_almacen()` · `es_repartidor()` | Rol del usuario actual (exacto y activo), para las políticas y las funciones |
+| `es_admin()` · `es_distribuidor()` · `es_repartidor()` | Rol del usuario actual (exacto y activo), para las políticas y las funciones |
 | `anular_pedido_prueba` · `anular_orden_compra_prueba` | Limpieza de las pruebas E2E (solo admin, solo cuentas `@amlagrotech.test`) |
-| `aml_enviar_telegram` y triggers `aml_aviso_*` | Avisos por Telegram (sin `execute` para la API) |
+| `aml_enviar_telegram` · `aml_enviar_telegram_a` y triggers `aml_aviso_*` | Avisos por Telegram al admin y al grupo de repartidores (sin `execute` para la API) |
 
 ## 4. API REST (contrato)
 
-Base: `/api`. Respuestas `{ data }` o `{ error: { codigo, mensaje } }`. **59 rutas y 68 operaciones**, todas en [`api/openapi.yaml`](api/openapi.yaml); se pueden probar en vivo en `/api-docs`.
+Base: `/api`. Respuestas `{ data }` o `{ error: { codigo, mensaje } }`. **63 rutas y 71 operaciones**, todas en [`api/openapi.yaml`](api/openapi.yaml); se pueden probar en vivo en `/api-docs`.
 
 | Método | Ruta | Quién | Pilar |
 |---|---|---|---|
@@ -188,19 +195,24 @@ Base: `/api`. Respuestas `{ data }` o `{ error: { codigo, mensaje } }`. **59 rut
 | PATCH | `/api/ordenes-compra/:id/lineas` | Admin (borrador) | Almacenamiento |
 | POST | `/api/ordenes-compra/:id/enviar` · `/cancelar` · `/recibir` | Admin | Almacenamiento |
 | POST | `/api/ordenes-compra/:id/aceptar` · `/rechazar` · `/despachar` | Distribuidor dueño | Almacenamiento |
-| GET | `/api/almacen/pedidos` · `/api/almacen/pedidos/:id` | Almacén / Admin | Distribución |
-| POST | `/api/almacen/pedidos/:id/preparar` · `/faltante` · `/empacar` | Almacén / Admin | Distribución |
-| PATCH | `/api/almacen/items/:id` | Almacén / Admin | Distribución |
+| GET | `/api/almacen/pedidos` · `/api/almacen/pedidos/:id` | Admin («Por preparar») | Distribución |
+| POST | `/api/almacen/pedidos/:id/preparar` · `/faltante` · `/empacar` («Listo para salir») | Admin | Distribución |
+| PATCH | `/api/almacen/items/:id` | Admin | Distribución |
 | POST | `/api/faltantes/:id/resolver` | Admin | Almacenamiento |
-| GET | `/api/repartidor/pedidos` | Repartidor / Admin | Distribución |
-| GET | `/api/entregas/:id` | Repartidor / Almacén / Admin (la base decide cuál) | Distribución |
-| POST | `/api/entregas/:id/tomar` | Repartidor / Admin | Distribución |
-| POST | `/api/entregas/:id/cobro` · `/entregar` | Repartidor (domicilio) / Almacén (recojo) / Admin | Distribución · Pagos |
+| GET | `/api/repartidor/panel` | Repartidor | Distribución |
+| PATCH | `/api/repartidor/disponibilidad` | Repartidor | Distribución |
+| GET | `/api/entregas` | Admin (entregas en curso) | Distribución |
+| GET | `/api/entregas/:id` | Repartidor que la aceptó / Admin | Distribución |
+| POST | `/api/entregas/:id/aceptar` | Repartidor disponible | Distribución |
+| POST | `/api/entregas/:id/tomar` («Recogí el pedido») | Repartidor que la aceptó / Admin | Distribución |
+| POST | `/api/entregas/:id/entregar` | Repartidor (domicilio) / Admin (recojo y domicilio) | Distribución |
+| POST | `/api/entregas/:id/liberar` | Admin | Distribución |
+| GET | `/api/repartidores` | Admin | Distribución |
+| POST | `/api/repartidores/:id/pagar` | Admin | Distribución |
 | POST | `/api/entregas/:id/desbloquear` | Admin | Seguridad |
 | POST | `/api/pedidos/:id/recibido` | Dueño (flota) / Admin con nota | Distribución |
 | POST | `/api/pedidos/:id/calificacion` | Dueño | E-commerce |
 | GET | `/api/calificaciones` | Admin | E-commerce |
-| POST | `/api/pagos/:id/efectivo` | Admin | Pagos |
 | POST | `/api/ordenes-compra/:id/anular-prueba` | Admin (solo pruebas E2E) | Pruebas |
 
 Códigos de error comunes: `400` datos inválidos, `401` sin sesión, `403` sin permiso o cuenta desactivada, `404` no existe (o no es tuyo), `409` conflicto de estado, de stock o duplicado, `422` dato rechazado por la base (también `CODIGO_INCORRECTO`, con los intentos que quedan), `409` `CODIGO_BLOQUEADO` a los 5 intentos, `503` la base no responde o falta una migración. Los errores de las funciones SQL (`AML01` a `AML06`) se traducen a estos códigos en `src/lib/api/respuestas.ts`.
@@ -213,15 +225,16 @@ src/
     (públicas)        page.tsx, catalogo/, producto/[id]/, carrito/, auth/, api-docs/
     (cliente)         checkout/, checkout/exito/, pedidos/, pedidos/[id]/, cuenta/, cuenta-desactivada/
     admin/            page.tsx, productos/, inventario/, pedidos/, pagos/, envios/, zonas/, usuarios/,
-                      abastecimiento/ (distribuidores/, ordenes/[id]/), margen/
+                      abastecimiento/ (distribuidores/, ordenes/[id]/), margen/,
+                      preparar/ (cola, pedidos/[id]/ preparar y entregar en tienda, pedidos/[id]/etiqueta/),
+                      repartidores/ (en curso, lo que se debe y pagos)
     distribuidor/     page.tsx, ordenes/[id]/
-    almacen/          page.tsx (cola), pedidos/[id]/ (preparar y entregar en tienda), pedidos/[id]/etiqueta/ (imprimir)
-    repartidor/       page.tsx (cola), pedidos/[id]/ (cobro y código)
-    api/              59 rutas (ver la tabla de arriba)
+    repartidor/       page.tsx (disponible, Telegram, mis entregas, disponibles, ganado), pedidos/[id]/ (recoger y entregar)
+    api/              63 rutas (ver la tabla de arriba)
   components/         ui/, layout/, admin/, compra/, pagos/, abastecimiento/, almacen/, entrega/
   context/            AuthContext, CarritoContext
   lib/                supabase.ts (navegador), api/ (sesión, validación, respuestas, cliente),
-                      auth/, ecommerce/ (incluye la recibo de compra), pagos/, abastecimiento/, almacen/, entrega/, utils.ts
+                      auth/, ecommerce/ (incluye el recibo de compra), abastecimiento/, almacen/, entrega/, utils.ts
   middleware.ts       sesión y rol por ruta
   types/              tipos de la base y de la API
 supabase/migrations/  0001 a 0019

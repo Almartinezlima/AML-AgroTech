@@ -3,7 +3,7 @@ import { requerirAdmin } from '@/lib/api/sesion'
 import { validarCuerpo, validarUuid } from '@/lib/api/validacion'
 import { esquemaResolverFaltante } from '@/lib/almacen/esquemas'
 
-// POST /api/faltantes/:id/resolver — Solo admin. "Repuesto, continuar": el almacén ya puede empacar.
+// POST /api/faltantes/:id/resolver — Solo admin. "Repuesto, continuar": ya se puede dejar listo para salir.
 export const POST = manejarRuta<{ params: { id: string } }>(async (request, { params }) => {
   const { supabase } = await requerirAdmin()
   const id = validarUuid(params.id)

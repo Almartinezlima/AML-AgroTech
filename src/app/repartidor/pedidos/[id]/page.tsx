@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { LuArrowLeft, LuBox, LuCircleCheck, LuMapPin, LuTruck } from 'react-icons/lu'
+import { LuArrowLeft, LuBox, LuCircleCheck, LuMapPin, LuStore } from 'react-icons/lu'
 import ContactoCliente from '@/components/entrega/ContactoCliente'
 import FormularioEntrega from '@/components/entrega/FormularioEntrega'
 import { AvisoError, BloqueCarga, BloqueError } from '@/components/ui/Estados'
@@ -12,9 +12,11 @@ import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import { cantidadConUnidad } from '@/lib/abastecimiento/presentacion'
 import { INFO_ESTADO_PEDIDO, diaHora } from '@/lib/ecommerce/presentacion'
+import { formatoBs } from '@/lib/utils'
 import type { DetalleEntrega } from '@/types/entrega'
 
-// Entregar un pedido a domicilio (fase 9D): a dónde va, contacto, productos, cobro y código.
+// Entregar un pedido a domicilio (fase 9D; 9F repartidor externo): a dónde va, contacto,
+// productos, "Recogí el pedido" en la tienda y la entrega con el código del cliente.
 export default function EntregarPedidoPage() {
   const { id } = useParams<{ id: string }>()
   const { datos: pedido, cargando, error, estadoError, recargar } = useDatosApi<DetalleEntrega>(`/api/entregas/${id}`)
@@ -25,15 +27,15 @@ export default function EntregarPedidoPage() {
   const envoltura = (contenido: React.ReactNode) => (
     <div className={clasePagina}><div className="mx-auto max-w-xl">{contenido}</div></div>
   )
-  const volver = <Link href="/repartidor" className={claseBotonSecundario}>Volver al reparto</Link>
+  const volver = <Link href="/repartidor" className={claseBotonSecundario}>Volver a mis entregas</Link>
 
   if (entregado) {
     return envoltura(
       <div className={`${claseTarjeta} flex flex-col items-center gap-4 p-8 text-center`}>
         <LuCircleCheck className="h-14 w-14 text-acento" aria-hidden="true" />
         <h1 className="font-titulo text-2xl font-bold text-texto">¡Entregado!</h1>
-        <p className="text-texto">{pedido?.codigo} quedó registrado con tu nombre, la hora y quién recibió.</p>
-        <Link href="/repartidor" className={`${claseBotonPrimario} w-full min-h-14 text-lg`}>Volver al reparto</Link>
+        <p className="text-texto">{pedido?.codigo} quedó registrado con tu nombre, la hora y quién recibió.{pedido ? ` Ganaste ${formatoBs(pedido.ganas)}: lo ves en «Por cobrar».` : ''}</p>
+        <Link href="/repartidor" className={`${claseBotonPrimario} w-full min-h-14 text-lg`}>Volver a mis entregas</Link>
       </div>
     )
   }
@@ -41,7 +43,7 @@ export default function EntregarPedidoPage() {
   if (cargando && !pedido) return envoltura(<BloqueCarga filas={3} alto="h-40" />)
   if (error || !pedido) {
     if (estadoError === 400 || estadoError === 404) {
-      return envoltura(<BloqueError titulo="Este pedido no está para entregar" mensaje="Puede que ya se haya entregado o que lo lleve otro repartidor.">{volver}</BloqueError>)
+      return envoltura(<BloqueError titulo="Este pedido no está para entregar" mensaje="Puede que ya se haya entregado o que la tienda la haya liberado.">{volver}</BloqueError>)
     }
     return envoltura(<BloqueError mensaje={error || 'No se pudo cargar el pedido.'} onReintentar={() => void recargar()}>{volver}</BloqueError>)
   }
@@ -62,17 +64,17 @@ export default function EntregarPedidoPage() {
   return envoltura(
     <>
       <Link href="/repartidor" className="mb-4 inline-flex min-h-11 items-center gap-1.5 font-semibold text-acento hover:underline">
-        <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Reparto
+        <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Mis entregas
       </Link>
 
       <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="font-titulo text-3xl font-bold tracking-tight text-texto">{pedido.codigo}</h1>
           <p className="text-texto-2">
-            {pedido.despachado_en ? `Salió ${diaHora(pedido.despachado_en)}${pedido.despachado_por ? ` con ${pedido.despachado_por}` : ''}` : `Pedido el ${diaHora(pedido.created_at)}`}
+            {pedido.despachado_en ? `Saliste a las ${diaHora(pedido.despachado_en)}` : 'Recógelo en la tienda'} · Ganas {formatoBs(pedido.ganas)}
           </p>
         </div>
-        <Insignia info={pedido.estado === 'despachado' ? { etiqueta: 'En camino', color: INFO_ESTADO_PEDIDO.despachado.color } : INFO_ESTADO_PEDIDO[pedido.estado]} />
+        <Insignia info={pedido.estado === 'empacado' ? { etiqueta: 'Recoger en tienda', color: INFO_ESTADO_PEDIDO.empacado.color } : INFO_ESTADO_PEDIDO[pedido.estado]} />
       </header>
 
       <div className="flex flex-col gap-4">
@@ -107,7 +109,7 @@ export default function EntregarPedidoPage() {
 
         {pedido.estado === 'empacado' ? (
           <button type="button" disabled={procesando} onClick={() => void tomar()} className={`${claseBoton('primario')} w-full min-h-14 text-lg`}>
-            <LuTruck className="h-5 w-5" aria-hidden="true" /> {procesando ? 'Guardando…' : 'Tomar y salir'}
+            <LuStore className="h-5 w-5" aria-hidden="true" /> {procesando ? 'Guardando…' : 'Recogí el pedido'}
           </button>
         ) : (
           <FormularioEntrega detalle={pedido} onCambio={() => void recargar()} onEntregado={() => setEntregado(true)} />

@@ -10,7 +10,7 @@ import { useCarrito } from '@/context/CarritoContext'
 import { enviarJson } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import { formatoBs } from '@/lib/utils'
-import type { Cotizacion, MetodoPago, PedidoCreado, ZonaEnvio } from '@/types/comercio'
+import type { Cotizacion, PedidoCreado, ZonaEnvio } from '@/types/comercio'
 import { enfocarPrimerError, errorDeCompra, validarCompra, type CampoCompra, type ErroresCompra } from './_components/mensajesCompra'
 import PasoEntrega, { type DatosEntrega } from './_components/PasoEntrega'
 import PasoPago from './_components/PasoPago'
@@ -24,7 +24,7 @@ const CAMPO_DE: Partial<Record<keyof DatosEntrega, CampoCompra>> = {
   zonaId: 'zona', direccion: 'direccion', recogeNombre: 'recogeNombre', recogeCi: 'recogeCi', telefono: 'telefono',
 }
 
-// Compra en una sola pantalla (fase 9E): zona, datos recordados y forma de pago (QR por defecto).
+// Compra en una sola pantalla (fase 9E): zona y datos recordados; desde la 9F solo se paga con QR.
 // «Confirmar pedido» va dentro del cuadro «Tu compra» (en celular, en una barra fija abajo).
 // Los errores salen junto a cada campo; al confirmar, la vista va al primero.
 export default function CheckoutPage() {
@@ -32,7 +32,6 @@ export default function CheckoutPage() {
   const { items, ajustarStock, limpiarCarrito, listo } = useCarrito()
   const zonas = useDatosApi<ZonaEnvio[]>('/api/zonas-envio')
   const [entrega, setEntregaEstado] = useState<DatosEntrega>(ENTREGA_VACIA)
-  const [metodo, setMetodo] = useState<MetodoPago>('qr')
   const [cotizacion, setCotizacion] = useState<Cotizacion | null>(null)
   const [errores, setErrores] = useState<ErroresCompra>({})
   const [errorGeneral, setErrorGeneral] = useState('')
@@ -79,20 +78,14 @@ export default function CheckoutPage() {
         const campo = CAMPO_DE[clave]
         if (campo) delete nuevos[campo]
       }
-      // Una zona sin efectivo deja el pago en QR
-      if (cambios.zonaId) delete nuevos.metodo
       return nuevos
     })
-    if (cambios.zonaId) {
-      const nueva = zonas.datos?.find((z) => z.id === cambios.zonaId)
-      if (metodo === 'contra_entrega' && nueva && !nueva.permite_contra_entrega) setMetodo('qr')
-    }
   }
 
   const confirmar = async () => {
     setErrorGeneral('')
     setSesionVencida(false)
-    const encontrados = validarCompra(entrega, zona, metodo)
+    const encontrados = validarCompra(entrega, zona)
     setErrores(encontrados)
     if (Object.keys(encontrados).length > 0 || !zona) {
       // Espera a que se pinten los bordes rojos y lleva la vista al primero
@@ -109,7 +102,7 @@ export default function CheckoutPage() {
         recoge_nombre: flota ? entrega.recogeNombre.trim() : null,
         recoge_ci: flota ? entrega.recogeCi.trim().toUpperCase() : null,
         telefono: entrega.telefono.trim(),
-        metodo_pago: metodo,
+        metodo_pago: 'qr',
         notas: entrega.notas.trim() || null,
       })
       pedidoCreado.current = true
@@ -157,15 +150,14 @@ export default function CheckoutPage() {
       <PasosCompra actual={1} />
       <h1 className={`${claseTituloPagina} mb-2`}>Confirma tu pedido</h1>
       <p className="mb-6 text-texto-2">
-        {recordados ? 'Usamos los datos de tu última compra. Revisa y confirma.' : 'Elige dónde lo recibes y cómo pagas.'}
+        {recordados ? 'Usamos los datos de tu última compra. Revisa y confirma.' : 'Elige dónde lo recibes.'}
       </p>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="flex min-w-0 flex-col gap-8">
           <ResumenPlegable {...resumen} />
           <PasoEntrega zonas={zonas.datos} datos={entrega} errores={errores} onCambiar={cambiarEntrega} />
-          <PasoPago zona={zona} metodo={metodo} error={errores.metodo}
-            onCambiar={(m) => { setMetodo(m); setErrores((e) => { const n = { ...e }; delete n.metodo; return n }) }} />
+          <PasoPago />
           <div className="flex flex-col gap-3 lg:hidden">{avisos}</div>
           <Link href="/carrito" className={`${claseBoton('secundario')} self-start`}>
             <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Volver al carrito
@@ -178,7 +170,7 @@ export default function CheckoutPage() {
             {procesando ? textoBoton : `${textoBoton} · ${formatoBs(total)}`}
           </button>
           <p className="text-center text-sm text-texto-2">
-            {metodo === 'contra_entrega' ? 'Pagas en efectivo al recibir.' : metodo === 'qr' ? 'Después te mostramos el QR con el monto exacto.' : 'Después te mostramos la cuenta y el monto exacto.'}
+            Después te mostramos el QR con el monto exacto.
           </p>
         </ResumenLateral>
       </div>

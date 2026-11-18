@@ -1,7 +1,7 @@
 import { ErrorPedidoApi, mensajeDeError } from '@/lib/api/cliente'
 import type { ItemCarrito } from '@/context/CarritoContext'
 import { REGEX_CI, REGEX_TELEFONO } from '@/lib/ecommerce/reglas'
-import type { MetodoPago, ZonaEnvio } from '@/types/comercio'
+import type { ZonaEnvio } from '@/types/comercio'
 import type { DatosEntrega } from './PasoEntrega'
 
 // Traduce los errores de la API del checkout a palabras simples: qué pasó y qué hacer.
@@ -31,7 +31,7 @@ export function errorDeCompra(causa: unknown, items: ItemCarrito[]): ErrorCompra
 }
 
 // Campos del checkout, en el orden en que aparecen (el primero con error recibe el foco)
-export const CAMPOS_COMPRA = ['zona', 'direccion', 'recogeNombre', 'recogeCi', 'telefono', 'metodo'] as const
+export const CAMPOS_COMPRA = ['zona', 'direccion', 'recogeNombre', 'recogeCi', 'telefono'] as const
 export type CampoCompra = (typeof CAMPOS_COMPRA)[number]
 export type ErroresCompra = Partial<Record<CampoCompra, string>>
 
@@ -42,7 +42,6 @@ export const ID_CAMPO: Record<CampoCompra, string> = {
   recogeNombre: 'recoge-nombre',
   recogeCi: 'recoge-ci',
   telefono: 'telefono',
-  metodo: 'metodo',
 }
 
 // Qué falta y cómo completarlo
@@ -52,12 +51,10 @@ export const ERRORES_ENTREGA: Record<CampoCompra, string> = {
   recogeNombre: 'Escribe el nombre de quien recoge la encomienda en la terminal.',
   recogeCi: 'Escribe un CI válido de quien recoge (ej.: 1234567 o 1234567-1B).',
   telefono: 'Escribe un teléfono válido, solo con números (ej.: 70012345), para coordinar la entrega.',
-  metodo: 'Elige cómo quieres pagar.',
 }
 
-export const TEXTO_SOLO_EFECTIVO = 'Efectivo al recibir solo en Recojo en tienda y Distrito 1'
-
-export function validarCompra(entrega: DatosEntrega, zona: ZonaEnvio | undefined, metodo: MetodoPago | null): ErroresCompra {
+// Fase 9F: solo QR, no hay forma de pago que elegir
+export function validarCompra(entrega: DatosEntrega, zona: ZonaEnvio | undefined): ErroresCompra {
   const errores: ErroresCompra = {}
   if (!zona) errores.zona = ERRORES_ENTREGA.zona
   if (zona?.tipo === 'urbano' && !entrega.direccion.trim()) errores.direccion = ERRORES_ENTREGA.direccion
@@ -66,8 +63,6 @@ export function validarCompra(entrega: DatosEntrega, zona: ZonaEnvio | undefined
     if (!REGEX_CI.test(entrega.recogeCi.trim())) errores.recogeCi = ERRORES_ENTREGA.recogeCi
   }
   if (!REGEX_TELEFONO.test(entrega.telefono.trim())) errores.telefono = ERRORES_ENTREGA.telefono
-  if (!metodo) errores.metodo = ERRORES_ENTREGA.metodo
-  else if (metodo === 'contra_entrega' && zona && !zona.permite_contra_entrega) errores.metodo = `${TEXTO_SOLO_EFECTIVO}. Elige QR.`
   return errores
 }
 

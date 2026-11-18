@@ -1,61 +1,61 @@
-# 10 — Preparación y empaque (roles Almacén y Repartidor)
+# 10 — Preparación y «Listo para salir»
 
-Fase 9C. Migración `0017` (por correr: la ensaya y corre el chat del Proyecto). Programado y verificado con build, lint y capturas; las pruebas con la base real se hacen después de correr la 0017.
+Fase 9C (migración `0017`), **rehecha en la 9F (migración `0020`): ya no hay rol Almacén.** Preparar, reportar faltantes, dejar el pedido listo e imprimir la etiqueta lo hace el **admin** en «Por preparar» (`/admin/preparar`). La cuenta `almacen@` pasó a cliente.
 
-Responde a dos observaciones del docente: «controlar la preparación y empaque del producto con roles específicos de usuario» y «completar de forma correcta el cobro con QR o depósito». La idea de AML: **cada paso tiene un responsable y queda registrado quién lo hizo y cuándo**.
+Responde a la observación del docente: «controlar la preparación y empaque del producto». La idea de AML: **cada paso tiene un responsable y queda registrado quién lo hizo y cuándo**.
 
-## Roles
+## Roles del flujo de compra (9F)
 
 | Rol | Qué hace | Panel |
 |---|---|---|
-| `almacen` | Prepara y empaca los pedidos pagados, reporta faltantes, imprime etiquetas | `/almacen` |
-| `repartidor` | Lleva los pedidos empacados y los entrega con el código del cliente (fase 9D, ver [`11-entrega-cierre.md`](11-entrega-cierre.md)) | `/repartidor` |
-| `admin` | Todo lo anterior, más resolver faltantes y cancelar | `/admin` y `/almacen` |
+| `cliente` | Compra, paga con QR, da su código al recibir | `/pedidos` |
+| `admin` | Verifica el pago, prepara, deja «Listo para salir», entrega en tienda, despacha por flota, paga a los repartidores | `/admin` (incluye `/admin/preparar` y `/admin/repartidores`) |
+| `repartidor` | Persona externa: acepta entregas a domicilio, las recoge en la tienda y las entrega con el código (ver [`12-reparto-externo.md`](12-reparto-externo.md)) | `/repartidor` |
 
-- Los asigna **solo el admin** en `/admin/usuarios`. Nadie se asigna un rol solo: `proteger_campos_perfil` lo impide y `handle_new_user` crea siempre clientes (también con Google).
-- `es_almacen()` y `es_repartidor()` exigen el rol exacto y la cuenta activa. `aml_personal_almacen()` deja pasar al almacén y al admin.
-- **Sin lectura directa de tablas.** El almacén y el repartidor no tienen políticas RLS sobre pedidos, pagos, perfiles ni faltantes. Leen y escriben solo a través de funciones `security definer` que revisan el rol y devuelven lo justo para trabajar (código, cliente, teléfono, zona, dirección y productos). Nunca ven precios de costo, pagos ni el correo del cliente.
-- Tres capas, como el resto: middleware (`/almacen` solo almacén o admin; `/repartidor` solo repartidor o admin), API (`requerirRol`, 401 sin sesión y 403 con otro rol) y base (funciones que cortan con `AML03`).
+El rol `distribuidor` (proveedor mayorista, [`08-abastecimiento.md`](08-abastecimiento.md)) sigue igual: no es parte del flujo de compra.
+
+- Los roles los asigna **solo el admin** en `/admin/usuarios`. `handle_new_user` crea siempre clientes (también con Google).
+- `aml_personal_almacen()` (mismo nombre desde la 0017) ahora deja pasar **solo al admin**. `es_almacen()` sigue existiendo y siempre da falso.
+- `/almacen` redirige a `/admin/preparar` (los enlaces viejos siguen sirviendo). Las rutas de la API conservan su nombre (`/api/almacen/*`), ahora solo para el admin (`requerirAdmin`).
 
 ## Historias de usuario
 
 | ID | Historia | Prioridad |
 |---|---|---|
-| HU-AL01 | Como **almacén** quiero ver la cola de pedidos pagados (o efectivo al recibir confirmados), el más antiguo primero, para saber qué preparar | Alta |
-| HU-AL02 | Como **almacén** quiero tocar «Empezar a preparar» para que quede registrado que yo lo estoy preparando | Alta |
-| HU-AL03 | Como **almacén** quiero marcar cada producto al ponerlo en la caja, para no olvidarme de ninguno | Alta |
-| HU-AL04 | Como **almacén** quiero reportar un faltante con una nota, para que la tienda se entere al instante | Alta |
-| HU-AL05 | Como **administrador** quiero resolver un faltante («Repuesto, continuar») con una nota, para que el almacén pueda seguir | Alta |
-| HU-AL06 | Como **almacén** quiero marcar el pedido «Empacado» con la cantidad de bultos, para dejarlo listo para el repartidor o para que el cliente lo recoja | Alta |
-| HU-AL07 | Como **almacén** quiero imprimir una etiqueta por bulto con el código, el QR, el cliente, el teléfono y el destino | Alta |
+| HU-AL01 | Como **administrador** quiero ver la cola de pedidos pagados, el más antiguo primero, para saber qué preparar | Alta |
+| HU-AL02 | Como **administrador** quiero tocar «Empezar a preparar» para que quede registrado quién lo está preparando | Alta |
+| HU-AL03 | Como **administrador** quiero marcar cada producto al ponerlo en la caja, para no olvidarme de ninguno | Alta |
+| HU-AL04 | Como **administrador** quiero reportar un faltante con una nota; el cliente ve solo «Revisando un producto de tu pedido» | Alta |
+| HU-AL05 | Como **administrador** quiero resolver un faltante («Repuesto, continuar») con una nota | Alta |
+| HU-AL06 | Como **administrador** quiero tocar «Listo para salir» con la cantidad de bultos; a domicilio se avisa al grupo de repartidores | Alta |
+| HU-AL07 | Como **administrador** quiero imprimir una etiqueta por bulto con el código, el QR, el cliente, el teléfono y el destino | Alta |
 | HU-AL08 | Como **cliente** o **administrador** quiero ver en la línea de tiempo quién hizo cada paso y a qué hora | Alta |
-| HU-AL09 | Como **administrador** quiero asignar los roles Almacén y Repartidor | Alta |
-| HU-AL10 | Como **administrador** quiero poder cancelar un pedido en preparación o empacado, con el stock de vuelta al kardex | Media |
+| HU-AL09 | Como **administrador** quiero asignar el rol Repartidor a una persona que se registró como cliente | Alta |
+| HU-AL10 | Como **administrador** quiero poder cancelar un pedido en preparación o listo para salir, con el stock de vuelta al kardex | Media |
 
 ## Criterios de aceptación
 
-- **Cola (HU-AL01):** pedidos `confirmado`, `preparando`, `empacado` y `listo_para_recoger`, ordenados por fecha del pedido. Pestañas «Por preparar · En preparación · Empacados». Cada tarjeta muestra el avance de la caja («2 de 3») y si hay un faltante sin resolver.
-- **Empezar (HU-AL02):** solo desde `confirmado`, y con el pago verificado salvo efectivo al recibir. Guarda `preparacion_por` y `preparacion_en` y deja «Preparación iniciada» en la línea de tiempo.
-- **Casillas (HU-AL03):** solo con el pedido en `preparando`. Cada casilla guarda quién y cuándo (`marcado_por`, `marcado_en`); desmarcar las borra. Botones de 56 px de alto, cómodos con guantes.
-- **Faltante (HU-AL04):** nota de 3 a 300 caracteres, producto opcional. Queda en `faltantes_pedido` y en la línea de tiempo, y avisa al admin por Telegram (salvo cuentas de prueba).
-- **Resolver (HU-AL05):** solo el admin, desde el detalle del pedido. Nota obligatoria (3 a 300). Guarda `resuelto_en`, `resuelto_por` y `nota_resolucion`, y lo anota en la línea de tiempo. Nada se borra.
-- **Empacado (HU-AL06):** exige **todos los productos marcados** y **ningún faltante abierto**. Bultos de 1 a 50. Recojo en tienda pasa a `listo_para_recoger` (y su envío también); a domicilio o por flota pasa a `empacado`. Guarda `empacado_por`, `empacado_en` y `bultos`.
-- **Etiqueta (HU-AL07):** página imprimible `/almacen/pedidos/[id]/etiqueta`, de 10 × 15 cm, en negro sobre blanco: «Bulto N de M», código grande, QR con el código del pedido, cliente, teléfono, zona y dirección (o quién recoge en la flota, con su CI). Sale una etiqueta por hoja.
-- **Línea de tiempo (HU-AL08):** `linea_tiempo_pedido` devuelve cada paso con el nombre corto de quien lo hizo («Aldo Martínez») y su rol. Se muestra «por Aldo Martínez (Administrador) · 16/11 14:32» en hora de Bolivia; los pasos del propio cliente dicen «por ti». La ven el dueño, el admin y el almacén (solo pedidos en su camino).
-- **Roles (HU-AL09):** selector de rol en `/admin/usuarios` con Almacén y Repartidor; tarjeta «Personal» en el resumen.
-- **Cancelar (HU-AL10):** el admin cancela en `pendiente`, `confirmado`, `preparando` y `empacado`. El stock vuelve al kardex (`devolucion`), un pago verificado o en revisión pasa a reembolso pendiente y los faltantes abiertos se cierran con la nota «Pedido cancelado».
+- **Cola (HU-AL01):** pedidos `confirmado`, `preparando`, `empacado` y `listo_para_recoger`, por fecha del pedido. Pestañas «Por preparar · En preparación · Listos».
+- **Empezar (HU-AL02):** solo desde `confirmado` y con el pago verificado. Guarda `preparacion_por` y `preparacion_en`.
+- **Casillas (HU-AL03):** solo en `preparando`. Cada casilla guarda quién y cuándo. Botones de 56 px.
+- **Faltante (HU-AL04):** nota de 3 a 300 caracteres, producto opcional. Queda en `faltantes_pedido`; el cliente ve «Revisando un producto de tu pedido».
+- **Resolver (HU-AL05):** solo el admin, desde el detalle del pedido, con nota obligatoria. Nada se borra.
+- **Listo para salir (HU-AL06):** `empacar_pedido` exige **todos los productos marcados** y **ningún faltante abierto**. Bultos de 1 a 50. Recojo pasa a `listo_para_recoger`; a domicilio o por flota, a `empacado` («Listo para salir» en pantalla). Genera el código de entrega (recojo y domicilio). La línea de tiempo dice «Listo para salir · 2 bultos». **A domicilio**, la base publica en el grupo de Telegram de repartidores (ver 12).
+- **Etiqueta (HU-AL07):** `/admin/preparar/pedidos/[id]/etiqueta`, 10 × 15 cm, una por bulto. El menú del admin no sale al imprimir.
+- **Línea de tiempo (HU-AL08):** «por Aldo Martínez (Administrador) · 16/11 14:32»; los pasos del cliente dicen «por ti». La ven el dueño, el admin y el repartidor que lleva el pedido.
+- **Roles (HU-AL09):** selector en `/admin/usuarios` con Cliente, Administrador, Distribuidor y Repartidor; tarjeta «Repartidores» en el resumen.
+- **Cancelar (HU-AL10):** el admin cancela en `pendiente`, `confirmado`, `preparando` y `empacado` (aunque un repartidor la haya aceptado). El stock vuelve al kardex y un pago verificado pasa a reembolso pendiente.
 
 ## Estados del pedido
 
 ```
-recojo en tienda:        pendiente → confirmado → preparando → [empacar] → listo_para_recoger → entregado
-a domicilio o por flota: pendiente → confirmado → preparando → [empacar] → empacado → despachado → entregado
+recojo en tienda: pendiente → confirmado → preparando → [Listo para salir] → listo_para_recoger → [código] → completado
+a domicilio:      pendiente → confirmado → preparando → [Listo para salir] → empacado → [repartidor] → despachado → [código] → completado
+por flota:        pendiente → confirmado → preparando → [Listo para salir] → empacado → [flota y guía] → despachado → [Recibí mi pedido] → completado
 ```
 
-- `preparando` y el empaque solo se alcanzan con las funciones del almacén (`empezar_preparacion`, `empacar_pedido`). `cambiar_estado_pedido` (admin) ya no los acepta: así nunca se salta la casilla de cada producto ni el registro de quién lo hizo.
-- Desde la **9D** (0018): a domicilio despacha el repartidor («Tomar y salir») y nadie marca «entregado» sin el código del cliente; el admin solo despacha por flota. Detalle en [`11-entrega-cierre.md`](11-entrega-cierre.md).
-- Un pedido que ya estaba en `preparando` antes de la 0017 se sigue preparando en `/almacen`, sin migrar datos.
+`preparando` y `empacado` solo se alcanzan con `empezar_preparacion` y `empacar_pedido`; `cambiar_estado_pedido` no los acepta.
 
 ## Pantallas
 
-`/almacen` (cola), `/almacen/pedidos/[id]` (preparar), `/almacen/pedidos/[id]/etiqueta` (imprimir), `/pedidos/[id]` (línea de tiempo con nombres; el admin ve los faltantes y los resuelve), `/admin/envios` (grupo «Empacados»), `/admin/usuarios` (roles nuevos).
+`/admin/preparar` (cola), `/admin/preparar/pedidos/[id]` (preparar y, en recojo, «Entregar en tienda»), `/admin/preparar/pedidos/[id]/etiqueta` (imprimir), `/pedidos/[id]` (línea de tiempo; el admin resuelve faltantes), `/admin/envios` (grupo «Listo para salir»), `/admin/usuarios` (rol Repartidor).

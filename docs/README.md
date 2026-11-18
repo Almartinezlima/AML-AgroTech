@@ -25,8 +25,9 @@
 | [`specs/07-reingenieria.md`](specs/07-reingenieria.md) | Reingeniería del catálogo: ficha técnica y precio de mercado |
 | [`specs/08-abastecimiento.md`](specs/08-abastecimiento.md) | Abastecimiento: proveedores, órdenes de compra, recepción y margen |
 | [`specs/09-avisos-telegram.md`](specs/09-avisos-telegram.md) | Avisos por Telegram al administrador |
-| [`specs/10-preparacion-empaque.md`](specs/10-preparacion-empaque.md) | Preparación y empaque con roles Almacén y Repartidor (fase 9C) |
-| [`specs/11-entrega-cierre.md`](specs/11-entrega-cierre.md) | Entrega con código, efectivo por rendir, completado y calificación (fase 9D) |
+| [`specs/10-preparacion-empaque.md`](specs/10-preparacion-empaque.md) | Preparación y «Listo para salir» (fase 9C; desde la 9F la hace el admin) |
+| [`specs/11-entrega-cierre.md`](specs/11-entrega-cierre.md) | Entrega con código, completado y calificación (fase 9D, actualizada en la 9F) |
+| [`specs/12-reparto-externo.md`](specs/12-reparto-externo.md) | Repartidores externos, grupo de Telegram y pago al repartidor (fase 9F) |
 
 ## Carpetas
 

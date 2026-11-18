@@ -37,8 +37,22 @@ classDiagram
     +text telefono
     +bool activo
     +es_admin() bool «SQL»
-    +es_almacen() bool «SQL»
     +es_repartidor() bool «SQL»
+  }
+  class RepartidorEstado {
+    +bool disponible
+    +timestamptz cambiado_en
+    +cambiar_disponibilidad() «SQL»
+    +panel_repartidor() «SQL»
+  }
+  class PagoRepartidor {
+    +uuid id
+    +numeric monto
+    +int entregas
+    +uuid pagado_por
+    +timestamptz pagado_en
+    +deudas_repartidores() «SQL»
+    +pagar_repartidor() «SQL»
   }
   class Categoria {
     +uuid id
@@ -89,6 +103,8 @@ classDiagram
     +uuid empacado_por
     +timestamptz empacado_en
     +int bultos
+    +uuid repartidor_id
+    +timestamptz aceptado_en
     +uuid despachado_por
     +timestamptz despachado_en
     +uuid entregado_por
@@ -103,6 +119,8 @@ classDiagram
     +empezar_preparacion() «SQL»
     +empacar_pedido() «SQL»
     +linea_tiempo_pedido() «SQL»
+    +aceptar_entrega() «SQL»
+    +liberar_entrega() «SQL»
     +tomar_pedido() «SQL»
     +entregar_pedido() «SQL»
     +confirmar_recepcion() «SQL»
@@ -150,14 +168,9 @@ classDiagram
     +EstadoPago estado
     +text motivo_rechazo
     +timestamptz revisado_en
-    +uuid cobrado_por
-    +timestamptz cobrado_en
-    +numeric monto_cobrado
     +registrar_comprobante() «SQL»
     +verificar_pago() «SQL»
     +marcar_reembolsado() «SQL»
-    +registrar_cobro_entrega() «SQL»
-    +confirmar_efectivo() «SQL»
   }
   class Envio {
     +uuid id
@@ -192,10 +205,14 @@ classDiagram
   Pedido "1" *-- "1" Pago : se paga con
   Pedido "1" *-- "1" Envio : se entrega con
   Pedido "1" *-- "1..*" SeguimientoPedido : línea de tiempo
-  Pedido "1" *-- "0..*" FaltantePedido : faltantes del almacén
+  Pedido "1" *-- "0..*" FaltantePedido : faltantes al preparar
   PedidoItem "0..1" --> "0..*" FaltantePedido : producto que falta
   Perfil "1" --> "0..*" FaltantePedido : reporta o resuelve
-  Perfil "0..1" --> "0..*" Pedido : prepara y empaca
+  Perfil "0..1" --> "0..*" Pedido : prepara y deja listo (admin)
+  Perfil "0..1" --> "0..*" Pedido : acepta y entrega (repartidor)
+  Perfil "1" *-- "0..1" RepartidorEstado : disponibilidad
+  Perfil "1" --> "0..*" PagoRepartidor : cobra
+  PagoRepartidor "0..1" --> "1..*" Pedido : paga los envíos de
   Perfil "0..1" --> "0..*" SeguimientoPedido : hizo el paso
   Producto "1" --> "0..*" MovimientoInventario : kardex
   Pedido "0..1" --> "0..*" MovimientoInventario : salida o devolución
@@ -312,7 +329,6 @@ classDiagram
     admin
     cliente
     distribuidor
-    almacen
     repartidor
   }
   class TipoZona {
@@ -324,8 +340,8 @@ classDiagram
   class MetodoPago {
     <<enumeration>>
     qr
-    transferencia
-    contra_entrega
+    transferencia «solo pedidos viejos»
+    contra_entrega «solo pedidos viejos»
   }
   class EstadoPedido {
     <<enumeration>>
@@ -385,5 +401,6 @@ classDiagram
 - **Precios congelados:** `PedidoItem.precio_unitario` y `OrdenCompraItem.precio_unitario` guardan el precio del momento; si el producto o la presentación cambian de precio después, el pedido o la orden no cambian.
 - **Stock protegido:** `Producto.stock` solo cambia dentro de las funciones que registran un `MovimientoInventario` (trigger `proteger_stock_producto`) y nunca queda negativo.
 - **Costo aparte:** `CostoProducto` es solo del admin, porque `Producto` se lee sin sesión.
-- **Entrega con prueba (fase 9D):** `CodigoEntrega` tiene RLS y **ninguna política**: ni el admin la lee. Solo el dueño ve su código con `mi_codigo_entrega()`; quien entrega lo escribe y `entregar_pedido` solo dice si coincide. A los 5 intentos fallidos se bloquea (el admin lo desbloquea con nota). `Pago.cobrado_*` es el efectivo de efectivo al recibir cobrado por el repartidor o el almacén: queda «por rendir» (pago pendiente) hasta que el admin lo confirma, y ahí el pedido pasa a `completado`.
-- **Quién y cuándo (fase 9C):** `Pedido` guarda quién empezó a prepararlo y quién lo empacó; `PedidoItem`, quién lo puso en la caja; `FaltantePedido`, quién lo reportó y quién lo resolvió. El almacén no lee tablas: todo pasa por funciones que revisan su rol.
+- **Entrega con prueba (fase 9D):** `CodigoEntrega` tiene RLS y **ninguna política**: ni el admin la lee. Solo el dueño ve su código con `mi_codigo_entrega()`; quien entrega lo escribe y `entregar_pedido` solo dice si coincide. A los 5 intentos fallidos se bloquea (el admin lo desbloquea con nota). Desde la 9F solo se paga con QR, así que entregar con el código siempre deja el pedido `completado`. Las columnas `Pago.cobrado_*` (efectivo, 0018) quedan solo en pedidos viejos y no se dibujan.
+- **Quién y cuándo (fase 9C):** `Pedido` guarda quién empezó a prepararlo y quién lo dejó listo; `PedidoItem`, quién lo puso en la caja; `FaltantePedido`, quién lo reportó y quién lo resolvió.
+- **Reparto externo (fase 9F):** `Pedido.repartidor_id` es quien aceptó la entrega (`aceptar_entrega` bloquea la fila: el primero se la lleva). `RepartidorEstado` guarda «Estoy disponible». Cada «Pagado» crea un `PagoRepartidor` y marca los pedidos con `pago_repartidor_id`. El repartidor no lee tablas: todo pasa por funciones que revisan su rol; `RepartidorEstado` y `PagoRepartidor` tienen RLS sin políticas.

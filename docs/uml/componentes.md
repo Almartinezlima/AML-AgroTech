@@ -97,7 +97,7 @@ El middleware pide sesión en `/checkout`, `/pedidos` y `/cuenta`, rol `admin` e
 
 ## 3. API REST y funciones SQL
 
-42 rutas y 50 operaciones; contrato completo en [`../api/openapi.yaml`](../api/openapi.yaml) y en vivo en `/api-docs`.
+63 rutas y 71 operaciones; contrato completo en [`../api/openapi.yaml`](../api/openapi.yaml) y en vivo en `/api-docs`.
 
 ```mermaid
 flowchart LR

@@ -1,12 +1,12 @@
 import { manejarRuta, respuestaOk } from '@/lib/api/respuestas'
-import { requerirRol } from '@/lib/api/sesion'
+import { requerirAdmin } from '@/lib/api/sesion'
 import type { PedidoCola } from '@/types/almacen'
 
 export const dynamic = 'force-dynamic'
 
-// GET /api/almacen/pedidos — Almacén o admin. Cola de preparación, el más antiguo primero.
+// GET /api/almacen/pedidos — Solo admin (fase 9F: ya no hay rol almacén). Cola de preparación, el más antiguo primero.
 export const GET = manejarRuta(async () => {
-  const { supabase } = await requerirRol(['almacen'])
+  const { supabase } = await requerirAdmin()
 
   const { data, error } = await supabase.rpc('cola_almacen')
   if (error) throw error

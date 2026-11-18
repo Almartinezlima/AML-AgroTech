@@ -7,6 +7,7 @@ export type EstadoPedido = (typeof ESTADOS_PEDIDO)[number]
 export const ESTADOS_PAGO = ['pendiente', 'en_revision', 'verificado', 'rechazado', 'reembolso_pendiente', 'reembolsado'] as const
 export type EstadoPago = (typeof ESTADOS_PAGO)[number]
 
+// Desde la 9F (0020) solo se crean pedidos con QR; los otros quedan en pedidos viejos
 export const METODOS_PAGO = ['qr', 'transferencia', 'contra_entrega'] as const
 export type MetodoPago = (typeof METODOS_PAGO)[number]
 
@@ -176,10 +177,6 @@ export interface PagoAdmin {
   comprobante_url: string | null
   pedidos: { codigo: string; estado: EstadoPedido; usuario_id: string; total?: number } | null
   cliente?: ClientePedido | null
-  // Contra entrega cobrada por el repartidor o el almacén: "efectivo por rendir" (0018)
-  cobrado_en?: string | null
-  monto_cobrado?: number | null
-  cobrado_por?: string | null
 }
 
 export interface Movimiento {

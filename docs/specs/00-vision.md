@@ -6,7 +6,7 @@ En Chuquisaca, el agricultor compra insumos viajando a Sucre sin saber antes qu�
 
 ## Solución
 
-**AML AgroTech**: tienda en línea de insumos agrícolas con catálogo real en bolivianos, compra en línea, pago por QR/transferencia/efectivo al recibir, envío a provincias por flota o encomienda con seguimiento, e inventario controlado para la tienda.
+**AML AgroTech**: tienda en línea de insumos agrícolas con catálogo real en bolivianos, compra en línea, pago con QR (desde la fase 9F, la única forma de pago), envío a provincias por flota o encomienda con seguimiento, e inventario controlado para la tienda.
 
 ## Actores
 

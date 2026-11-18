@@ -10,14 +10,16 @@ interface ModalEmpacarProps {
   pedidoId: string
   codigo: string
   esRecojo: boolean
+  esDomicilio: boolean
   onCerrar: () => void
   onEmpacado: () => void
 }
 
 const MAX_BULTOS = 50
 
-// "Empacado": registra quién y cuándo, y cuántos bultos (una etiqueta por bulto)
-export default function ModalEmpacar({ pedidoId, codigo, esRecojo, onCerrar, onEmpacado }: ModalEmpacarProps) {
+// "Listo para salir": registra quién y cuándo, y cuántos bultos (una etiqueta por bulto).
+// A domicilio, la base avisa al grupo de repartidores por Telegram (0020).
+export default function ModalEmpacar({ pedidoId, codigo, esRecojo, esDomicilio, onCerrar, onEmpacado }: ModalEmpacarProps) {
   const [bultos, setBultos] = useState(1)
   const [procesando, setProcesando] = useState(false)
   const [error, setError] = useState('')
@@ -35,13 +37,15 @@ export default function ModalEmpacar({ pedidoId, codigo, esRecojo, onCerrar, onE
   }
 
   return (
-    <Modal titulo={`Empacar ${codigo}`} bloqueado={procesando} onCerrar={onCerrar}>
+    <Modal titulo={`${codigo}: listo para salir`} bloqueado={procesando} onCerrar={onCerrar}>
       <div className="flex flex-col gap-5">
         <AvisoError mensaje={error} />
         <p className="text-texto">
           {esRecojo
             ? 'El pedido quedará listo para que el cliente lo recoja en la tienda.'
-            : 'El pedido quedará empacado, listo para salir con el repartidor o la flota.'}
+            : esDomicilio
+              ? 'El pedido quedará listo para salir. Se avisa al grupo de repartidores: el primero que acepta lo recoge en la tienda.'
+              : 'El pedido quedará listo para salir por flota. Después lo despachas desde Envíos con la empresa y la guía.'}
         </p>
         <div>
           <p id="bultos-titulo" className="mb-2 text-sm font-medium text-texto-2">¿Cuántos bultos son?</p>
@@ -59,7 +63,7 @@ export default function ModalEmpacar({ pedidoId, codigo, esRecojo, onCerrar, onE
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button type="button" disabled={procesando} onClick={onCerrar} className={claseBotonSecundario}>Volver</button>
           <button type="button" disabled={procesando} onClick={() => void enviar()} className={claseBotonPrimario}>
-            {procesando ? 'Guardando…' : 'Confirmar empacado'}
+            {procesando ? 'Guardando…' : 'Listo para salir'}
           </button>
         </div>
       </div>
