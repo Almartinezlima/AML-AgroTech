@@ -35,8 +35,8 @@ El rol `distribuidor` (proveedor mayorista, [`08-abastecimiento.md`](08-abasteci
 
 ## Criterios de aceptación
 
-- **Cola (HU-AL01):** pedidos `confirmado`, `preparando`, `empacado` y `listo_para_recoger`, por fecha del pedido. Pestañas «Por preparar · En preparación · Listos».
-- **Empezar (HU-AL02):** solo desde `confirmado` y con el pago verificado. Guarda `preparacion_por` y `preparacion_en`.
+- **Cola (HU-AL01):** pedidos `confirmado`, `preparando`, `empacado` y `listo_para_recoger`, **el más nuevo arriba** (fase 9G). Pestañas «Por preparar · En preparación · Listos». Se actualiza sola cada 10 s y al volver a la pestaña.
+- **Empezar (HU-AL02):** solo desde `confirmado` y con el pago verificado. Desde la 9G, cada pedido confirmado trae **«Empezar a preparar» en la lista**: empieza y abre el detalle (si falla, el motivo sale en la tarjeta). Guarda `preparacion_por` y `preparacion_en`.
 - **Casillas (HU-AL03):** solo en `preparando`. Cada casilla guarda quién y cuándo. Botones de 56 px.
 - **Faltante (HU-AL04):** nota de 3 a 300 caracteres, producto opcional. Queda en `faltantes_pedido`; el cliente ve «Revisando un producto de tu pedido».
 - **Resolver (HU-AL05):** solo el admin, desde el detalle del pedido, con nota obligatoria. Nada se borra.

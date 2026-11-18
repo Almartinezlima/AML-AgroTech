@@ -23,11 +23,12 @@ HU-P08 (copiar los datos de la cuenta para transferir, 9C) quedó sin efecto en 
 - **QR (9F, más grande):** es el QR de cobro real de la tienda (BNB), sin monto: `public/qr-bnb.jpg`, o la imagen de `NEXT_PUBLIC_QR_TIENDA_IMAGEN` si Render la define. Va arriba del todo, a todo el ancho en celular (hasta unos 450 px en escritorio), con el monto exacto en grande encima, «Ver en grande» (pantalla completa sobre fondo blanco, para escanearlo desde otro teléfono), «Guardar QR» y «Copiar monto». ⚠️ El QR del BNB tiene fecha de vencimiento impresa: hay que renovarlo antes de que venza.
 - **Cancelación y reembolsos (0006, 0020):** el cliente solo cancela si el pedido y el pago siguen pendientes (sin comprobante). Si la tienda cancela un pedido con el pago verificado o en revisión, el pago pasa a **Reembolso pendiente**, y a **Reembolsado** cuando el admin lo marca en `/admin/pagos`.
 - No hay pasarela: ningún pago se confirma solo. El admin verifica cada comprobante a mano.
-- **Comprobante (foto del pago):** jpg/png/webp/pdf, máx. 3 MB, al bucket **privado** `comprobantes/<usuario_id>/<pedido_id>/…`. Solo el dueño y el admin pueden verlo (URL firmada de corta duración).
+- **Comprobante (foto del pago):** la foto se achica en el navegador antes de subir (fase 9G: máx. 1280 px, JPG 0,7; si aún pesa más de 3 MB, 0,55 y 0,45) y el botón dice «Subiendo…». jpg/png/webp/pdf, máx. 3 MB, al bucket **privado** `comprobantes/<usuario_id>/<pedido_id>/…`. Solo el dueño y el admin pueden verlo (URL firmada de corta duración).
 - Al subir comprobante: pago `pendiente` → `en_revision` y se registra en el seguimiento.
 - `verificar_pago`: aprobado → pago `verificado` y pedido `confirmado` (entra a «Por preparar»); rechazado → pago `rechazado` con motivo obligatorio. Todo en transacción y en el seguimiento.
 - **Rechazo y reintento:** el cliente ve el motivo y sube otro comprobante **en el mismo pedido** (`rechazado` → `en_revision`); Telegram vuelve a avisar al admin.
 - **Quién y cuándo:** la línea de tiempo muestra «Pago verificado · por Aldo Martínez (Administrador) · 16/11 14:32» en hora de Bolivia.
+- **Se actualiza solo (9G):** `/admin/pagos` vuelve a leer la lista cada 10 s y al volver a la pestaña, sin pantalla de carga; si el comprobante es el mismo, conserva la URL firmada para no volver a bajar la foto.
 - **Visor del comprobante (9E):** en `/admin/pagos` la foto se abre en grande con el **monto esperado** al lado y Aprobar / Rechazar.
 - Ningún pedido se prepara ni se despacha sin el pago `verificado`. Como el QR ya está verificado al preparar, el repartidor **no cobra nada**: al entregar con el código el pedido queda `completado`.
 - El monto del pago es siempre el `total` del pedido (lo pone el servidor).

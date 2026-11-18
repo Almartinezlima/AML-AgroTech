@@ -38,8 +38,8 @@ Las historias del repartidor (aceptar, recoger, ganado y por cobrar) están en e
 
 ## Criterios de aceptación
 
-- **Código (HU-EN01):** 4 dígitos al azar seguro. La API lo agrega a `GET /api/pedidos` y `GET /api/pedidos/{id}` **solo si quien pide es el dueño**. Se muestra en `empacado`, `listo_para_recoger` y `despachado`.
-- **Entregar (HU-EN05, HU-EN06):** código de 4 dígitos y nombre de 3 a 120 letras (CI de 4 a 20; en tienda la pantalla lo pide). A domicilio solo entrega el repartidor que recogió el pedido (o el admin); en tienda, solo el admin. Código incorrecto: 422 `CODIGO_INCORRECTO`; al quinto, 409 `CODIGO_BLOQUEADO`. Correcto: `completado`, con `entregado_por`, `recibe_nombre` y «Entregado a Juan Pérez» en la línea de tiempo. La pantalla dice «Ya está pagado con QR: no cobres nada».
+- **Código (HU-EN01):** 4 dígitos al azar seguro. La API lo agrega a `GET /api/pedidos` y `GET /api/pedidos/{id}` **solo si quien pide es el dueño**. Se muestra en `empacado`, `listo_para_recoger` y `despachado`. **Recojo (9G):** con el pedido listo, el bloque dice «Tu pedido está listo. Ve a la tienda y dicta este código:» con el número grande, en el detalle y en «Mis pedidos». El detalle del pedido se actualiza solo cada 10 s.
+- **Entregar (HU-EN05, HU-EN06):** código de 4 dígitos y nombre de 3 a 120 letras (CI de 4 a 20; en tienda la pantalla lo pide). A domicilio solo entrega el repartidor que recogió el pedido (o el admin); en tienda, solo el admin. Código incorrecto: 422 `CODIGO_INCORRECTO`; al quinto, 409 `CODIGO_BLOQUEADO`. Correcto: `completado`, con `entregado_por`, `recibe_nombre` y «Entregado a Juan Pérez» en la línea de tiempo. La pantalla dice «Ya está pagado con QR: no cobres nada». El nombre de quien recibe viene escrito con el nombre del cliente y se puede cambiar (9G). Al terminar: «Entregado · registrado con tu nombre y hora».
 - **Desbloquear (HU-EN07):** solo el admin, con nota de 3 a 300.
 - **Flota (HU-EN08):** solo desde `despachado` y en zonas por flota.
 - **Calificación (HU-EN10, HU-EN11):** solo el dueño, una vez, con el pedido entregado o completado. Con 1 o 2 estrellas avisa por Telegram.
