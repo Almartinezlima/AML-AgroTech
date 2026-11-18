@@ -10,7 +10,7 @@ Especificación completa (historias de usuario, casos de uso, arquitectura): **`
 
 1. **E-commerce** — catálogo, carrito, checkout, pedidos.
 2. **Seguridad** — autenticación, roles, RLS, API protegida.
-3. **Pagos** — QR de cobro real del BNB, transferencia, contra entrega; comprobante y verificación.
+3. **Pagos** — QR de cobro real del BNB (desde la fase 9F, la única forma de pago); comprobante y verificación.
 4. **Distribución** — zonas de envío, flota/encomienda, estados y seguimiento.
 5. **Almacenamiento** — inventario, kardex de movimientos, stock mínimo y alertas.
 
@@ -91,7 +91,7 @@ Navegador (React) ──fetch──▶ API REST propia  src/app/api/**  (valida 
 - **Nunca hard-delete**: usar `activo = false` o estados (`cancelado`).
 - **Fechas**: en el navegador, `fechaHoyLocal()` de `@/lib/utils`. **NUNCA `toISOString()`** para fechas de calendario (Bolivia es UTC-4). En el servidor, la fecha la pone la base (`now()`).
 - **Dinero**: `numeric(10,2)` en la base; en pantalla siempre `Bs. 0,00` con `formatoBs()` de `@/lib/utils`.
-- **Roles**: `admin`, `cliente`, `distribuidor`, `almacen`, `repartidor` (los dos últimos desde la 0017; solo el admin asigna roles y puede hacer todo lo del almacén y del repartidor). El rol se verifica **en el servidor** (middleware + API + RLS o funciones que revisan el rol), nunca solo en la pantalla. El almacén y el repartidor no leen tablas directo: solo funciones `security definer`.
+- **Roles**: `admin`, `cliente`, `distribuidor`, `repartidor` (el rol `almacen` se quitó en la 0020: preparar lo hace el admin; el repartidor es una persona externa que se registra como cliente y el admin le da el rol). El rol se verifica **en el servidor** (middleware + API + RLS o funciones que revisan el rol), nunca solo en la pantalla. El almacén y el repartidor no leen tablas directo: solo funciones `security definer`.
 - **Migraciones**: toda tabla, columna, política o función nueva tiene su archivo en `supabase/migrations/` (numerado). Nada se crea a mano en el panel de Supabase sin su receta.
 - **Funciones SQL**: siempre `set search_path = ''` y nombres calificados (`public.tabla`). `security definer` solo si hace falta, y con `revoke execute ... from public, anon` cuando no deben ser públicas.
 - **Storage**: imágenes de productos en bucket público `productos`; comprobantes de pago en bucket **privado** `comprobantes` (solo dueño y admin).
@@ -137,7 +137,7 @@ Contrastes medidos (WCAG AA): texto 15:1, texto-2 7:1, acento 5,3:1, trigo 5,1:1
 ## Datos y negocio
 
 - Catálogo: 36 productos reales. Base de precios de Sucre (Observatorio Agroambiental, 2º sem. 2023); riego y cañerías son estimados. Desde la migración 0008 los fertilizantes Urea, Calferquim, Molimax y los 3 nuevos (Fosfato Diamónico, Cloruro de Potasio, Urea Protegida) tienen precio de referencia de mercado de SurtiAgro (Santa Cruz, 7 sep 2026) con tendencia; nuestro precio incluye el flete hasta Villa Charcas. Ficha técnica opcional por producto (composición, cultivos, modo de uso, dosis y banda toxicológica, esta solo en Agroquímicos). Detalle en `docs/specs/07-reingenieria.md`.
-- La tienda está en **Villa Charcas**. Zonas (migración 0010, 14 nov 2026): **Recojo en tienda (Villa Charcas)** Bs. 0 · a domicilio: **Villa Charcas — Distrito 1 (el pueblo)** Bs. 15, **Distrito Pucara** Bs. 20, **Distrito Santa Elena** Bs. 25, **Distrito Supas** Bs. 30, **Distrito Kaisaka** Bs. 35 · por flota con nombre y CI de quien recoge y número de guía: **Incahuasi** Bs. 20, **Culpina** Bs. 25. Contra entrega solo en recojo y Distrito 1. **Sucre está inactiva** (no se borra: hay pedidos viejos).
+- La tienda está en **Villa Charcas**. Zonas (migración 0010, 14 nov 2026): **Recojo en tienda (Villa Charcas)** Bs. 0 · a domicilio: **Villa Charcas — Distrito 1 (el pueblo)** Bs. 15, **Distrito Pucara** Bs. 20, **Distrito Santa Elena** Bs. 25, **Distrito Supas** Bs. 30, **Distrito Kaisaka** Bs. 35 · por flota con nombre y CI de quien recoge y número de guía: **Incahuasi** Bs. 20, **Culpina** Bs. 25. Solo se paga con QR (0020); a domicilio el costo de envío lo gana el repartidor externo. **Sucre está inactiva** (no se borra: hay pedidos viejos).
 - El **QR de cobro real** va en `public/qr-bnb.jpg` (o en la URL de `NEXT_PUBLIC_QR_TIENDA_IMAGEN`) y **se renueva cuando vence**. El actual es del BNB y vale hasta el **23/11/2026**. Al cambiarlo: JPG de al menos ~900 px de ancho, sin comprimir de más, y comprobar que se sigue leyendo con un lector de QR.
 - Cuentas demo para la feria: se crean con el panel de Supabase; las contraseñas **nunca** van al repo.
 

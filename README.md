@@ -22,7 +22,7 @@ La app tiene tres tipos de usuario y cada uno ve su propio panel.
 - Navega el catálogo con búsqueda, filtros y ficha técnica de cada producto.
 - Arma su carrito (también sin cuenta) y compra con un checkout de 3 pasos.
 - Elige cómo recibir el pedido: envío a su zona o recojo en tienda.
-- Paga con QR, por transferencia o contra entrega, y sube la foto del comprobante.
+- Paga con QR desde la app de su banco y sube la foto del comprobante.
 - Sigue su pedido en una línea de tiempo, puede cancelarlo y descarga la **nota de venta en PDF**.
 
 ### Distribuidor (proveedor mayorista)

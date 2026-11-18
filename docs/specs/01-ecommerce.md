@@ -26,14 +26,14 @@ Rama real: `fase/2-comercio` (recibo de compra: `fase/7-nota-venta`). ✅ Progra
   - El total lo calcula **el servidor** (`crear_pedido`): si el navegador manda otro precio, se ignora.
   - Si un producto no tiene stock suficiente → `409` con el nombre del producto, y el carrito se ajusta.
   - Al crear: pedido con código legible (`AML-000001`), stock descontado y movimiento de salida en el kardex, todo en una transacción.
-  - Pantalla de éxito con el código y el siguiente paso (pagar con QR / esperar efectivo al recibir).
+  - Pantalla de éxito con el código y el siguiente paso (pagar con QR y subir la foto del pago).
 - **Compra en 3 clics (fase 9E, HU-E12):**
   1. Carrito → «Ir a pagar».
-  2. `/checkout` es **una sola pantalla**: zona, datos recordados de la última compra y forma de pago con **QR marcado**. «Confirmar pedido · Bs. X» va dentro del cuadro «Tu compra» (sticky); en celular, en una **barra fija abajo** con el total. El total exacto lo pide al servidor al elegir la zona (`/api/pedidos/cotizar`).
-  3. `/checkout/exito`: el QR (o la cuenta) con el monto y, **justo debajo**, la subida de la foto del pago con «Enviar». Ya no existe «Ya pagué».
+  2. `/checkout` es **una sola pantalla**: zona y datos recordados de la última compra (desde la 9F, «Pagas con QR»). «Confirmar pedido · Bs. X» va dentro del cuadro «Tu compra» (sticky); en celular, en una **barra fija abajo** con el total. El total exacto lo pide al servidor al elegir la zona (`/api/pedidos/cotizar`).
+  3. `/checkout/exito`: el QR grande con el monto y, **justo debajo**, la subida de la foto del pago con «Enviar». Ya no existe «Ya pagué».
   - Barra de pasos: Carrito → Datos y pago → Pagar → Listo.
   - **Errores junto a cada campo** (borde rojo, mensaje debajo, `aria-invalid`); al confirmar, la vista va al primer error y le da el foco. Los errores que no son de un campo (sin stock, sesión vencida) van junto al botón, nunca arriba.
-  - Con efectivo al recibir la pantalla de éxito dice «¡Pedido confirmado!»: el pedido ya está en el almacén (0019).
+  - Desde la 9F (0020) solo se paga con QR: la pantalla dice «Pagas con QR», sin «¿Cómo quieres pagar?».
 - **HU-E06:** `/pedidos` lista los pedidos del usuario; `/pedidos/[id]` muestra items, totales, pago, envío y línea de tiempo.
 - **HU-E07:** cancelar devuelve el stock (movimiento `devolucion`) y queda en el seguimiento.
 - **HU-E08:** sin borrado físico; imagen subida al bucket `productos` (jpg/png/webp, máx. 2 MB); precio > 0.

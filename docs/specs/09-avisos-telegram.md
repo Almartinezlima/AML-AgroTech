@@ -2,7 +2,7 @@
 
 Fases 5 y 6B. Migraciones `0012` (avisos de la tienda) y `0015` (avisos de órdenes de compra), corridas en la base real el 14 y 15 nov 2026. ✅ Programado y probado: los avisos de ejemplo llegaron al chat del admin y las E2E comprobaron que las cuentas de prueba no mandan ninguno.
 
-El **sistema** avisa al admin de lo que pasa en la tienda sin que esté mirando el panel. Los avisos van **solo al admin**.
+El **sistema** avisa al admin de lo que pasa en la tienda sin que esté mirando el panel. Desde la 9F (0020) hay un segundo destino: el **grupo de repartidores**, que solo recibe «🛵 Entrega disponible» (detalle y cómo crear el grupo en [`12-reparto-externo.md`](12-reparto-externo.md)).
 
 ## Historias de usuario
 
@@ -21,7 +21,7 @@ El **sistema** avisa al admin de lo que pasa en la tienda sin que esté mirando 
   - Si la operación falla, la cola se deshace con ella y no sale ningún aviso.
   - Cubren todos los caminos (web, API, panel) y no dependen de que Render esté despierto.
 - **Ningún aviso rompe la operación:** cada función va dentro de `exception when others` y solo deja un warning con el SQLSTATE, sin token ni datos del cliente.
-- **Secretos en Supabase Vault:** `aml_telegram_token` y `aml_telegram_chat_admin`. Nunca en el repo ni en Render. Sin secretos, los avisos no hacen nada.
+- **Secretos en Supabase Vault:** `aml_telegram_token`, `aml_telegram_chat_admin` y (9F) `aml_telegram_chat_repartidores`. Nunca en el repo ni en Render. Sin secretos, los avisos no hacen nada. `aml_enviar_telegram_a(secreto, texto)` solo acepta esos dos chats.
 - **Seguridad:** todas las funciones son `security definer`, con `search_path` vacío y **sin** `execute` para `public`, `anon` ni `authenticated`. Nada se puede llamar desde el navegador.
 - **HU-T01:** trigger `aml_aviso_pedido_nuevo` sobre `pedidos`, diferido al commit para leer el total final. El enlace lleva a `/admin/pedidos?codigo=AML-…`, que muestra solo ese pedido.
 - **HU-T02:** trigger `aml_aviso_comprobante` sobre `pagos`, cuando el pago pasa a `en_revision`.

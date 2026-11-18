@@ -39,7 +39,7 @@ sequenceDiagram
     N->>K: ajustarStock() (el carrito sigue)
     N-->>C: Aviso junto al botón; el carrito y el total se ajustan
   else Hay stock
-    DB->>DB: Inserta pedido AML-…, items, pago, envío y seguimiento<br/>(efectivo al recibir: nace confirmado y va al almacén)
+    DB->>DB: Inserta pedido AML-…, items, pago QR, envío y seguimiento<br/>(fase 9F: solo QR; otro método → AML02, 422)
     DB->>DB: Descuenta stock y anota la salida en el kardex
     DB->>DB: COMMIT
     DB->>Q: Trigger aml_aviso_pedido_nuevo encola el mensaje (si la cuenta no es de prueba)
@@ -113,68 +113,68 @@ sequenceDiagram
 
 El admin también puede cancelar la orden con motivo mientras esté en borrador, enviada o aceptada (`POST /api/ordenes-compra/{id}/cancelar`).
 
-## 3. Preparar y empacar un pedido (CU-34 a CU-38, fase 9C)
+## 3. Preparar y dejar «Listo para salir» (CU-34 a CU-38 y CU-52; fase 9C, desde la 9F el admin)
 
-Del pedido pagado a la caja cerrada con su etiqueta. Cada paso guarda quién y cuándo.
+Del pedido pagado a la caja cerrada con su etiqueta y, a domicilio, el aviso al grupo de repartidores. Cada paso guarda quién y cuándo.
 
 ```mermaid
 sequenceDiagram
   autonumber
-  actor AL as Almacén
   actor AD as Administrador
   participant A as API REST<br/>Next.js en Render
   participant DB as Postgres<br/>Supabase
   participant Q as pg_net
   participant T as Telegram
 
-  AL->>A: GET /api/almacen/pedidos
+  AD->>A: GET /api/almacen/pedidos («Por preparar»)
   A->>DB: rpc cola_almacen()
-  Note over DB: aml_personal_almacen(): rol almacén o admin, si no AML03 (403)
+  Note over DB: aml_personal_almacen(): solo admin (0020), si no AML03 (403)
   DB-->>A: Pedidos confirmados, el más antiguo primero
-  AL->>A: POST /api/almacen/pedidos/{id}/preparar
+  AD->>A: POST /api/almacen/pedidos/{id}/preparar
   A->>DB: rpc empezar_preparacion(id)
   Note over DB: confirmado → preparando<br/>preparacion_por, preparacion_en y seguimiento
   loop Cada producto que entra a la caja
-    AL->>A: PATCH /api/almacen/items/{item} (marcado: true)
+    AD->>A: PATCH /api/almacen/items/{item} (marcado: true)
     A->>DB: rpc marcar_item_pedido(item, true)
   end
   opt Falta un producto
-    AL->>A: POST /api/almacen/pedidos/{id}/faltante (nota, item_id)
+    AD->>A: POST /api/almacen/pedidos/{id}/faltante (nota, item_id)
     A->>DB: rpc reportar_faltante(id, item, nota)
-    DB->>Q: Trigger aml_aviso_faltante (si no es cuenta de prueba)
-    Q-)T: «Faltante en AML-…» con producto, nota y quién
     AD->>A: POST /api/faltantes/{faltante}/resolver (nota)
     A->>DB: rpc resolver_faltante(faltante, nota)
-    Note over DB: resuelto_en, resuelto_por y seguimiento
   end
-  AL->>A: POST /api/almacen/pedidos/{id}/empacar (bultos)
+  AD->>A: POST /api/almacen/pedidos/{id}/empacar (bultos) «Listo para salir»
   A->>DB: rpc empacar_pedido(id, bultos)
   activate DB
   Note over DB: Exige todo marcado y ningún faltante abierto (si no, AML05 → 409)
   alt Recojo en tienda
-    DB->>DB: estado listo_para_recoger (pedido y envío)
-  else En el pueblo o por flota
-    DB->>DB: estado empacado
+    DB->>DB: listo_para_recoger (pedido y envío) y código de entrega
+  else A domicilio
+    DB->>DB: empacado («Listo para salir») y código de entrega
+    DB->>Q: Trigger aml_aviso_entrega_disponible (si no es cuenta de prueba)
+    Q-)T: Grupo de repartidores: «🛵 Entrega disponible · zona · Ganas Bs. X · /repartidor»
+  else Por flota
+    DB->>DB: empacado (después el admin despacha con empresa y guía)
   end
-  DB->>DB: empacado_por, empacado_en, bultos y seguimiento
-  DB-->>A: Pedido empacado
+  DB-->>A: Pedido listo
   deactivate DB
-  AL->>A: GET /api/almacen/pedidos/{id} (página /etiqueta)
-  A-->>AL: Datos de la etiqueta
-  Note over AL: Imprime una etiqueta por bulto con el QR del código
+  AD->>A: GET /api/almacen/pedidos/{id} (página /etiqueta)
+  A-->>AD: Datos de la etiqueta
+  Note over AD: Imprime una etiqueta por bulto con el QR del código
 ```
 
 El cliente ve cada paso en su pedido con el nombre de quién lo hizo (`GET /api/pedidos/{id}` → `linea_tiempo_pedido`).
 
-## 4. Entregar un pedido con código y cerrarlo (CU-39 a CU-46, fase 9D)
+## 4. Reparto externo: aceptar, recoger y entregar con código (CU-39, CU-40, CU-42, CU-47 a CU-51; fases 9D y 9F)
 
-Del pedido empacado a la entrega con prueba y al cierre. Nadie marca «entregado» sin el código que solo tiene el cliente.
+Del pedido «Listo para salir» a la entrega con prueba, el cierre y el pago al repartidor. Nadie marca «entregado» sin el código que solo tiene el cliente.
 
 ```mermaid
 sequenceDiagram
   autonumber
   actor C as Cliente
-  actor R as Repartidor
+  actor R1 as Repartidor 1
+  actor R2 as Repartidor 2
   actor AD as Administrador
   participant A as API REST<br/>Next.js en Render
   participant DB as Postgres<br/>Supabase
@@ -184,55 +184,61 @@ sequenceDiagram
   C->>A: GET /api/pedidos/{id}
   A->>DB: rpc mi_codigo_entrega(id)
   Note over DB: Solo el dueño: a cualquier otro (también el admin) AML04 → 404
-  DB-->>A: código 4827
   A-->>C: «Tu código de entrega: 4827»
-  R->>A: GET /api/repartidor/pedidos
-  A->>DB: rpc cola_reparto()
-  DB-->>A: A domicilio empacados, el más antiguo primero (sin código)
-  R->>A: POST /api/entregas/{id}/tomar
-  A->>DB: rpc tomar_pedido(id)
-  Note over DB: empacado → despachado<br/>despachado_por, despachado_en, envío en camino
-  opt Efectivo al recibir
-    R->>A: POST /api/entregas/{id}/cobro (monto)
-    A->>DB: rpc registrar_cobro_entrega(id, monto)
-    Note over DB: monto ≠ total → AML02 (422)<br/>cobrado_por, cobrado_en: efectivo por rendir
+  R1->>A: PATCH /api/repartidor/disponibilidad (true)
+  A->>DB: rpc cambiar_disponibilidad(true)
+  R1->>A: GET /api/repartidor/panel (cada 15 s)
+  A->>DB: rpc panel_repartidor()
+  DB-->>A: Disponibles: zona, dirección, bultos, ganas (sin datos del cliente)
+  par Los dos tocan «Aceptar»
+    R1->>A: POST /api/entregas/{id}/aceptar
+    A->>DB: rpc aceptar_entrega(id)
+    Note over DB: select … for update: bloquea la fila<br/>sin repartidor → repartidor_id = R1, aceptado_en
+    DB-->>A: aceptada
+  and
+    R2->>A: POST /api/entregas/{id}/aceptar
+    A->>DB: rpc aceptar_entrega(id) (espera el bloqueo)
+    DB-->>A: AML05 «Otro repartidor ya la tomó.»
+    A-->>R2: 409 y la entrega desaparece de su lista
   end
-  Note over C,R: El cliente ya tiene el pedido en la mano y dicta su código
-  R->>A: POST /api/entregas/{id}/entregar (código, nombre, CI)
+  opt R1 no aparece
+    AD->>A: POST /api/entregas/{id}/liberar
+    A->>DB: rpc liberar_entrega(id)
+    DB->>Q: Trigger aml_aviso_entrega_disponible
+    Q-)T: Se publica otra vez en el grupo
+  end
+  R1->>A: POST /api/entregas/{id}/tomar «Recogí el pedido»
+  A->>DB: rpc tomar_pedido(id)
+  Note over DB: solo quien la aceptó · empacado → despachado<br/>despachado_por, despachado_en, envío en camino
+  Note over C,R1: El cliente ya tiene el pedido en la mano y dicta su código (ya pagó con QR)
+  R1->>A: POST /api/entregas/{id}/entregar (código, nombre, CI)
   A->>DB: rpc entregar_pedido(id, código, nombre, CI)
   activate DB
   alt Código incorrecto
     DB->>DB: intentos_fallidos + 1 (no lanza error: el intento queda guardado)
-    DB-->>A: ok false, intentos restantes
-    A-->>R: 422 CODIGO_INCORRECTO «Quedan N intentos»
+    A-->>R1: 422 CODIGO_INCORRECTO «Quedan N intentos»
     opt Quinto intento
       DB->>Q: Trigger aml_aviso_codigo_bloqueado
-      Q-)T: «Código de entrega bloqueado en AML-…»
-      A-->>R: 409 CODIGO_BLOQUEADO
+      A-->>R1: 409 CODIGO_BLOQUEADO
       AD->>A: POST /api/entregas/{id}/desbloquear (nota)
     end
   else Código correcto
-    DB->>DB: entregado: entregado_por, recibe_nombre, envío entregado, seguimiento
+    DB->>DB: entregado y completado en el mismo momento (pago QR verificado)
     DB->>Q: Trigger aml_aviso_entregado
-    Q-)T: «Entregado AML-… a Juan Pérez · por …»
-    alt Pago ya verificado
-      DB->>DB: completado (mismo momento)
-    else Efectivo por rendir
-      AD->>A: POST /api/pagos/{pago}/efectivo
-      A->>DB: rpc confirmar_efectivo(pago)
-      DB->>DB: pago verificado → completado
-    end
+    Q-)T: Admin: «Entregado AML-… · 🛵 Al repartidor: Bs. X»
     DB-->>A: ok true
   end
   deactivate DB
+  AD->>A: GET /api/repartidores
+  A->>DB: rpc deudas_repartidores()
+  DB-->>A: Por repartidor: por pagar, entregas sin pagar, últimos pagos
+  AD->>A: POST /api/repartidores/{R1}/pagar (monto que vio)
+  A->>DB: rpc pagar_repartidor(R1, monto)
+  Note over DB: monto distinto (otra entrega en el medio) → AML05 (409)<br/>si coincide: fila en pagos_repartidor (quién y cuándo) y marca las entregas
   C->>A: POST /api/pedidos/{id}/calificacion (estrellas, comentario)
   A->>DB: rpc calificar_entrega(id, estrellas, comentario)
-  opt 1 o 2 estrellas
-    DB->>Q: Trigger aml_aviso_calificacion_baja
-    Q-)T: «Calificación baja en AML-…»
-  end
 ```
 
-- **Recojo en tienda:** igual, pero entrega el almacén o el admin desde el pedido («Entregar en tienda»), con nombre y CI de quien recoge.
-- **Por flota:** no hay código. El cliente toca «Recibí mi pedido» (`POST /api/pedidos/{id}/recibido`) o el admin lo confirma con una nota.
+- **Recojo en tienda:** el cliente llega y dice su código; entrega el admin desde el pedido («Entregar en tienda»), con nombre y CI de quien recoge.
+- **Por flota:** no hay código ni repartidor. El admin despacha con empresa y guía; el cliente toca «Recibí mi pedido» (`POST /api/pedidos/{id}/recibido`) o el admin lo confirma con una nota.
 - Las cuentas de prueba (`@amlagrotech.test`) no avisan por Telegram.

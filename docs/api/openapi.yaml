@@ -18,9 +18,9 @@ tags:
   - name: Abastecimiento
     description: Proveedores mayoristas (rol distribuidor), sus presentaciones, órdenes de compra, recepción y margen
   - name: Almacén
-    description: Preparación y empaque de pedidos (rol almacen o admin, fase 9C). Cada paso registra quién y cuándo
+    description: 'Preparación y «Listo para salir» (fase 9C; desde la 9F, migración 0020, solo el admin). Cada paso registra quién y cuándo'
   - name: Entrega
-    description: 'Entrega con el código de 4 dígitos del cliente, cobro efectivo al recibir, recepción por flota y calificación (rol repartidor, almacén o admin; fase 9D). Nadie salvo el dueño ve el código'
+    description: 'Reparto con repartidores externos (fase 9F: disponibilidad, aceptar, recoger, liberar y pago al repartidor), entrega con el código de 4 dígitos del cliente, recepción por flota y calificación. Nadie salvo el dueño ve el código'
 components:
   securitySchemes:
     sesion:
@@ -50,9 +50,9 @@ components:
             codigo: { type: string, example: NO_AUTENTICADO }
             mensaje: { type: string, example: Debes iniciar sesión. }
             detalle: { type: object }
-    Rol: { type: string, enum: [admin, cliente, distribuidor, almacen, repartidor], description: 'almacen y repartidor desde la migración 0017; solo el admin asigna roles' }
-    EstadoPedido: { type: string, enum: [pendiente, confirmado, preparando, empacado, listo_para_recoger, despachado, entregado, completado, cancelado], description: 'Recojo en tienda: al empacar pasa a listo_para_recoger. A domicilio o por flota: empacado y luego despachado (0017). Entregado solo con el código del cliente o, por flota, con su confirmación; completado = entregado + pago verificado (0018)' }
-    MetodoPago: { type: string, enum: [qr, transferencia, contra_entrega] }
+    Rol: { type: string, enum: [admin, cliente, distribuidor, repartidor], description: 'repartidor desde la 0017 (persona externa desde la 0020); el rol almacen se quitó en la 0020. Solo el admin asigna roles' }
+    EstadoPedido: { type: string, enum: [pendiente, confirmado, preparando, empacado, listo_para_recoger, despachado, entregado, completado, cancelado], description: 'Recojo en tienda: al dejarlo listo pasa a listo_para_recoger. A domicilio o por flota: empacado («Listo para salir») y luego despachado (a domicilio, cuando el repartidor que lo aceptó lo recoge, 0020). Entregado solo con el código del cliente o, por flota, con su confirmación; completado = entregado + pago verificado (0018)' }
+    MetodoPago: { type: string, enum: [qr, transferencia, contra_entrega], description: 'Desde la 0020 solo se crean pedidos con qr; los otros quedan en pedidos viejos' }
     ProductoEntrada:
       type: object
       required: [nombre, precio, stock_minimo, unidad, categoria_id]
@@ -117,14 +117,13 @@ components:
             icono: { type: string }
     ZonaEntrada:
       type: object
-      required: [nombre, tipo, costo, dias_min, dias_max, permite_contra_entrega]
+      required: [nombre, tipo, costo, dias_min, dias_max]
       properties:
         nombre: { type: string }
         tipo: { type: string, enum: [recojo, urbano, provincia] }
         costo: { type: number, minimum: 0 }
         dias_min: { type: integer, minimum: 0 }
         dias_max: { type: integer, minimum: 0 }
-        permite_contra_entrega: { type: boolean }
         orden: { type: integer }
     ItemPedido:
       type: object
@@ -134,7 +133,7 @@ components:
         cantidad: { type: integer, minimum: 1 }
     PedidoEntrada:
       type: object
-      required: [items, zona_id, telefono, metodo_pago]
+      required: [items, zona_id, telefono]
       properties:
         items: { type: array, items: { $ref: '#/components/schemas/ItemPedido' } }
         zona_id: { type: string, format: uuid }
@@ -142,7 +141,7 @@ components:
         recoge_nombre: { type: string, nullable: true, description: 'Zonas por flota: nombre de quien recoge la encomienda (3 a 100 caracteres)' }
         recoge_ci: { type: string, nullable: true, example: '1234567', description: 'Zonas por flota: CI de quien recoge (5 a 10 dígitos, complemento opcional)' }
         telefono: { type: string, example: '70000000' }
-        metodo_pago: { $ref: '#/components/schemas/MetodoPago' }
+        metodo_pago: { type: string, enum: [qr], default: qr, description: 'Solo QR desde la 0020' }
         notas: { type: string, nullable: true }
     DistribuidorEntrada:
       type: object
@@ -387,7 +386,7 @@ paths:
         content:
           application/json:
             schema: { $ref: '#/components/schemas/PedidoEntrada' }
-      description: 'Con metodo_pago transferencia responde 422 (METODO_NO_DISPONIBLE) si la cuenta del banco no está configurada (NEXT_PUBLIC_BANCO_*). Con contra_entrega (en pantalla «Efectivo al recibir») el pedido nace confirmado y entra al almacén (0019); en una zona que no lo permite responde 422 «Efectivo al recibir solo en Recojo en tienda y Distrito 1».'
+      description: 'Solo QR (fase 9F, 0020): cualquier otro metodo_pago responde 422 «Solo se paga con QR.». El pedido nace pendiente hasta que el admin verifica el comprobante.'
       responses:
         '201': { description: Pedido creado con su código }
         '401': { $ref: '#/components/responses/Error' }
@@ -467,7 +466,7 @@ paths:
     post:
       tags: [Pedidos]
       summary: Cancelar pedido y devolver el stock
-      description: 'Cliente: si el pedido y el pago siguen pendientes (sin comprobante), o con efectivo al recibir mientras siga confirmado y el almacén no haya empezado (0019). Admin: pedidos pendientes, confirmados, en preparación o empacados (0017); si el pago estaba verificado o en revisión pasa a reembolso_pendiente (migración 0006).'
+      description: 'Cliente: solo si el pedido y el pago siguen pendientes (sin comprobante). Admin: pedidos pendientes, confirmados, en preparación o empacados (0017); si el pago estaba verificado o en revisión pasa a reembolso_pendiente (migración 0006).'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -498,7 +497,7 @@ paths:
     patch:
       tags: [Pedidos]
       summary: Avanzar el estado del pedido (admin)
-      description: 'Solo pendiente a confirmado y, por flota, empacado a despachado (con flota y guía). Preparar y empacar se hace en /almacen; a domicilio despacha el repartidor y nadie marca entregado aquí (409): se usa /entregas/{id}/entregar o /pedidos/{id}/recibido.'
+      description: 'Solo pendiente a confirmado y, por flota, empacado a despachado (con flota y guía). Preparar y «Listo para salir» se hacen con /almacen/* (admin); a domicilio sale con el repartidor que acepta la entrega y nadie marca entregado aquí (409): se usa /entregas/{id}/entregar o /pedidos/{id}/recibido.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -912,7 +911,7 @@ paths:
   /almacen/pedidos:
     get:
       tags: [Almacén]
-      summary: Cola de preparación, el más antiguo primero (almacén o admin)
+      summary: Cola de «Por preparar», el más antiguo primero (admin)
       description: 'Pedidos confirmado, preparando, empacado y listo_para_recoger, con avance de la caja y faltantes abiertos (función cola_almacen).'
       security: [{ sesion: [] }]
       responses:
@@ -922,7 +921,7 @@ paths:
   /almacen/pedidos/{id}:
     get:
       tags: [Almacén]
-      summary: Detalle para preparar e imprimir la etiqueta (almacén o admin)
+      summary: Detalle para preparar e imprimir la etiqueta (admin)
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       responses:
@@ -945,7 +944,7 @@ paths:
   /almacen/items/{id}:
     patch:
       tags: [Almacén]
-      summary: Marcar o desmarcar un producto como puesto en la caja (almacén o admin)
+      summary: Marcar o desmarcar un producto como puesto en la caja (admin)
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -966,7 +965,7 @@ paths:
   /almacen/pedidos/{id}/faltante:
     post:
       tags: [Almacén]
-      summary: Reportar un faltante (avisa al admin por Telegram y frena el empaque)
+      summary: Reportar un faltante (admin; frena «Listo para salir»)
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -989,8 +988,8 @@ paths:
   /almacen/pedidos/{id}/empacar:
     post:
       tags: [Almacén]
-      summary: Empacado (exige todo marcado y ningún faltante abierto)
-      description: 'Recojo en tienda pasa a listo_para_recoger; a domicilio o por flota, a empacado. Registra quién, cuándo y los bultos (una etiqueta por bulto).'
+      summary: Listo para salir (admin; exige todo marcado y ningún faltante abierto)
+      description: 'Recojo en tienda pasa a listo_para_recoger; a domicilio o por flota, a empacado («Listo para salir»). Registra quién, cuándo y los bultos (una etiqueta por bulto). A domicilio la base avisa al grupo de Telegram de repartidores (0020).'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -1003,7 +1002,7 @@ paths:
               properties:
                 bultos: { type: integer, minimum: 1, maximum: 50 }
       responses:
-        '200': { description: Pedido empacado }
+        '200': { description: Pedido listo para salir }
         '401': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Error' }
         '404': { $ref: '#/components/responses/Error' }
@@ -1031,47 +1030,86 @@ paths:
         '404': { $ref: '#/components/responses/Error' }
         '409': { $ref: '#/components/responses/Error' }
         '422': { $ref: '#/components/responses/Error' }
-  /repartidor/pedidos:
+  /repartidor/panel:
     get:
       tags: [Entrega]
-      summary: Cola del repartidor (repartidor o admin)
-      description: 'A domicilio empacados (el más antiguo primero) y los que ya van en camino (los propios; el admin ve todos). Con zona, dirección, teléfono, bultos y si hay que cobrar. Nunca trae el código de entrega (función cola_reparto).'
+      summary: Panel del repartidor (solo rol repartidor)
+      description: 'Disponibilidad, entregas disponibles (zona, dirección, bultos y ganas = costo de envío; sin nombre ni teléfono del cliente; vacías si no está disponible), mis entregas (con cliente y teléfono), ganado, por cobrar y último pago (función panel_repartidor, 0020).'
       security: [{ sesion: [] }]
       responses:
-        '200': { description: Lista de pedidos para repartir }
+        '200': { description: '{ disponible, disponibles, mias, ganado, por_cobrar, entregas_hechas, ultimo_pago }' }
         '401': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Error' }
-  /entregas/{id}:
+  /repartidor/disponibilidad:
+    patch:
+      tags: [Entrega]
+      summary: Estoy disponible / No disponible (solo rol repartidor)
+      security: [{ sesion: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [disponible]
+              properties:
+                disponible: { type: boolean }
+      responses:
+        '200': { description: '{ disponible }' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /entregas:
     get:
       tags: [Entrega]
-      summary: Datos para entregar un pedido (repartidor, almacén o admin)
-      description: 'Repartidor: a domicilio empacado o el que él lleva. Almacén: recojo listo para recoger. Admin: cualquiera. Trae si está cobrado, si el código está bloqueado y los intentos que quedan; nunca el código (función detalle_entrega).'
+      summary: Entregas a domicilio en curso (admin)
+      description: 'Listas para salir (con o sin repartidor) y en camino, con quién la lleva, desde cuándo y lo que gana (función cola_reparto).'
       security: [{ sesion: [] }]
-      parameters: [{ $ref: '#/components/parameters/Id' }]
       responses:
-        '200': { description: Datos de la entrega }
-        '400': { $ref: '#/components/responses/Error' }
+        '200': { description: Lista de entregas en curso }
         '401': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Error' }
-        '404': { $ref: '#/components/responses/Error' }
-  /entregas/{id}/tomar:
+  /entregas/{id}/aceptar:
     post:
       tags: [Entrega]
-      summary: Tomar y salir (repartidor o admin)
-      description: 'Empacado a despachado, a domicilio. Registra quién lo lleva y cuándo salió. 409 si ya salió con otro repartidor.'
+      summary: Aceptar una entrega (repartidor disponible)
+      description: 'El primero se la lleva: la base bloquea la fila del pedido. Al segundo le responde 409 «Otro repartidor ya la tomó.». Sin estar disponible, 409. Si ya es suya, responde 200 sin cambiar nada.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       responses:
-        '200': { description: Pedido en camino }
+        '200': { description: '{ id, aceptada: true }' }
         '401': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Error' }
         '404': { $ref: '#/components/responses/Error' }
         '409': { $ref: '#/components/responses/Error' }
-  /entregas/{id}/cobro:
+  /entregas/{id}/liberar:
     post:
       tags: [Entrega]
-      summary: Registrar el cobro de un pedido efectivo al recibir
-      description: 'Repartidor (domicilio), almacén (recojo) o admin. El monto tiene que ser igual al total (422 si no). Si no cobra el admin, el pago queda como efectivo por rendir.'
+      summary: Liberar una entrega aceptada (admin)
+      description: 'Si el repartidor que la aceptó no aparece. Solo antes de que la recoja (409 si ya salió). Vuelve a estar disponible y se publica otra vez en el grupo de Telegram.'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: '{ id, liberada: true }' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+  /repartidores:
+    get:
+      tags: [Entrega]
+      summary: Lo que se debe a cada repartidor y los últimos pagos (admin)
+      description: 'Por repartidor: por pagar (suma de envíos entregados sin pagar), entregas sin pagar, en curso, disponible, total pagado y último pago. Más los últimos 30 pagos con quién y cuándo (función deudas_repartidores).'
+      security: [{ sesion: [] }]
+      responses:
+        '200': { description: '{ repartidores, pagos }' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /repartidores/{id}/pagar:
+    post:
+      tags: [Entrega]
+      summary: Pagado (admin)
+      description: 'Marca todas las entregas sin pagar del repartidor y registra el pago (monto, entregas, quién y cuándo). El monto es el que el admin vio: si cambió en el medio, 409 y no se marca nada.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -1084,17 +1122,42 @@ paths:
               properties:
                 monto: { type: number, exclusiveMinimum: true, minimum: 0 }
       responses:
-        '200': { description: Cobro registrado }
+        '200': { description: '{ id, monto, entregas }' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /entregas/{id}:
+    get:
+      tags: [Entrega]
+      summary: Datos para entregar un pedido (repartidor que la aceptó o admin)
+      description: 'Repartidor: solo las entregas que aceptó (listas para salir o en camino). Admin: cualquiera. Trae lo que gana, quién la lleva, si el código está bloqueado y los intentos que quedan; nunca el código (función detalle_entrega).'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Datos de la entrega }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /entregas/{id}/tomar:
+    post:
+      tags: [Entrega]
+      summary: Recogí el pedido (repartidor que la aceptó o admin)
+      description: 'Listo para salir (empacado) a despachado, a domicilio. Solo quien aceptó la entrega (403 si es de otro). Registra quién lo lleva y cuándo salió de la tienda.'
+      security: [{ sesion: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Pedido en camino }
         '401': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Error' }
         '404': { $ref: '#/components/responses/Error' }
         '409': { $ref: '#/components/responses/Error' }
-        '422': { $ref: '#/components/responses/Error' }
   /entregas/{id}/entregar:
     post:
       tags: [Entrega]
       summary: Entregar con el código de 4 dígitos del cliente
-      description: 'Repartidor (domicilio, el que lo tomó), almacén (recojo en tienda) o admin. Efectivo al recibir exige el cobro registrado. Con el pago verificado, el pedido queda completado. Código incorrecto: 422 CODIGO_INCORRECTO con detalle.intentos_restantes; al quinto intento, 409 CODIGO_BLOQUEADO.'
+      description: 'Repartidor (domicilio, el que lo recogió) o admin (recojo en tienda y domicilio). El pago QR ya está verificado: el pedido queda completado. Código incorrecto: 422 CODIGO_INCORRECTO con detalle.intentos_restantes; al quinto intento, 409 CODIGO_BLOQUEADO.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -1190,16 +1253,3 @@ paths:
         '200': { description: Resumen }
         '401': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Error' }
-  /pagos/{id}/efectivo:
-    post:
-      tags: [Pagos]
-      summary: Recibí el efectivo de una entrega efectivo al recibir (admin)
-      description: 'El pago cobrado por el repartidor o el almacén pasa a verificado con el nombre del admin; si el pedido ya está entregado, queda completado.'
-      security: [{ sesion: [] }]
-      parameters: [{ $ref: '#/components/parameters/Id' }]
-      responses:
-        '200': { description: Efectivo recibido }
-        '401': { $ref: '#/components/responses/Error' }
-        '403': { $ref: '#/components/responses/Error' }
-        '404': { $ref: '#/components/responses/Error' }
-        '409': { $ref: '#/components/responses/Error' }
