@@ -21,7 +21,7 @@ Responde a dos observaciones del docente: «controlar la preparación y empaque 
 
 | ID | Historia | Prioridad |
 |---|---|---|
-| HU-AL01 | Como **almacén** quiero ver la cola de pedidos pagados (o contra entrega confirmados), el más antiguo primero, para saber qué preparar | Alta |
+| HU-AL01 | Como **almacén** quiero ver la cola de pedidos pagados (o efectivo al recibir confirmados), el más antiguo primero, para saber qué preparar | Alta |
 | HU-AL02 | Como **almacén** quiero tocar «Empezar a preparar» para que quede registrado que yo lo estoy preparando | Alta |
 | HU-AL03 | Como **almacén** quiero marcar cada producto al ponerlo en la caja, para no olvidarme de ninguno | Alta |
 | HU-AL04 | Como **almacén** quiero reportar un faltante con una nota, para que la tienda se entere al instante | Alta |
@@ -35,7 +35,7 @@ Responde a dos observaciones del docente: «controlar la preparación y empaque 
 ## Criterios de aceptación
 
 - **Cola (HU-AL01):** pedidos `confirmado`, `preparando`, `empacado` y `listo_para_recoger`, ordenados por fecha del pedido. Pestañas «Por preparar · En preparación · Empacados». Cada tarjeta muestra el avance de la caja («2 de 3») y si hay un faltante sin resolver.
-- **Empezar (HU-AL02):** solo desde `confirmado`, y con el pago verificado salvo contra entrega. Guarda `preparacion_por` y `preparacion_en` y deja «Preparación iniciada» en la línea de tiempo.
+- **Empezar (HU-AL02):** solo desde `confirmado`, y con el pago verificado salvo efectivo al recibir. Guarda `preparacion_por` y `preparacion_en` y deja «Preparación iniciada» en la línea de tiempo.
 - **Casillas (HU-AL03):** solo con el pedido en `preparando`. Cada casilla guarda quién y cuándo (`marcado_por`, `marcado_en`); desmarcar las borra. Botones de 56 px de alto, cómodos con guantes.
 - **Faltante (HU-AL04):** nota de 3 a 300 caracteres, producto opcional. Queda en `faltantes_pedido` y en la línea de tiempo, y avisa al admin por Telegram (salvo cuentas de prueba).
 - **Resolver (HU-AL05):** solo el admin, desde el detalle del pedido. Nota obligatoria (3 a 300). Guarda `resuelto_en`, `resuelto_por` y `nota_resolucion`, y lo anota en la línea de tiempo. Nada se borra.

@@ -6,14 +6,14 @@ En Chuquisaca, el agricultor compra insumos viajando a Sucre sin saber antes qu�
 
 ## Solución
 
-**AML AgroTech**: tienda en línea de insumos agrícolas con catálogo real en bolivianos, compra en línea, pago por QR/transferencia/contra entrega, envío a provincias por flota o encomienda con seguimiento, e inventario controlado para la tienda.
+**AML AgroTech**: tienda en línea de insumos agrícolas con catálogo real en bolivianos, compra en línea, pago por QR/transferencia/efectivo al recibir, envío a provincias por flota o encomienda con seguimiento, e inventario controlado para la tienda.
 
 ## Actores
 
 | Actor | Descripción |
 |---|---|
 | **Visitante** | Navega el catálogo y arma el carrito sin cuenta |
-| **Cliente** | Agricultor registrado: compra, paga, sigue sus pedidos y descarga la nota de venta |
+| **Cliente** | Agricultor registrado: compra, paga, sigue sus pedidos y descarga la recibo de compra |
 | **Administrador** | Dueño de la tienda: productos, inventario, pagos, despachos, usuarios, proveedores y órdenes de compra |
 | **Distribuidor** | Proveedor mayorista (Sucre o Santa Cruz) que le vende a la tienda: publica sus presentaciones y atiende las órdenes de compra. El rol lo asigna solo el admin |
 | **Supabase (sistema externo)** | Autenticación, base de datos, archivos, secretos (Vault) y tareas programadas (`pg_net`, `pg_cron`) |
@@ -21,7 +21,7 @@ En Chuquisaca, el agricultor compra insumos viajando a Sucre sin saber antes qu�
 
 ## Alcance de esta versión (feria)
 
-Dentro: los 5 pilares (e-commerce, seguridad, pagos, distribución y almacenamiento) para Visitante, Cliente y Administrador; el abastecimiento con el Distribuidor (presentaciones, órdenes de compra, recepción y margen); nota de venta en PDF; avisos por Telegram al admin; API REST documentada con OpenAPI; despliegue en Render.
+Dentro: los 5 pilares (e-commerce, seguridad, pagos, distribución y almacenamiento) para Visitante, Cliente y Administrador; el abastecimiento con el Distribuidor (presentaciones, órdenes de compra, recepción y margen); recibo de compra en PDF; avisos por Telegram al admin; API REST documentada con OpenAPI; despliegue en Render.
 
 Fuera: pasarela de pago con confirmación automática (el admin verifica cada comprobante a mano), facturación electrónica (SIAT), avisos al cliente, app móvil nativa.
 

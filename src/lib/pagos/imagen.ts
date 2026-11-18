@@ -8,7 +8,7 @@ const CALIDADES = [0.82, 0.7, 0.55]
 export class ErrorImagen extends Error {}
 
 const MENSAJE_HEIC =
-  'Tu celular guardó la foto en formato HEIC y no la podemos leer. Toca «Sacar foto» o haz una captura de pantalla del comprobante y elígela de la galería.'
+  'Tu celular guardó la foto en formato HEIC y no la podemos leer. Toca «Sacar foto» o haz una captura de pantalla del pago y elígela de la galería.'
 
 function esHeic(archivo: File) {
   return /image\/hei[cf]/i.test(archivo.type) || /\.hei[cf]$/i.test(archivo.name)
@@ -63,7 +63,7 @@ export async function prepararFotoComprobante(archivo: File): Promise<File> {
         return new File([blob], 'comprobante.jpg', { type: 'image/jpeg' })
       }
     }
-    throw new ErrorImagen('La foto sigue muy pesada. Recórtala para que se vea solo el comprobante y vuelve a elegirla.')
+    throw new ErrorImagen('La foto sigue muy pesada. Recórtala para que se vea solo el pago y vuelve a elegirla.')
   } finally {
     imagen.cerrar()
   }

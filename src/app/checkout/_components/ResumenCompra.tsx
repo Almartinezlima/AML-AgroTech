@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { LuChevronDown } from 'react-icons/lu'
 import ImagenProducto from '@/components/ImagenProducto'
 import type { ItemCarrito } from '@/context/CarritoContext'
@@ -7,9 +8,11 @@ import type { Cotizacion, ZonaEnvio } from '@/types/comercio'
 interface ResumenCompraProps {
   items: ItemCarrito[]
   zona?: ZonaEnvio
-  // Montos calculados por el servidor (paso Pago); antes se muestra el estimado del carrito
+  // Montos calculados por el servidor al elegir la zona; antes se muestra el estimado del carrito
   cotizacion?: Cotizacion
 }
+
+export const totalCompra = (props: ResumenCompraProps) => montos(props).total
 
 function montos({ items, zona, cotizacion }: ResumenCompraProps) {
   if (cotizacion) return { subtotal: cotizacion.subtotal, envio: cotizacion.costo_envio as number | null, total: cotizacion.total }
@@ -50,13 +53,29 @@ function Contenido(props: ResumenCompraProps) {
   )
 }
 
-// Escritorio: tarjeta fija a la derecha
-export function ResumenLateral(props: ResumenCompraProps) {
+// Escritorio: tarjeta fija a la derecha, con el botón «Confirmar pedido» adentro (fase 9E)
+export function ResumenLateral({ children, ...props }: ResumenCompraProps & { children?: ReactNode }) {
   return (
-    <aside aria-label="Resumen de tu compra" className="hidden h-fit rounded-2xl border border-borde bg-tarjeta p-5 shadow-tarjeta lg:sticky lg:top-24 lg:block">
+    <aside aria-label="Resumen de tu compra" className="hidden h-fit min-w-0 rounded-2xl border border-borde bg-tarjeta p-5 shadow-tarjeta lg:sticky lg:top-24 lg:block">
       <h2 className="mb-4 font-titulo text-xl font-bold text-texto">Tu compra</h2>
       <Contenido {...props} />
+      {children && <div className="mt-5 flex flex-col gap-3">{children}</div>}
     </aside>
+  )
+}
+
+// Celular: barra fija abajo con el total y el botón (fase 9E)
+export function BarraCompra({ total, children }: { total: number; children: ReactNode }) {
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-borde bg-tarjeta/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-flotante backdrop-blur lg:hidden">
+      <div className="mx-auto flex max-w-2xl items-center gap-3">
+        <div className="shrink-0">
+          <p className="text-xs text-texto-2">Total</p>
+          <p className="font-titulo text-xl font-bold tabular-nums text-acento">{formatoBs(total)}</p>
+        </div>
+        <div className="min-w-0 flex-1">{children}</div>
+      </div>
+    </div>
   )
 }
 

@@ -140,7 +140,7 @@ export default function ProductoPage() {
             </li>
             <li className="flex items-start gap-3">
               <LuShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-trigo" aria-hidden="true" />
-              <span className="text-texto-2"><span className="block font-semibold text-texto">Pago seguro</span>QR, transferencia o contra entrega en Villa Charcas</span>
+              <span className="text-texto-2"><span className="block font-semibold text-texto">Pago seguro</span>QR, transferencia o efectivo al recibir en Villa Charcas</span>
             </li>
           </ul>
         </div>

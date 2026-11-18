@@ -18,7 +18,7 @@ Rama real: `fase/2-comercio` (zonas: `fase/2a-zonas`). ✅ Programado. Migracion
 
 - Zonas (editables por el admin), en el orden del checkout. Migración `0010`:
 
-  | Zona | Tipo | Costo | Tiempo | Contra entrega |
+  | Zona | Tipo | Costo | Tiempo | Efectivo al recibir |
   |---|---|---|---|---|
   | Recojo en tienda (Villa Charcas) | recojo | Bs. 0 | mismo día | Sí |
   | Villa Charcas — Distrito 1 (el pueblo) | urbano | Bs. 15 | 0–1 día | Sí |

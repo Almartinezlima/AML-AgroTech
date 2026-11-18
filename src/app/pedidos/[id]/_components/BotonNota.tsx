@@ -3,7 +3,7 @@ import { MENSAJE_NOTA_NO_DISPONIBLE, nombreArchivoNota, situacionNota } from '@/
 import type { PedidoDetalle } from '@/types/comercio'
 import { LuFileDown } from 'react-icons/lu'
 
-// "Descargar nota de venta" (fase 7). Un enlace normal a la API: en Android Chrome lo descarga
+// "Descargar recibo de compra" (fase 7; antes «nota de venta», nombre de la 9E). Un enlace normal a la API: en Android Chrome lo descarga
 // como archivo y funciona también dentro de los navegadores de WhatsApp o Facebook.
 export default function BotonNota({ pedido }: { pedido: PedidoDetalle }) {
   const situacion = situacionNota(pedido)
@@ -22,10 +22,10 @@ export default function BotonNota({ pedido }: { pedido: PedidoDetalle }) {
         className={`${claseBoton('secundario')} w-full`}
       >
         <LuFileDown className="h-5 w-5" aria-hidden="true" />
-        Descargar nota de venta (PDF)
+        Descargar recibo de compra (PDF)
       </a>
       <p className="text-xs text-texto-2 text-center">
-        {situacion === 'anulada' ? 'El pedido se canceló: la nota sale marcada como ANULADA.' : 'Documento sin valor fiscal (no es factura).'}
+        {situacion === 'anulada' ? 'El pedido se canceló: el recibo sale marcado como ANULADO.' : 'Documento sin valor fiscal (no es factura).'}
       </p>
     </div>
   )

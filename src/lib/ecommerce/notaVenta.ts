@@ -22,9 +22,9 @@ export function situacionNota({ estado, seguimiento_pedido }: DatosNota): Situac
 }
 
 export const MENSAJE_NOTA_NO_DISPONIBLE =
-  'La nota de venta estará disponible cuando la tienda confirme tu pedido.'
+  'El recibo de compra estará disponible cuando la tienda confirme tu pedido.'
 
 export const MENSAJE_NOTA_CANCELADO =
-  'Este pedido se canceló antes de confirmarse: no tiene nota de venta.'
+  'Este pedido se canceló antes de confirmarse: no tiene recibo de compra.'
 
-export const nombreArchivoNota = (codigo: string) => `Nota-${codigo}.pdf`
+export const nombreArchivoNota = (codigo: string) => `Recibo-${codigo}.pdf`

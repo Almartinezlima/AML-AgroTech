@@ -1,5 +1,5 @@
 'use client'
-import { useEffect } from 'react'
+import { useCerrarModal } from '@/lib/ui/useCerrarModal'
 import { Aviso } from '@/components/ui/Estados'
 import { claseBoton } from '@/components/ui/estilos'
 
@@ -28,13 +28,8 @@ export default function ModalConfirmacion({
   onConfirmar,
   onCancelar,
 }: ModalConfirmacionProps) {
-  useEffect(() => {
-    const alPresionar = (evento: KeyboardEvent) => {
-      if (evento.key === 'Escape' && !procesando) onCancelar()
-    }
-    window.addEventListener('keydown', alPresionar)
-    return () => window.removeEventListener('keydown', alPresionar)
-  }, [onCancelar, procesando])
+  // Esc y Atrás cierran sin hacer nada (fase 9E)
+  useCerrarModal(onCancelar, procesando)
 
   return (
     <div
@@ -46,7 +41,7 @@ export default function ModalConfirmacion({
         aria-modal="true"
         aria-labelledby="modal-titulo"
         aria-describedby="modal-mensaje"
-        className="w-full max-w-md bg-tarjeta border border-borde rounded-2xl p-5 sm:p-6 shadow-flotante animate-entrada"
+        className="w-full min-w-0 max-w-md max-h-[90dvh] overflow-y-auto overflow-x-hidden bg-tarjeta border border-borde rounded-2xl p-5 sm:p-6 shadow-flotante animate-entrada"
         onClick={(evento) => evento.stopPropagation()}
       >
         <h2 id="modal-titulo" className="font-titulo text-xl font-bold text-texto mb-2">{titulo}</h2>

@@ -16,7 +16,7 @@ Aplicación web en capas con **web services REST** propios:
 │   ├─ Middleware: sesión + rol por ruta                            ││
 │   ├─ API REST  src/app/api/**  (Route Handlers)                   ││
 │   │    valida con zod · verifica sesión/rol · llama a funciones SQL│
-│   ├─ Nota de venta en PDF (pdfkit)                                ││
+│   ├─ Recibo de compra en PDF (pdfkit)                                ││
 │   └─ Renderizado de páginas                                       ││
 └───────────────┬───────────────────────────────────────────────────┘│
                 │ HTTPS (supabase-js, clave anon + JWT del usuario)  │
@@ -48,7 +48,7 @@ Diagramas: [componentes](uml/componentes.md) y [despliegue](uml/despliegue.md).
 | Archivos | Supabase Storage | Fotos de productos y comprobantes |
 | Secretos | Supabase Vault | Token del bot de Telegram, fuera del repo y de Render |
 | Avisos | Telegram Bot API desde Postgres (`pg_net` + `pg_cron`) | Avisos al admin aunque Render duerma |
-| PDF | pdfkit + qrcode (en el servidor) | Nota de venta |
+| PDF | pdfkit + qrcode (en el servidor) | Recibo de compra |
 | Documentación API | OpenAPI 3 + Swagger UI (`/api-docs`) | Probar la API en vivo |
 | Pruebas | Playwright (E2E) | Recorridos reales contra la app compilada |
 | Control de versiones | Git + GitHub | Ramas por fase y Pull Requests |
@@ -103,15 +103,15 @@ Diagramas en [`uml/estados.md`](uml/estados.md).
 
 - **Pedido:**
   - recojo en tienda: `pendiente` → `confirmado` → `preparando` → *(empacar)* → `listo_para_recoger` → *(código)* → `entregado` → `completado`;
-  - a domicilio: … → `empacado` → *(Tomar y salir)* → `despachado` → *(cobro si contra entrega, código)* → `entregado` → `completado`;
+  - a domicilio: … → `empacado` → *(Tomar y salir)* → `despachado` → *(cobro si efectivo al recibir, código)* → `entregado` → `completado`;
   - por flota: … → `empacado` → *(flota y guía)* → `despachado` → *(Recibí mi pedido o nota del admin)* → `entregado` → `completado`;
   - preparar y empacar solo con las funciones del almacén; entregar solo con el código de 4 dígitos del cliente (0018), que nadie más que el dueño ve;
   - `completado` = entregado + pago verificado (con efectivo por rendir, espera a que el admin lo reciba);
   - `cancelado` desde `pendiente` (cliente o admin) o `confirmado`, `preparando` y `empacado` (admin).
-- **Pago:** `pendiente` → `en_revision` (subió comprobante) → `verificado` | `rechazado` (puede volver a subir). Si la tienda cancela con el pago en revisión o verificado: `reembolso_pendiente` → `reembolsado`. Contra entrega: quien entrega registra el cobro (igual al total); si no es el admin, queda «por rendir» (`pendiente` con `cobrado_en`) hasta que el admin lo recibe y pasa a `verificado`.
+- **Pago:** `pendiente` → `en_revision` (subió comprobante) → `verificado` | `rechazado` (puede volver a subir). Si la tienda cancela con el pago en revisión o verificado: `reembolso_pendiente` → `reembolsado`. Efectivo al recibir: quien entrega registra el cobro (igual al total); si no es el admin, queda «por rendir» (`pendiente` con `cobrado_en`) hasta que el admin lo recibe y pasa a `verificado`.
 - **Envío:** `por_despachar` → `listo_para_recoger` o `en_camino` → `entregado`.
 - **Orden de compra:** `borrador` → `enviada` → `aceptada` → `despachada` → `recibida`; `rechazada` (proveedor, desde enviada o aceptada); `cancelada` (admin, desde borrador, enviada o aceptada).
-- Un pedido con pago QR o transferencia **no pasa a `confirmado` hasta que el pago esté `verificado`**. Contra entrega lo confirma el admin (solo en zonas que lo permiten).
+- Un pedido con pago QR o transferencia **no pasa a `confirmado` hasta que el pago esté `verificado`**. Efectivo al recibir nace `confirmado` al crear el pedido (0019, solo en zonas que lo permiten).
 
 ### Funciones SQL transaccionales
 
@@ -119,8 +119,8 @@ Toda escritura que mueve stock, dinero o estados pasa por una de estas funciones
 
 | Función | Qué hace |
 |---|---|
-| `crear_pedido(items, zona, direccion, telefono, metodo_pago, notas, recoge_nombre, recoge_ci)` | Bloquea los productos, lee precios reales, valida stock, calcula subtotal + envío, crea pedido + items + pago + envío + seguimiento, descuenta stock y registra la salida en el kardex |
-| `cancelar_pedido(pedido_id, motivo)` | Valida quién y desde qué estado, devuelve stock (kardex `devolucion`), deja el pago en reembolso pendiente si correspondía y registra el seguimiento |
+| `crear_pedido(items, zona, direccion, telefono, metodo_pago, notas, recoge_nombre, recoge_ci)` | Bloquea los productos, lee precios reales, valida stock, calcula subtotal + envío, crea pedido + items + pago + envío + seguimiento, descuenta stock y registra la salida en el kardex. Con efectivo al recibir el pedido nace `confirmado` (0019) |
+| `cancelar_pedido(pedido_id, motivo)` | Valida quién y desde qué estado, devuelve stock (kardex `devolucion`), deja el pago en reembolso pendiente si correspondía y registra el seguimiento. El cliente cancela si está pendiente, o con efectivo al recibir mientras el almacén no empiece (0019) |
 | `cambiar_estado_pedido(pedido_id, estado, nota, transportista, guia)` | Solo admin: confirma y despacha por flota. Desde la 0017 no prepara ni empaca; desde la 0018 no despacha a domicilio ni marca entregado |
 | `empezar_preparacion` · `marcar_item_pedido` · `empacar_pedido(pedido_id, bultos)` | Almacén o admin: preparando con responsable, casilla por producto, empaque (exige todo marcado y sin faltantes) |
 | `reportar_faltante` · `resolver_faltante` | El almacén reporta (aviso por Telegram); solo el admin resuelve |
@@ -128,7 +128,7 @@ Toda escritura que mueve stock, dinero o estados pasa por una de estas funciones
 | `linea_tiempo_pedido(pedido_id)` | Seguimiento con el nombre corto y el rol de quién hizo cada paso (dueño, admin, almacén o repartidor). La nota de un faltante, completa solo para el admin y el almacén |
 | `mi_codigo_entrega(pedido_id)` · `mis_codigos_entrega()` | El código de entrega, **solo para el dueño** (ni el admin lo ve) |
 | `cola_reparto()` · `detalle_entrega(pedido_id)` | Lo que lee el repartidor (y el almacén para recojo): destino, contacto, bultos y si hay que cobrar. Nunca el código |
-| `tomar_pedido` · `registrar_cobro_entrega` · `entregar_pedido(pedido_id, codigo, nombre, ci)` | Tomar y salir, cobro contra entrega (monto = total) y entrega con código (5 intentos; un intento fallido responde sin error para que quede contado) |
+| `tomar_pedido` · `registrar_cobro_entrega` · `entregar_pedido(pedido_id, codigo, nombre, ci)` | Tomar y salir, cobro efectivo al recibir (monto = total) y entrega con código (5 intentos; un intento fallido responde sin error para que quede contado) |
 | `desbloquear_codigo_entrega` · `confirmar_recepcion` · `confirmar_efectivo` · `calificar_entrega` | Admin desbloquea con nota; flota la confirma el cliente o el admin; admin recibe el efectivo (completa); el cliente califica |
 | `registrar_comprobante(pedido_id, path)` | Pago a `en_revision` (solo el dueño) |
 | `verificar_pago(pago_id, aprobado, motivo)` | Aprueba (y confirma el pedido) o rechaza con motivo (solo admin) |
@@ -221,10 +221,10 @@ src/
   components/         ui/, layout/, admin/, compra/, pagos/, abastecimiento/, almacen/, entrega/
   context/            AuthContext, CarritoContext
   lib/                supabase.ts (navegador), api/ (sesión, validación, respuestas, cliente),
-                      auth/, ecommerce/ (incluye la nota de venta), pagos/, abastecimiento/, almacen/, entrega/, utils.ts
+                      auth/, ecommerce/ (incluye la recibo de compra), pagos/, abastecimiento/, almacen/, entrega/, utils.ts
   middleware.ts       sesión y rol por ruta
   types/              tipos de la base y de la API
-supabase/migrations/  0001 a 0018
+supabase/migrations/  0001 a 0019
 tests/e2e/            pruebas Playwright
 docs/                 esta documentación (specs/, api/, uml/)
 ```

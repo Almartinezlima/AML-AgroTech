@@ -49,7 +49,7 @@ export default function PedidoDetallePage() {
   const esDueno = user?.id === pedido.usuario_id
   const esAdmin = perfil?.rol === 'admin'
   // Si ya mandó el comprobante, la cancelación la hace la tienda (y genera el reembolso)
-  const puedeCancelar = esDueno && puedeCancelarCliente(pedido.estado, pedido.estado_pago)
+  const puedeCancelar = esDueno && puedeCancelarCliente(pedido.estado, pedido.estado_pago, pedido.metodo_pago)
   const estado = estadoCliente({
     estado: pedido.estado,
     estado_pago: pedido.estado_pago,
@@ -168,7 +168,7 @@ export default function PedidoDetallePage() {
           )}
           {esDueno && pedido.estado === 'pendiente' && !puedeCancelar && (
             <p className="rounded-2xl bg-tarjeta-hover px-4 py-3 text-sm text-texto">
-              Ya enviaste tu comprobante, así que la cancelación la hace la tienda. Si necesitas cancelar, comunícate con la tienda{NUMERO_WHATSAPP ? ' por WhatsApp' : ''}: te devuelve lo que pagaste.
+              Ya enviaste tu comprobante (foto del pago), así que la cancelación la hace la tienda. Si necesitas cancelar, comunícate con la tienda{NUMERO_WHATSAPP ? ' por WhatsApp' : ''}: te devuelve lo que pagaste.
             </p>
           )}
         </div>

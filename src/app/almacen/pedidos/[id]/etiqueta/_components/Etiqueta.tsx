@@ -32,7 +32,8 @@ export default function Etiqueta({ pedido, qr, bulto, total }: EtiquetaProps) {
           : <div className="h-[30mm] w-[30mm] shrink-0 animate-pulse rounded bg-tarjeta-hover" aria-hidden="true" />}
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase">Pedido</p>
-          <p className="font-titulo text-3xl font-bold leading-none tracking-tight break-all">{pedido.codigo}</p>
+          {/* El código nunca se parte en dos renglones: en pantallas angostas se achica (fase 9E) */}
+          <p className="whitespace-nowrap font-titulo text-[clamp(1.25rem,6.5vw,1.875rem)] font-bold leading-none tracking-tight print:text-3xl">{pedido.codigo}</p>
         </div>
       </div>
 

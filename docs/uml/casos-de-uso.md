@@ -76,7 +76,7 @@ flowchart LR
     CU10(["CU-10 Cancelar pedido"])
     CU11(["CU-11 Gestionar productos"])
     CU12(["CU-12 Ver panel de control"])
-    CU32(["CU-32 Descargar nota de venta PDF"])
+    CU32(["CU-32 Descargar recibo de compra PDF"])
     DS(["Descontar stock"])
     DV(["Devolver stock"])
   end
@@ -109,7 +109,7 @@ flowchart LR
   A["«actor»<br/>Administrador"]
   S["«actor» «sistema»<br/>Supabase Storage"]
   subgraph PAG["AML AgroTech · Pagos"]
-    CU13(["CU-13 Pagar pedido<br/>QR · transferencia · contra entrega"])
+    CU13(["CU-13 Pagar pedido<br/>QR · transferencia · efectivo al recibir"])
     CU14(["CU-14 Subir comprobante de pago"])
     CU15(["CU-15 Verificar pago y reembolsar"])
   end
@@ -252,7 +252,7 @@ flowchart LR
   subgraph ENT["AML AgroTech · Entrega y cierre"]
     CU39(["CU-39 Ver código de entrega"])
     CU40(["CU-40 Tomar y salir"])
-    CU41(["CU-41 Registrar cobro<br/>contra entrega"])
+    CU41(["CU-41 Registrar cobro<br/>efectivo al recibir"])
     CU42(["CU-42 Entregar con código"])
     CU43(["CU-43 Desbloquear código"])
     CU44(["CU-44 Confirmar recepción<br/>por flota"])
@@ -275,7 +275,7 @@ flowchart LR
   CU42 -.->|«include»| VER
   CU42 -.->|«include»| CER
   CU46 -.->|«include»| CER
-  CU41 -.->|«extend»<br/>contra entrega| CU42
+  CU41 -.->|«extend»<br/>efectivo al recibir| CU42
   CU43 -.->|«extend»<br/>5 intentos fallidos| CU42
   CU42 --- T
 ```

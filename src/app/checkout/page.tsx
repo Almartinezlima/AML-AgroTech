@@ -1,41 +1,44 @@
 'use client'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { LuArrowLeft, LuArrowRight, LuShoppingCart } from 'react-icons/lu'
+import { LuArrowLeft, LuShoppingCart } from 'react-icons/lu'
 import PasosCompra from '@/components/compra/PasosCompra'
-import { Aviso, AvisoError, BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
-import { claseBotonPrimario, claseBotonSecundario, claseEnlace, clasePagina, claseTituloPagina } from '@/components/ui/estilos'
+import { Aviso, BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
+import { claseBoton, claseBotonPrimario, claseEnlace, clasePagina, claseTituloPagina } from '@/components/ui/estilos'
 import { useCarrito } from '@/context/CarritoContext'
 import { enviarJson } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
-import { REGEX_CI, REGEX_TELEFONO } from '@/lib/ecommerce/reglas'
 import { formatoBs } from '@/lib/utils'
 import type { Cotizacion, MetodoPago, PedidoCreado, ZonaEnvio } from '@/types/comercio'
-import { ERRORES_ENTREGA, errorDeCompra } from './_components/mensajesCompra'
+import { enfocarPrimerError, errorDeCompra, validarCompra, type CampoCompra, type ErroresCompra } from './_components/mensajesCompra'
 import PasoEntrega, { type DatosEntrega } from './_components/PasoEntrega'
 import PasoPago from './_components/PasoPago'
-import PasoResumen from './_components/PasoResumen'
-import { ResumenLateral, ResumenPlegable } from './_components/ResumenCompra'
+import { BarraCompra, ResumenLateral, ResumenPlegable, totalCompra } from './_components/ResumenCompra'
 import { useDatosRecordados } from './_components/useDatosRecordados'
 
-// Dos pasos dentro del checkout: 0 = Datos y envío, 1 = Pago (revisar y confirmar).
-// En la barra son los pasos 2 y 3 de Carrito → Datos y envío → Pago → Listo.
 const ENTREGA_VACIA: DatosEntrega = { zonaId: '', direccion: '', recogeNombre: '', recogeCi: '', telefono: '', notas: '' }
-const TITULOS = ['Datos y envío', 'Revisa y elige cómo pagar']
 
+// Qué campo de la pantalla limpia su error al cambiar cada dato
+const CAMPO_DE: Partial<Record<keyof DatosEntrega, CampoCompra>> = {
+  zonaId: 'zona', direccion: 'direccion', recogeNombre: 'recogeNombre', recogeCi: 'recogeCi', telefono: 'telefono',
+}
+
+// Compra en una sola pantalla (fase 9E): zona, datos recordados y forma de pago (QR por defecto).
+// «Confirmar pedido» va dentro del cuadro «Tu compra» (en celular, en una barra fija abajo).
+// Los errores salen junto a cada campo; al confirmar, la vista va al primero.
 export default function CheckoutPage() {
   const router = useRouter()
   const { items, ajustarStock, limpiarCarrito, listo } = useCarrito()
   const zonas = useDatosApi<ZonaEnvio[]>('/api/zonas-envio')
-  const [paso, setPasoEstado] = useState(0)
   const [entrega, setEntregaEstado] = useState<DatosEntrega>(ENTREGA_VACIA)
-  const [metodo, setMetodo] = useState<MetodoPago | null>(null)
+  const [metodo, setMetodo] = useState<MetodoPago>('qr')
   const [cotizacion, setCotizacion] = useState<Cotizacion | null>(null)
+  const [errores, setErrores] = useState<ErroresCompra>({})
+  const [errorGeneral, setErrorGeneral] = useState('')
   const [procesando, setProcesando] = useState(false)
-  const [error, setError] = useState('')
   const [sesionVencida, setSesionVencida] = useState(false)
-  // Evita que se vea "carrito vacío" mientras se va a la pantalla de éxito
+  // Evita que se vea "carrito vacío" mientras se va a la pantalla de pago
   const pedidoCreado = useRef(false)
 
   const setEntrega = useCallback((cambio: (d: DatosEntrega) => DatosEntrega) => setEntregaEstado(cambio), [])
@@ -43,62 +46,59 @@ export default function CheckoutPage() {
 
   const zona = zonas.datos?.find((z) => z.id === entrega.zonaId)
   const lineas = items.map((i) => ({ producto_id: i.id, cantidad: i.cantidad }))
+  const claveCotizacion = `${entrega.zonaId}|${lineas.map((l) => `${l.producto_id}:${l.cantidad}`).join(',')}`
 
-  const irAPaso = (nuevo: number) => {
-    setError('')
-    setSesionVencida(false)
-    setPasoEstado(nuevo)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  const cambiarEntrega = (cambios: Partial<DatosEntrega>) => {
-    setEntregaEstado((d) => ({ ...d, ...cambios }))
-    // Una zona sin contra entrega invalida ese método; el total también cambia
-    if (cambios.zonaId) { setMetodo(null); setCotizacion(null) }
-  }
-
-  const tratarError = (causa: unknown) => {
+  const tratarError = useCallback((causa: unknown) => {
     const problema = errorDeCompra(causa, items)
     if (problema.tipo === 'sesion') return setSesionVencida(true)
     if (problema.tipo === 'stock') {
       ajustarStock(problema.productoId, problema.disponible)
       setCotizacion(null)
-      irAPaso(0)
     }
-    setError(problema.mensaje)
-  }
+    setErrorGeneral(problema.mensaje)
+  }, [items, ajustarStock])
 
-  const errorEntrega = () => {
-    if (!zona) return ERRORES_ENTREGA.zona
-    if (zona.tipo === 'urbano' && !entrega.direccion.trim()) return ERRORES_ENTREGA.direccion
-    if (zona.tipo === 'provincia') {
-      if (entrega.recogeNombre.trim().length < 3) return ERRORES_ENTREGA.recogeNombre
-      if (!REGEX_CI.test(entrega.recogeCi.trim())) return ERRORES_ENTREGA.recogeCi
-    }
-    if (!REGEX_TELEFONO.test(entrega.telefono.trim())) return ERRORES_ENTREGA.telefono
-    return ''
-  }
+  // El total exacto lo calcula el servidor al elegir la zona (crear_pedido lo vuelve a calcular)
+  useEffect(() => {
+    if (!entrega.zonaId || items.length === 0) return setCotizacion(null)
+    let vigente = true
+    enviarJson<Cotizacion>('/api/pedidos/cotizar', 'POST', { items: lineas, zona_id: entrega.zonaId })
+      .then((c) => { if (vigente) setCotizacion(c) })
+      .catch((causa) => { if (vigente) { setCotizacion(null); tratarError(causa) } })
+    return () => { vigente = false }
+    // La clave resume zona y líneas: no hace falta volver a pedir por otro cambio
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [claveCotizacion])
 
-  // Datos y envío → Pago: el total lo calcula el servidor
-  const irAlPago = async () => {
-    setError('')
-    const problema = errorEntrega()
-    if (problema) return setError(problema)
-    setProcesando(true)
-    try {
-      setCotizacion(await enviarJson<Cotizacion>('/api/pedidos/cotizar', 'POST', { items: lineas, zona_id: entrega.zonaId }))
-      irAPaso(1)
-    } catch (causa) {
-      tratarError(causa)
-    } finally {
-      setProcesando(false)
+  const cambiarEntrega = (cambios: Partial<DatosEntrega>) => {
+    setEntregaEstado((d) => ({ ...d, ...cambios }))
+    setErrorGeneral('')
+    setErrores((actuales) => {
+      const nuevos = { ...actuales }
+      for (const clave of Object.keys(cambios) as Array<keyof DatosEntrega>) {
+        const campo = CAMPO_DE[clave]
+        if (campo) delete nuevos[campo]
+      }
+      // Una zona sin efectivo deja el pago en QR
+      if (cambios.zonaId) delete nuevos.metodo
+      return nuevos
+    })
+    if (cambios.zonaId) {
+      const nueva = zonas.datos?.find((z) => z.id === cambios.zonaId)
+      if (metodo === 'contra_entrega' && nueva && !nueva.permite_contra_entrega) setMetodo('qr')
     }
   }
 
   const confirmar = async () => {
-    setError('')
-    if (!metodo) return setError(ERRORES_ENTREGA.metodo)
-    if (!zona) return
+    setErrorGeneral('')
+    setSesionVencida(false)
+    const encontrados = validarCompra(entrega, zona, metodo)
+    setErrores(encontrados)
+    if (Object.keys(encontrados).length > 0 || !zona) {
+      // Espera a que se pinten los bordes rojos y lleva la vista al primero
+      requestAnimationFrame(() => enfocarPrimerError(encontrados))
+      return
+    }
     setProcesando(true)
     try {
       const flota = zona.tipo === 'provincia'
@@ -136,56 +136,59 @@ export default function CheckoutPage() {
   if (zonas.cargando) return contenedor(<BloqueCarga filas={5} />)
   if (zonas.error || !zonas.datos) return contenedor(<BloqueError mensaje={zonas.error} onReintentar={() => void zonas.recargar()} />)
 
-  const resumen = { items, zona, cotizacion: paso === 1 ? cotizacion ?? undefined : undefined }
+  const resumen = { items, zona, cotizacion: cotizacion && cotizacion.costo_envio === zona?.costo ? cotizacion : undefined }
+  const total = totalCompra(resumen)
+  const textoBoton = procesando ? 'Registrando tu pedido…' : 'Confirmar pedido'
+
+  // Errores que no son de un campo (sin stock, sesión vencida): junto al botón, nunca arriba
+  const avisos = (
+    <>
+      {sesionVencida && (
+        <Aviso tipo="error">
+          Tu sesión se cerró. <Link href="/auth/login?siguiente=%2Fcheckout" className={claseEnlace}>Vuelve a entrar</Link>; tu carrito sigue guardado.
+        </Aviso>
+      )}
+      {errorGeneral && <Aviso tipo="error">{errorGeneral}</Aviso>}
+    </>
+  )
 
   return contenedor(
-    <>
-      <PasosCompra actual={paso === 0 ? 1 : 2} onVolver={(p) => { if (p === 1) irAPaso(0) }} />
-      <h1 className={`${claseTituloPagina} mb-6`}>{TITULOS[paso]}</h1>
+    <div className="pb-28 lg:pb-0">
+      <PasosCompra actual={1} />
+      <h1 className={`${claseTituloPagina} mb-2`}>Confirma tu pedido</h1>
+      <p className="mb-6 text-texto-2">
+        {recordados ? 'Usamos los datos de tu última compra. Revisa y confirma.' : 'Elige dónde lo recibes y cómo pagas.'}
+      </p>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <div className="flex min-w-0 flex-col gap-5">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="flex min-w-0 flex-col gap-8">
           <ResumenPlegable {...resumen} />
-          {sesionVencida && (
-            <Aviso tipo="error">
-              Tu sesión se cerró. <Link href="/auth/login?siguiente=%2Fcheckout" className={claseEnlace}>Vuelve a entrar</Link>; tu carrito sigue guardado.
-            </Aviso>
-          )}
-          <AvisoError mensaje={error} />
-          {paso === 0 && recordados && (
-            <Aviso tipo="ok">Usamos los datos de tu última compra. Puedes cambiarlos.</Aviso>
-          )}
-
-          {paso === 0 && <PasoEntrega zonas={zonas.datos} datos={entrega} onCambiar={cambiarEntrega} />}
-          {paso === 1 && zona && cotizacion && (
-            <>
-              <PasoResumen cotizacion={cotizacion} zona={zona} entrega={entrega} />
-              <PasoPago zona={zona} metodo={metodo} onCambiar={(m) => { setError(''); setMetodo(m) }} />
-            </>
-          )}
-
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-            {paso === 0 ? (
-              <Link href="/carrito" className={claseBotonSecundario}><LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Volver al carrito</Link>
-            ) : (
-              <button disabled={procesando} onClick={() => irAPaso(0)} className={claseBotonSecundario}>
-                <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Cambiar datos de entrega
-              </button>
-            )}
-            {paso === 0 ? (
-              <button disabled={procesando} onClick={() => void irAlPago()} className={claseBotonPrimario}>
-                {procesando ? 'Calculando tu total…' : <>Elegir cómo pagar <LuArrowRight className="h-4 w-4" aria-hidden="true" /></>}
-              </button>
-            ) : (
-              <button disabled={procesando} onClick={() => void confirmar()} className={claseBotonPrimario}>
-                {procesando ? 'Registrando tu pedido…' : `Confirmar pedido · ${formatoBs(cotizacion?.total ?? 0)}`}
-              </button>
-            )}
-          </div>
+          <PasoEntrega zonas={zonas.datos} datos={entrega} errores={errores} onCambiar={cambiarEntrega} />
+          <PasoPago zona={zona} metodo={metodo} error={errores.metodo}
+            onCambiar={(m) => { setMetodo(m); setErrores((e) => { const n = { ...e }; delete n.metodo; return n }) }} />
+          <div className="flex flex-col gap-3 lg:hidden">{avisos}</div>
+          <Link href="/carrito" className={`${claseBoton('secundario')} self-start`}>
+            <LuArrowLeft className="h-4 w-4" aria-hidden="true" /> Volver al carrito
+          </Link>
         </div>
-        <ResumenLateral {...resumen} />
+
+        <ResumenLateral {...resumen}>
+          {avisos}
+          <button type="button" disabled={procesando} onClick={() => void confirmar()} className={`${claseBotonPrimario} w-full min-h-14 text-lg`}>
+            {procesando ? textoBoton : `${textoBoton} · ${formatoBs(total)}`}
+          </button>
+          <p className="text-center text-sm text-texto-2">
+            {metodo === 'contra_entrega' ? 'Pagas en efectivo al recibir.' : metodo === 'qr' ? 'Después te mostramos el QR con el monto exacto.' : 'Después te mostramos la cuenta y el monto exacto.'}
+          </p>
+        </ResumenLateral>
       </div>
-    </>,
+
+      <BarraCompra total={total}>
+        <button type="button" disabled={procesando} onClick={() => void confirmar()} className={`${claseBotonPrimario} w-full min-h-12`}>
+          {textoBoton}
+        </button>
+      </BarraCompra>
+    </div>,
     'max-w-6xl'
   )
 }

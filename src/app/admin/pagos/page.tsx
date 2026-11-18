@@ -2,17 +2,18 @@
 import { useCallback, useState } from 'react'
 import EncabezadoAdmin from '@/components/admin/EncabezadoAdmin'
 import TarjetasResumen from '@/components/admin/TarjetasResumen'
-import { AvisoError, BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
-import Modal from '@/components/ui/Modal'
+import { BloqueCarga, BloqueError, BloqueVacio } from '@/components/ui/Estados'
 import ModalConfirmacion from '@/components/ui/ModalConfirmacion'
-import { claseBotonPeligro, claseBotonSecundario, claseEtiqueta, claseFilaFiltros, claseFiltro, claseInput, clasePagina } from '@/components/ui/estilos'
+import { claseFilaFiltros, claseFiltro, clasePagina } from '@/components/ui/estilos'
 import { enviarJson, mensajeDeError } from '@/lib/api/cliente'
 import { useDatosApi } from '@/lib/api/useDatosApi'
 import { INFO_ESTADO_PAGO } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import { ESTADOS_PAGO, type EstadoPago, type PagoAdmin } from '@/types/comercio'
 import { LuCreditCard, LuReceipt, LuWallet } from 'react-icons/lu'
+import ModalRechazo from './_components/ModalRechazo'
 import TarjetaPago from './_components/TarjetaPago'
+import VisorComprobante from './_components/VisorComprobante'
 
 // Filtros por estado del pago: "Todos", cada estado y el efectivo por rendir (fase 9D)
 type Filtro = EstadoPago | '' | 'efectivo'
@@ -30,6 +31,7 @@ export default function AdminPagosPage() {
   const [rechazando, setRechazando] = useState<PagoAdmin | null>(null)
   const [reembolsando, setReembolsando] = useState<PagoAdmin | null>(null)
   const [recibiendo, setRecibiendo] = useState<PagoAdmin | null>(null)
+  const [viendo, setViendo] = useState<PagoAdmin | null>(null)
   const [motivo, setMotivo] = useState('')
   const [procesando, setProcesando] = useState(false)
   const [errorAccion, setErrorAccion] = useState('')
@@ -39,9 +41,12 @@ export default function AdminPagosPage() {
     setRechazando(null)
     setReembolsando(null)
     setRecibiendo(null)
+    setViendo(null)
     setMotivo('')
     setErrorAccion('')
   }, [])
+  // Cancelar Aprobar o Rechazar vuelve al visor si estaba abierto
+  const volver = useCallback(() => { setAprobando(null); setRechazando(null); setMotivo(''); setErrorAccion('') }, [])
 
   const verificar = async (pago: PagoAdmin, aprobado: boolean) => {
     if (!aprobado && !motivo.trim()) return setErrorAccion('Indica el motivo del rechazo.')
@@ -86,7 +91,7 @@ export default function AdminPagosPage() {
       <div className="max-w-5xl mx-auto">
         <EncabezadoAdmin
           titulo="Pagos"
-          descripcion="Revisa los comprobantes, aprueba o rechaza, recibe el efectivo de las entregas y marca los reembolsos."
+          descripcion="Revisa los comprobantes (fotos del pago), aprueba o rechaza, recibe el efectivo de las entregas y marca los reembolsos."
         />
 
         <div role="group" aria-label="Filtrar por estado del pago" className={`${claseFilaFiltros} mb-5`}>
@@ -105,7 +110,7 @@ export default function AdminPagosPage() {
           <>
             <TarjetasResumen etiqueta={`Resumen de pagos: ${textoFiltro}`} cifras={[
               { titulo: 'Pagos', valor: String(lista.length), detalle: `En ${textoFiltro}`, icono: LuCreditCard, tono: 'acento' },
-              { titulo: 'Con comprobante', valor: String(conComprobante), detalle: 'Foto o captura subida', icono: LuReceipt },
+              { titulo: 'Con comprobante', valor: String(conComprobante), detalle: 'Foto del pago subida', icono: LuReceipt },
               { titulo: 'Monto', valor: formatoBs(monto), detalle: 'Suma de la lista', icono: LuWallet, tono: 'acento', ancha: true },
             ]} />
 
@@ -121,6 +126,7 @@ export default function AdminPagosPage() {
                     onRechazar={() => { setErrorAccion(''); setRechazando(pago) }}
                     onReembolsar={() => { setErrorAccion(''); setReembolsando(pago) }}
                     onRecibirEfectivo={() => { setErrorAccion(''); setRecibiendo(pago) }}
+                    onVerComprobante={() => setViendo(pago)}
                   />
                 ))}
               </ul>
@@ -128,6 +134,16 @@ export default function AdminPagosPage() {
           </>
         )}
       </div>
+
+      {/* El visor va primero: Aprobar y Rechazar se abren encima */}
+      {viendo && (
+        <VisorComprobante
+          pago={viendo}
+          onCerrar={() => setViendo(null)}
+          onAprobar={() => { setErrorAccion(''); setAprobando(viendo) }}
+          onRechazar={() => { setErrorAccion(''); setRechazando(viendo) }}
+        />
+      )}
 
       {aprobando && (
         <ModalConfirmacion
@@ -137,7 +153,7 @@ export default function AdminPagosPage() {
           procesando={procesando}
           error={errorAccion}
           onConfirmar={() => void verificar(aprobando, true)}
-          onCancelar={cerrar}
+          onCancelar={volver}
         />
       )}
 
@@ -166,21 +182,8 @@ export default function AdminPagosPage() {
       )}
 
       {rechazando && (
-        <Modal titulo={`Rechazar pago de ${rechazando.pedidos?.codigo ?? ''}`} bloqueado={procesando} onCerrar={cerrar}>
-          <div className="flex flex-col gap-4">
-            <AvisoError mensaje={errorAccion} />
-            <div>
-              <label htmlFor="motivo" className={claseEtiqueta}>Motivo (lo verá el cliente)</label>
-              <textarea id="motivo" rows={3} maxLength={300} value={motivo} onChange={(e) => setMotivo(e.target.value)} className={`${claseInput} resize-none`} />
-            </div>
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-              <button disabled={procesando} onClick={cerrar} className={claseBotonSecundario}>Volver</button>
-              <button disabled={procesando} onClick={() => void verificar(rechazando, false)} className={claseBotonPeligro}>
-                {procesando ? 'Guardando…' : 'Rechazar pago'}
-              </button>
-            </div>
-          </div>
-        </Modal>
+        <ModalRechazo pago={rechazando} motivo={motivo} procesando={procesando} error={errorAccion}
+          onMotivo={setMotivo} onRechazar={() => void verificar(rechazando, false)} onVolver={volver} />
       )}
     </div>
   )

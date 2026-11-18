@@ -4,7 +4,7 @@ Dos recorridos de punta a punta, con las rutas y funciones reales.
 
 ## 1. Realizar pedido (CU-08)
 
-Desde «Elegir cómo pagar» en `/checkout` hasta la pantalla de éxito. El total lo calcula siempre la base; el navegador solo manda productos y cantidades.
+Compra en 3 clics (fase 9E): «Ir a pagar» en el carrito, «Confirmar pedido» en una sola pantalla y la foto del pago debajo del QR. El total lo calcula siempre la base; el navegador solo manda productos y cantidades.
 
 ```mermaid
 sequenceDiagram
@@ -17,15 +17,16 @@ sequenceDiagram
   participant Q as pg_net
   participant T as Telegram
 
-  C->>N: Elige zona, datos de entrega y «Elegir cómo pagar»
+  C->>N: «Ir a pagar»: datos recordados y QR ya marcados; elige o cambia la zona
   N->>A: POST /api/pedidos/cotizar (items, zona_id)
   A->>A: requerirSesion() y validación zod
   A->>DB: select zona activa y productos (precio, stock)
   DB-->>A: filas con RLS
   A-->>N: 200 subtotal, costo_envio, total
-  N-->>C: Paso Pago con el total del servidor
+  N-->>C: «Tu compra» con el total del servidor
 
-  C->>N: Elige QR, transferencia o contra entrega y «Confirmar pedido»
+  C->>N: «Confirmar pedido» (dentro de «Tu compra»; en celular, barra fija abajo)
+  Note over N: Si falta un dato: borde rojo y mensaje debajo del campo,<br/>la vista va al primero y no se llama a la API
   N->>A: POST /api/pedidos (items, zona, entrega, metodo_pago)
   A->>A: requerirSesion() y validación zod
   A->>DB: rpc crear_pedido(...)
@@ -36,9 +37,9 @@ sequenceDiagram
     DB-->>A: error STOCK_INSUFICIENTE (producto, disponible)
     A-->>N: 409 con el producto y lo disponible
     N->>K: ajustarStock() (el carrito sigue)
-    N-->>C: Aviso y vuelve a «Datos y envío»
+    N-->>C: Aviso junto al botón; el carrito y el total se ajustan
   else Hay stock
-    DB->>DB: Inserta pedido AML-…, items, pago, envío y seguimiento
+    DB->>DB: Inserta pedido AML-…, items, pago, envío y seguimiento<br/>(efectivo al recibir: nace confirmado y va al almacén)
     DB->>DB: Descuenta stock y anota la salida en el kardex
     DB->>DB: COMMIT
     DB->>Q: Trigger aml_aviso_pedido_nuevo encola el mensaje (si la cuenta no es de prueba)
@@ -48,12 +49,12 @@ sequenceDiagram
     N->>K: limpiarCarrito() guarda el carrito vacío en el momento
     N->>A: GET /api/pedidos/{id} (pantalla de éxito)
     A-->>N: Pedido con el siguiente paso
-    N-->>C: «¡Pedido registrado!» con instrucciones de pago
+    N-->>C: QR con el monto y, debajo, «Sube la foto del pago» con «Enviar»
     Q-)T: sendMessage «Pedido nuevo» al chat del admin
   end
 ```
 
-Después, si eligió QR o transferencia, el cliente sube el comprobante (`POST /api/pagos/{id}/comprobante` → `registrar_comprobante`, pago `en_revision`, aviso «Comprobante por revisar») y el admin lo aprueba o rechaza (`PATCH /api/pagos/{id}/verificar` → `verificar_pago`).
+En la misma pantalla del QR el cliente sube la foto del pago (`POST /api/pagos/{id}/comprobante` → `registrar_comprobante`, pago `en_revision`, aviso «Comprobante por revisar») y el admin lo aprueba o rechaza (`PATCH /api/pagos/{id}/verificar` → `verificar_pago`).
 
 ## 2. Orden de compra (CU-25 a CU-29)
 
@@ -191,7 +192,7 @@ sequenceDiagram
   R->>A: POST /api/entregas/{id}/tomar
   A->>DB: rpc tomar_pedido(id)
   Note over DB: empacado → despachado<br/>despachado_por, despachado_en, envío en camino
-  opt Contra entrega
+  opt Efectivo al recibir
     R->>A: POST /api/entregas/{id}/cobro (monto)
     A->>DB: rpc registrar_cobro_entrega(id, monto)
     Note over DB: monto ≠ total → AML02 (422)<br/>cobrado_por, cobrado_en: efectivo por rendir

@@ -87,7 +87,7 @@ export default function RepartidorPage() {
         <div className="mt-8">
           <PasosAyuda pasos={[
             'En «Por salir», toca «Tomar y salir» en el pedido más antiguo: queda registrado que tú lo llevas.',
-            'Si es contra entrega, cobra el total en efectivo y regístralo antes de entregar.',
+            'Si es efectivo al recibir, cobra el total y regístralo antes de entregar.',
             'Con el pedido ya en manos del cliente, pídele su código de 4 números y el nombre de quien recibe.',
           ]} />
         </div>

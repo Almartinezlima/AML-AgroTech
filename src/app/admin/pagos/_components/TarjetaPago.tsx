@@ -4,7 +4,7 @@ import { claseBoton, claseEnlace, claseTarjeta, claseTextoError } from '@/compon
 import { ETIQUETA_METODO, INFO_ESTADO_PAGO, diaHora } from '@/lib/ecommerce/presentacion'
 import { formatoBs } from '@/lib/utils'
 import type { PagoAdmin } from '@/types/comercio'
-import { LuBanknote, LuExternalLink, LuFileText } from 'react-icons/lu'
+import { LuBanknote, LuExternalLink, LuFileText, LuMaximize2 } from 'react-icons/lu'
 
 interface TarjetaPagoProps {
   pago: PagoAdmin
@@ -12,6 +12,8 @@ interface TarjetaPagoProps {
   onRechazar: () => void
   onReembolsar: () => void
   onRecibirEfectivo: () => void
+  // Abre el visor en grande (fase 9E)
+  onVerComprobante: () => void
 }
 
 // Efectivo cobrado por el repartidor o el almacén, todavía sin rendir a la tienda (fase 9D)
@@ -19,7 +21,7 @@ export const esEfectivoPorRendir = (pago: PagoAdmin) =>
   pago.metodo === 'contra_entrega' && pago.estado === 'pendiente' && Boolean(pago.cobrado_en)
 
 // Un pago en tres partes: quién y estado · comprobante con el monto esperado · monto y acciones
-export default function TarjetaPago({ pago, onAprobar, onRechazar, onReembolsar, onRecibirEfectivo }: TarjetaPagoProps) {
+export default function TarjetaPago({ pago, onAprobar, onRechazar, onReembolsar, onRecibirEfectivo, onVerComprobante }: TarjetaPagoProps) {
   // Lo que debería decir el comprobante: el total del pedido (o el monto del pago)
   const esperado = pago.pedidos?.total ?? pago.monto
   const esPdf = pago.comprobante_path?.toLowerCase().endsWith('.pdf') ?? false
@@ -48,20 +50,25 @@ export default function TarjetaPago({ pago, onAprobar, onRechazar, onReembolsar,
       {/* Comprobante junto al monto esperado, para comparar de un vistazo */}
       {pago.comprobante_url && (
         <div className="grid grid-cols-1 gap-4 border-t border-borde p-4 sm:grid-cols-[minmax(0,14rem)_1fr] sm:items-center">
-          <a href={pago.comprobante_url} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-xl border border-borde bg-white" aria-label="Abrir el comprobante en grande">
-            {esPdf ? (
-              <span className="flex h-40 flex-col items-center justify-center gap-2 text-texto-2">
-                <LuFileText className="h-10 w-10" aria-hidden="true" /> Comprobante en PDF
+          {esPdf ? (
+            // Un PDF se abre en otra pestaña (el visor es para fotos)
+            <a href={pago.comprobante_url} target="_blank" rel="noopener noreferrer" className="flex h-40 min-w-0 flex-col items-center justify-center gap-2 rounded-xl border border-borde bg-white text-texto-2">
+              <LuFileText className="h-10 w-10" aria-hidden="true" /> Comprobante (PDF)
+            </a>
+          ) : (
+            <button type="button" onClick={onVerComprobante} aria-label="Ver el comprobante (foto del pago) en grande"
+              className="group relative block min-w-0 overflow-hidden rounded-xl border border-borde bg-white transition hover:border-acento">
+              {/* eslint-disable-next-line @next/next/no-img-element -- URL firmada de corta duración del bucket privado */}
+              <img src={pago.comprobante_url} alt={`Comprobante (foto del pago) del pedido ${pago.pedidos?.codigo ?? ''}`} className="h-56 w-full object-contain sm:h-48" loading="lazy" />
+              <span className="absolute bottom-2 right-2 grid h-9 w-9 place-items-center rounded-lg bg-texto/70 text-white">
+                <LuMaximize2 className="h-4 w-4" aria-hidden="true" />
               </span>
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element -- URL firmada de corta duración del bucket privado
-              <img src={pago.comprobante_url} alt={`Comprobante del pedido ${pago.pedidos?.codigo ?? ''}`} className="h-56 w-full object-contain sm:h-48" loading="lazy" />
-            )}
-          </a>
+            </button>
+          )}
           <div className="min-w-0">
             <p className="text-sm font-medium text-texto-2">Monto esperado</p>
             <p className="font-titulo text-4xl font-bold tabular-nums text-acento sm:text-5xl">{formatoBs(esperado)}</p>
-            <p className="mt-1 text-sm text-texto-2">Revisa que el comprobante diga este monto exacto antes de aprobar.</p>
+            <p className="mt-1 text-sm text-texto-2">Revisa que la foto del pago diga este monto exacto antes de aprobar.</p>
           </div>
         </div>
       )}
@@ -76,11 +83,15 @@ export default function TarjetaPago({ pago, onAprobar, onRechazar, onReembolsar,
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-b-2xl border-t border-borde bg-tarjeta-hover/40 px-4 py-3">
         <span className="font-titulo text-xl font-bold tabular-nums text-texto">{formatoBs(pago.monto)}</span>
         <div className="flex flex-wrap items-center justify-end gap-2">
-          {pago.comprobante_url && (
+          {pago.comprobante_url && (esPdf ? (
             <a href={pago.comprobante_url} target="_blank" rel="noopener noreferrer" className={claseBoton('suave', 'chico')}>
-              <LuExternalLink className="h-4 w-4" aria-hidden="true" /> Ver comprobante
+              <LuExternalLink className="h-4 w-4" aria-hidden="true" /> Ver comprobante (PDF)
             </a>
-          )}
+          ) : (
+            <button type="button" onClick={onVerComprobante} className={claseBoton('suave', 'chico')}>
+              <LuMaximize2 className="h-4 w-4" aria-hidden="true" /> Ver comprobante (foto del pago)
+            </button>
+          ))}
           {pago.estado === 'reembolso_pendiente' && (
             <button onClick={onReembolsar} className={claseBoton('primario', 'chico')}>Marcar como reembolsado</button>
           )}

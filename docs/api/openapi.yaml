@@ -20,7 +20,7 @@ tags:
   - name: Almacén
     description: Preparación y empaque de pedidos (rol almacen o admin, fase 9C). Cada paso registra quién y cuándo
   - name: Entrega
-    description: 'Entrega con el código de 4 dígitos del cliente, cobro contra entrega, recepción por flota y calificación (rol repartidor, almacén o admin; fase 9D). Nadie salvo el dueño ve el código'
+    description: 'Entrega con el código de 4 dígitos del cliente, cobro efectivo al recibir, recepción por flota y calificación (rol repartidor, almacén o admin; fase 9D). Nadie salvo el dueño ve el código'
 components:
   securitySchemes:
     sesion:
@@ -387,7 +387,7 @@ paths:
         content:
           application/json:
             schema: { $ref: '#/components/schemas/PedidoEntrada' }
-      description: 'Con metodo_pago transferencia responde 422 (METODO_NO_DISPONIBLE) si la cuenta del banco no está configurada (NEXT_PUBLIC_BANCO_*).'
+      description: 'Con metodo_pago transferencia responde 422 (METODO_NO_DISPONIBLE) si la cuenta del banco no está configurada (NEXT_PUBLIC_BANCO_*). Con contra_entrega (en pantalla «Efectivo al recibir») el pedido nace confirmado y entra al almacén (0019); en una zona que no lo permite responde 422 «Efectivo al recibir solo en Recojo en tienda y Distrito 1».'
       responses:
         '201': { description: Pedido creado con su código }
         '401': { $ref: '#/components/responses/Error' }
@@ -449,13 +449,13 @@ paths:
   /pedidos/{id}/nota:
     get:
       tags: [Pedidos]
-      summary: Nota de venta en PDF (dueño o admin)
-      description: 'Documento sin valor fiscal, tamaño carta, generado en el servidor con pdfkit (fase 7). Disponible desde que el pedido se confirma (pago verificado o contra entrega confirmado). Un pedido cancelado que se llegó a confirmar devuelve la nota con la marca ANULADA; uno pendiente o cancelado sin confirmar responde 409 NOTA_NO_DISPONIBLE. Un pedido ajeno o inexistente da 404. Se descarga como Nota-AML-000123.pdf, sin caché.'
+      summary: Recibo de compra en PDF (dueño o admin)
+      description: 'Documento sin valor fiscal, tamaño carta, generado en el servidor con pdfkit (fase 7). Disponible desde que el pedido se confirma (pago verificado o efectivo al recibir confirmado). Un pedido cancelado que se llegó a confirmar devuelve la nota con la marca ANULADA; uno pendiente o cancelado sin confirmar responde 409 NOTA_NO_DISPONIBLE. Un pedido ajeno o inexistente da 404. Se descarga como Nota-AML-000123.pdf, sin caché.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       responses:
         '200':
-          description: PDF de la nota de venta
+          description: PDF de la recibo de compra
           content:
             application/pdf:
               schema: { type: string, format: binary }
@@ -467,7 +467,7 @@ paths:
     post:
       tags: [Pedidos]
       summary: Cancelar pedido y devolver el stock
-      description: 'Cliente: solo si el pedido y el pago siguen pendientes (sin comprobante). Admin: pedidos pendientes, confirmados, en preparación o empacados (0017); si el pago estaba verificado o en revisión pasa a reembolso_pendiente (migración 0006).'
+      description: 'Cliente: si el pedido y el pago siguen pendientes (sin comprobante), o con efectivo al recibir mientras siga confirmado y el almacén no haya empezado (0019). Admin: pedidos pendientes, confirmados, en preparación o empacados (0017); si el pago estaba verificado o en revisión pasa a reembolso_pendiente (migración 0006).'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -1070,7 +1070,7 @@ paths:
   /entregas/{id}/cobro:
     post:
       tags: [Entrega]
-      summary: Registrar el cobro de un pedido contra entrega
+      summary: Registrar el cobro de un pedido efectivo al recibir
       description: 'Repartidor (domicilio), almacén (recojo) o admin. El monto tiene que ser igual al total (422 si no). Si no cobra el admin, el pago queda como efectivo por rendir.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
@@ -1094,7 +1094,7 @@ paths:
     post:
       tags: [Entrega]
       summary: Entregar con el código de 4 dígitos del cliente
-      description: 'Repartidor (domicilio, el que lo tomó), almacén (recojo en tienda) o admin. Contra entrega exige el cobro registrado. Con el pago verificado, el pedido queda completado. Código incorrecto: 422 CODIGO_INCORRECTO con detalle.intentos_restantes; al quinto intento, 409 CODIGO_BLOQUEADO.'
+      description: 'Repartidor (domicilio, el que lo tomó), almacén (recojo en tienda) o admin. Efectivo al recibir exige el cobro registrado. Con el pago verificado, el pedido queda completado. Código incorrecto: 422 CODIGO_INCORRECTO con detalle.intentos_restantes; al quinto intento, 409 CODIGO_BLOQUEADO.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -1193,7 +1193,7 @@ paths:
   /pagos/{id}/efectivo:
     post:
       tags: [Pagos]
-      summary: Recibí el efectivo de una entrega contra entrega (admin)
+      summary: Recibí el efectivo de una entrega efectivo al recibir (admin)
       description: 'El pago cobrado por el repartidor o el almacén pasa a verificado con el nombre del admin; si el pedido ya está entregado, queda completado.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
