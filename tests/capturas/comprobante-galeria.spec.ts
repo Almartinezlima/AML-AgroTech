@@ -87,7 +87,7 @@ test('selector del comprobante a 412 y 360 px', async ({ page }) => {
     return { kb: Math.round(b.size / 1024), tipo: b.type, ancho: img.naturalWidth, alto: img.naturalHeight }
   })
   console.log(`foto preparada: ${tamano.ancho}x${tamano.alto} ${tamano.tipo} ${tamano.kb} KB`)
-  expect(Math.max(tamano.ancho, tamano.alto)).toBeLessThanOrEqual(1600)
+  expect(Math.max(tamano.ancho, tamano.alto)).toBeLessThanOrEqual(1280)
   expect(tamano.tipo).toBe('image/jpeg')
   await capturar(page, '2-vista-previa')
 
