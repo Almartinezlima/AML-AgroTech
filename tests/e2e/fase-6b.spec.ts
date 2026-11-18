@@ -62,7 +62,7 @@ test.describe('Fase 6B', () => {
     await entrarComoCliente(page)
     await agregarAlCarrito(page, PRODUCTO_A)
     // Queda en revisión: el cliente ya no puede cancelarlo; lo anula el admin al terminar
-    const pedido = await finalizarCompra(page, { zona: 'Culpina', metodo: 'QR' })
+    const pedido = await finalizarCompra(page, { zona: 'Culpina' })
     await page.goto(`/pedidos/${pedido.id}`)
     await expect(page.getByRole('button', { name: 'Cancelar pedido' })).toBeVisible()
 

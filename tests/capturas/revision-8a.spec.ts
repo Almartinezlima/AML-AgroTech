@@ -38,7 +38,7 @@ test('capturas de la revisión 8A', async ({ page, browser }) => {
 
   await entrarComoCliente(page)
   await agregarAlCarrito(page, PRODUCTO_A)
-  await finalizarCompra(page, { zona: 'Culpina', metodo: 'QR', recogeNombre: 'Recoge Captura', recogeCi: '1234567' })
+  await finalizarCompra(page, { zona: 'Culpina', recogeNombre: 'Recoge Captura', recogeCi: '1234567' })
   const qr = page.getByRole('img', { name: /QR para pagar/ })
   await expect(qr).toBeVisible()
   await expect.poll(() => qr.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth)).toBeGreaterThan(0)

@@ -23,14 +23,12 @@ test.describe('Compra completa', () => {
     await expect(page.getByRole('link', { name: 'Seguir comprando' })).toHaveAttribute('href', '/catalogo')
     await expect(page.getByRole('link', { name: /Ir a pagar/ })).toHaveAttribute('href', '/checkout')
 
-    // Una sola pantalla (fase 9E): zona, datos y forma de pago, con QR marcado por defecto
+    // Una sola pantalla (fase 9E): zona y datos. Fase 9F: solo QR, sin «¿Cómo quieres pagar?»
     await abrirCheckout(page)
-    await expect(page.getByRole('radio', { name: /^QR/ })).toBeChecked()
+    await expect(page.getByRole('heading', { name: 'Pagas con QR' })).toBeVisible()
+    await expect(page.getByText('¿Cómo quieres pagar?')).toHaveCount(0)
+    await expect(page.getByRole('radio', { name: /Efectivo al recibir|Transferencia/ })).toHaveCount(0)
     await page.getByRole('radio', { name: /Culpina/ }).check()
-
-    // En provincia «Efectivo al recibir» no se esconde: queda desactivado y dice dónde sí se puede
-    await expect(page.getByRole('radio', { name: /^Efectivo al recibir/ })).toBeDisabled()
-    await expect(page.getByText('Efectivo al recibir solo en Recojo en tienda y Distrito 1')).toBeVisible()
 
     // Por flota se pide quién recoge, no una dirección. Se vacían los datos recordados para probar los errores.
     await expect(page.getByLabel(/Dirección/)).toHaveCount(0)
@@ -57,7 +55,7 @@ test.describe('Compra completa', () => {
     await page.getByLabel('Teléfono / WhatsApp').fill('70012345')
 
     // El pedido se anula solo al terminar la prueba (fixture `limpieza`)
-    const pedido = await finalizarCompra(page, { zona: 'Culpina', metodo: 'QR', recogeNombre: 'Juan Mamani E2E', recogeCi: '1234567' })
+    const pedido = await finalizarCompra(page, { zona: 'Culpina', recogeNombre: 'Juan Mamani E2E', recogeCi: '1234567' })
     expect(pedido.envio).toBe(ENVIO_CULPINA)
     expect(pedido.total).toBeCloseTo(pedido.subtotal + ENVIO_CULPINA, 2)
     expect(pedido.codigo).toMatch(/^AML-/)

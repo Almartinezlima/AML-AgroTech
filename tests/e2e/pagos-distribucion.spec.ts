@@ -28,7 +28,7 @@ test.describe('Pagos y distribución', () => {
     // Cliente: compra a provincia con QR y sube su comprobante
     await entrarComoCliente(page)
     await agregarAlCarrito(page, PRODUCTO_A)
-    const pedido = await finalizarCompra(page, { zona: 'Culpina', metodo: 'QR' })
+    const pedido = await finalizarCompra(page, { zona: 'Culpina' })
 
     await page.goto(`/pedidos/${pedido.id}`)
     await page.getByLabel('Elegir foto del comprobante de la galería').setInputFiles({ name: 'comprobante-e2e.png', mimeType: 'image/png', buffer: imagenComprobante() })

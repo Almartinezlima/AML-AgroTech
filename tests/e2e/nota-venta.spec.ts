@@ -66,26 +66,32 @@ async function capturar(pagina: Page, ancho: number, archivo: string, objetivo: 
 }
 
 test.describe('Recibo de compra', () => {
-  test('efectivo al recibir: nace confirmado, sin «Pasar a confirmado», y el recibo lo descargan el cliente y el admin', async ({ page, browser }) => {
+  test('QR verificado: sin «Pasar a confirmado», y el recibo lo descargan el cliente y el admin', async ({ page, browser }) => {
     await entrarComoCliente(page)
     await agregarAlCarrito(page, PRODUCTO_A)
-    const pedido = await finalizarCompra(page, { zona: 'Distrito 1', metodo: 'Efectivo al recibir' })
+    const pedido = await finalizarCompra(page, { zona: 'Distrito 1' })
 
-    // Nace confirmado (0019): la pantalla lo dice y el recibo ya está disponible
-    await expect(page.getByRole('heading', { name: '¡Pedido confirmado!' })).toBeVisible()
+    // Fase 9F: solo QR. El cliente sube la foto del pago y el admin la aprueba: queda confirmado
+    await page.getByLabel('Elegir la foto del pago de la galería').setInputFiles({ name: 'comprobante-e2e.png', mimeType: 'image/png', buffer: imagenComprobante() })
+    await page.getByRole('button', { name: 'Enviar', exact: true }).click()
+    await expect(page.getByRole('heading', { name: '¡Recibimos tu comprobante!' })).toBeVisible()
+    const revisor = await paginaAdmin(browser)
+    const conPago = (await (await revisor.request.get(`/api/pedidos/${pedido.id}`)).json()) as { data: { pagos: { id: string } } }
+    expect((await revisor.request.patch(`/api/pagos/${conPago.data.pagos.id}/verificar`, { data: { aprobado: true } })).ok()).toBeTruthy()
+    await revisor.context().close()
     const detalle = (await (await page.request.get(`/api/pedidos/${pedido.id}`)).json()) as { data: { estado: string } }
     expect(detalle.data.estado).toBe('confirmado')
 
     // Cliente: botón en el detalle
     await page.goto(`/pedidos/${pedido.id}`)
     await esperarCarga(page)
-    const cliente = await descargarConBoton(page, /Descargar recibo de compra/, 'recibo-efectivo.pdf')
+    const cliente = await descargarConBoton(page, /Descargar recibo de compra/, 'recibo-qr.pdf')
     expect(cliente.sugerido).toBe(`Recibo-${pedido.codigo}.pdf`)
     const texto = textoDelPdf(cliente.pdf)
     expect(texto).toContain(pedido.codigo)
     expect(texto).toContain('RECIBO DE COMPRA')
     expect(texto).toContain('sin valor fiscal')
-    expect(texto).toContain('Efectivo al recibir')
+    expect(texto).toContain('QR')
     expect(texto).not.toContain('ANULADO')
     await capturar(page, 360, 'cliente-360.png', 'Descargar recibo de compra')
     await capturar(page, 1280, 'cliente-1280.png', 'Descargar recibo de compra')
@@ -109,7 +115,7 @@ test.describe('Recibo de compra', () => {
   test('QR: sin pagar no hay recibo (409); verificado lo baja el cliente; ajeno o inventado 404, sin sesión 401; al anularse sale ANULADO', async ({ page, browser }) => {
     await entrarComoCliente(page)
     await agregarAlCarrito(page, PRODUCTO_A)
-    const pedido = await finalizarCompra(page, { zona: 'Distrito 1', metodo: 'QR' })
+    const pedido = await finalizarCompra(page, { zona: 'Distrito 1' })
 
     // Pendiente con QR: todavía no hay venta
     const pendiente = await page.request.get(`/api/pedidos/${pedido.id}/nota`)

@@ -33,7 +33,7 @@ export interface Cuenta {
   password: string
 }
 
-function cuentaDeEntorno(prefijo: 'ADMIN' | 'CLIENTE' | 'DIST1' | 'DIST2'): Cuenta | null {
+function cuentaDeEntorno(prefijo: 'ADMIN' | 'CLIENTE' | 'DIST1' | 'DIST2' | 'REPARTIDOR'): Cuenta | null {
   const email = process.env[`E2E_${prefijo}_EMAIL`]
   const password = process.env[`E2E_${prefijo}_PASSWORD`]
   return email && password ? { email, password } : null
@@ -41,9 +41,18 @@ function cuentaDeEntorno(prefijo: 'ADMIN' | 'CLIENTE' | 'DIST1' | 'DIST2'): Cuen
 
 export const credencialesAdmin = () => cuentaDeEntorno('ADMIN')
 export const credencialesCliente = () => cuentaDeEntorno('CLIENTE')
+// Fase 9F: repartidor externo de prueba (repartidor@amlagrotech.test, rol que asigna el admin)
+export const credencialesRepartidor = () => cuentaDeEntorno('REPARTIDOR')
 
 // Las pruebas solo pueden anular pedidos de cuentas de prueba (migración 0011)
 export const DOMINIO_PRUEBAS = '@amlagrotech.test'
+
+export function exigirRepartidor() {
+  const credenciales = credencialesRepartidor()
+  test.skip(!credenciales, 'Faltan E2E_REPARTIDOR_EMAIL y E2E_REPARTIDOR_PASSWORD en .env.test.local')
+  exigirAdmin()
+  return credenciales!
+}
 
 export function exigirAdmin() {
   const credenciales = credencialesAdmin()
@@ -239,6 +248,16 @@ export async function paginaAdmin(browser: Browser): Promise<Page> {
   return pagina
 }
 
+// El repartidor en su propio navegador (pensado para el celular), ya en su panel
+export async function paginaRepartidor(browser: Browser): Promise<Page> {
+  const credenciales = exigirRepartidor()
+  const contexto = await browser.newContext({ viewport: { width: 412, height: 900 } })
+  const pagina = await contexto.newPage()
+  await iniciarSesion(pagina, credenciales)
+  await expect(pagina).toHaveURL(/\/repartidor/)
+  return pagina
+}
+
 // Un distribuidor en su propio navegador, ya en su panel
 export async function paginaDistribuidor(browser: Browser, numero: 1 | 2): Promise<Page> {
   const credenciales = exigirDistribuidor(numero)
@@ -265,8 +284,6 @@ export async function agregarAlCarrito(page: Page, nombre: string) {
 
 export interface OpcionesCompra {
   zona: string
-  // QR viene marcado por defecto (fase 9E)
-  metodo: 'QR' | 'Transferencia' | 'Efectivo al recibir'
   direccion?: string
   // Zonas por flota: quién recoge la encomienda
   recogeNombre?: string
@@ -283,7 +300,7 @@ export interface PedidoHecho {
 
 // Abre el checkout y espera los datos recordados de la última compra (fase 4), para que
 // el relleno automático no pise lo que escribe la prueba después. Desde la 9E es una sola
-// pantalla: zona, datos y forma de pago, con «Confirmar pedido» dentro de «Tu compra».
+// pantalla: zona y datos, con «Confirmar pedido» dentro de «Tu compra». Desde la 9F solo QR.
 export async function abrirCheckout(page: Page) {
   const recordados = page.waitForResponse((r) => r.url().includes('/api/pedidos/ultima-entrega'))
   await page.goto('/checkout')
@@ -316,9 +333,8 @@ export async function finalizarCompra(page: Page, opciones: OpcionesCompra): Pro
   await page.getByLabel('Teléfono / WhatsApp').fill('70012345')
   await page.getByLabel('Notas (opcional)').fill('E2E: pedido de prueba automática')
 
-  // Forma de pago en la misma pantalla (QR ya viene marcado)
-  const radioMetodo = page.getByRole('radio', { name: new RegExp(`^${opciones.metodo}`) })
-  if (!(await radioMetodo.isChecked())) await radioMetodo.check()
+  // Fase 9F: solo QR, no hay forma de pago que elegir
+  await expect(page.getByRole('heading', { name: 'Pagas con QR' })).toBeVisible()
 
   // Los montos se ven una sola vez: en «Tu compra» a la derecha (pantalla ancha) o en el plegable (celular)
   const montos = page.locator('[data-montos]:visible')
