@@ -4,7 +4,7 @@ Los estados son restricciones `check` de la base y **solo cambian dentro de func
 
 ## 1. Pedido
 
-Flujo final (fase 9F, migración 0020): **solo QR**, el admin prepara y deja «Listo para salir», y a domicilio lo lleva un **repartidor externo** que acepta la entrega. `cambiar_estado_pedido` (admin) solo confirma y despacha por flota. Preparar y dejar listo se hacen **solo** con `empezar_preparacion` y `empacar_pedido`. **Nadie marca «entregado» sin prueba**: a domicilio y en tienda hace falta el **código de 4 dígitos del cliente** (`entregar_pedido`); por flota lo confirma el cliente («Recibí mi pedido») o el admin con una nota (`confirmar_recepcion`).
+Flujo final (migración 0020): **solo QR**, el admin prepara y deja «Listo para salir», y a domicilio lo lleva un **repartidor externo** que acepta la entrega. `cambiar_estado_pedido` (admin) solo confirma y despacha por flota. Preparar y dejar listo se hacen **solo** con `empezar_preparacion` y `empacar_pedido`. **Nadie marca «entregado» sin prueba**: a domicilio y en tienda hace falta el **código de 4 dígitos del cliente** (`entregar_pedido`); por flota lo confirma el cliente («Recibí mi pedido») o el admin con una nota (`confirmar_recepcion`).
 
 ```mermaid
 stateDiagram-v2
@@ -32,7 +32,6 @@ stateDiagram-v2
 - **Código de entrega:** 5 intentos fallidos lo bloquean; el pedido no se entrega hasta que el admin lo desbloquea con una nota. Solo el cliente lo ve en «Mis pedidos».
 - Cancelar devuelve el stock al kardex (`devolucion`) y cierra los faltantes abiertos. Un pedido que ya salió de la tienda no se cancela.
 - En `preparando`, un faltante reportado frena «Listo para salir» hasta que el admin lo resuelve. El cliente ve solo «Revisando un producto de tu pedido».
-- Pedidos viejos con efectivo o transferencia: quedaron en su estado final (cancelados o completados); la 0020 frena si encuentra alguno abierto.
 
 ## 2. Pago
 
@@ -50,7 +49,7 @@ stateDiagram-v2
   reembolsado --> [*]
 ```
 
-- Funciones: `registrar_comprobante`, `verificar_pago`, `cancelar_pedido` y `marcar_reembolsado`. `registrar_cobro_entrega` y `confirmar_efectivo` (efectivo, 0018) siguen en la base pero nadie puede llamarlas desde la 0020.
+- Funciones: `registrar_comprobante`, `verificar_pago`, `cancelar_pedido` y `marcar_reembolsado`.
 - Al verificar, la línea de tiempo y el recibo de compra dicen «Pago verificado por <nombre> · <fecha y hora>».
 - El monto es siempre el total del pedido, lo pone la base.
 

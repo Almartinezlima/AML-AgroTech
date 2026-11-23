@@ -1,6 +1,6 @@
 # Diagrama de clases (modelo de datos)
 
-Cada clase es una tabla real de Postgres (esquema `public`, migraciones `0001` a `0018`). Van los atributos principales; los `created_at` / `updated_at` se omiten salvo cuando son parte del negocio. Las operaciones `«SQL»` son las funciones transaccionales que cambian esa tabla: la API no escribe directo en las tablas de pedidos, pagos, kardex ni órdenes de compra (RLS sin `insert`/`update`), todo pasa por esas funciones.
+Cada clase es una tabla real de Postgres (esquema `public`, migraciones `0001` a `0022`; 21 tablas). Van los atributos principales; los `created_at` / `updated_at` se omiten salvo cuando son parte del negocio. Las operaciones `«SQL»` son las funciones transaccionales que cambian esa tabla: la API no escribe directo en las tablas de pedidos, pagos, kardex ni órdenes de compra (RLS sin `insert`/`update`), todo pasa por esas funciones.
 
 | Clase | Tabla |
 |---|---|
@@ -16,6 +16,8 @@ Cada clase es una tabla real de Postgres (esquema `public`, migraciones `0001` a
 | FaltantePedido | `faltantes_pedido` (fase 9C) |
 | CodigoEntrega | `codigos_entrega` (fase 9D: nadie la lee directo) |
 | CalificacionEntrega | `calificaciones_entrega` (fase 9D) |
+| RepartidorEstado | `repartidores_estado` (fase 9F: nadie la lee directo) |
+| PagoRepartidor | `pagos_repartidor` (fase 9F: nadie la lee directo) |
 | MovimientoInventario | `movimientos_inventario` (kardex) |
 | Distribuidor | `distribuidores` |
 | PresentacionDistribuidor | `presentaciones_distribuidor` |
@@ -82,7 +84,6 @@ classDiagram
     +numeric costo
     +int dias_min
     +int dias_max
-    +bool permite_contra_entrega
     +bool activo
   }
   class Pedido {
@@ -217,7 +218,7 @@ classDiagram
   Producto "1" --> "0..*" MovimientoInventario : kardex
   Pedido "0..1" --> "0..*" MovimientoInventario : salida o devolución
   Perfil "0..1" --> "0..*" MovimientoInventario : registra
-  Perfil "0..1" --> "0..*" Pago : revisa o cobra
+  Perfil "0..1" --> "0..*" Pago : revisa
   Pedido "1" *-- "0..1" CodigoEntrega : prueba de entrega
   Pedido "1" *-- "0..1" CalificacionEntrega : recibí conforme
   Perfil "0..1" --> "0..*" Pedido : despacha y entrega
@@ -340,8 +341,6 @@ classDiagram
   class MetodoPago {
     <<enumeration>>
     qr
-    transferencia «solo pedidos viejos»
-    contra_entrega «solo pedidos viejos»
   }
   class EstadoPedido {
     <<enumeration>>
@@ -401,6 +400,7 @@ classDiagram
 - **Precios congelados:** `PedidoItem.precio_unitario` y `OrdenCompraItem.precio_unitario` guardan el precio del momento; si el producto o la presentación cambian de precio después, el pedido o la orden no cambian.
 - **Stock protegido:** `Producto.stock` solo cambia dentro de las funciones que registran un `MovimientoInventario` (trigger `proteger_stock_producto`) y nunca queda negativo.
 - **Costo aparte:** `CostoProducto` es solo del admin, porque `Producto` se lee sin sesión.
-- **Entrega con prueba (fase 9D):** `CodigoEntrega` tiene RLS y **ninguna política**: ni el admin la lee. Solo el dueño ve su código con `mi_codigo_entrega()`; quien entrega lo escribe y `entregar_pedido` solo dice si coincide. A los 5 intentos fallidos se bloquea (el admin lo desbloquea con nota). Desde la 9F solo se paga con QR, así que entregar con el código siempre deja el pedido `completado`. Las columnas `Pago.cobrado_*` (efectivo, 0018) quedan solo en pedidos viejos y no se dibujan.
+- **Entrega con prueba (fase 9D):** `CodigoEntrega` tiene RLS y **ninguna política**: ni el admin la lee. Solo el dueño ve su código con `mi_codigo_entrega()`; quien entrega lo escribe y `entregar_pedido` solo dice si coincide. A los 5 intentos fallidos se bloquea (el admin lo desbloquea con nota). Solo se paga con QR, y el pago se verifica antes de preparar: entregar con el código siempre deja el pedido `completado`.
+- **Solo QR:** `crear_pedido` acepta únicamente `metodo_pago = 'qr'`; por eso `MetodoPago` tiene un solo valor.
 - **Quién y cuándo (fase 9C):** `Pedido` guarda quién empezó a prepararlo y quién lo dejó listo; `PedidoItem`, quién lo puso en la caja; `FaltantePedido`, quién lo reportó y quién lo resolvió.
 - **Reparto externo (fase 9F):** `Pedido.repartidor_id` es quien aceptó la entrega (`aceptar_entrega` bloquea la fila: el primero se la lleva). `RepartidorEstado` guarda «Estoy disponible». Cada «Pagado» crea un `PagoRepartidor` y marca los pedidos con `pago_repartidor_id`. El repartidor no lee tablas: todo pasa por funciones que revisan su rol; `RepartidorEstado` y `PagoRepartidor` tienen RLS sin políticas.

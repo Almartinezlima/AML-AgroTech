@@ -19,13 +19,14 @@ Fase: `fase/1-seguridad`. ✅ Programada. Migraciones corridas en la base real y
   - Un trigger `proteger_campos_perfil` impide que un usuario no admin cambie `rol` o `activo` (ni el suyo ni el de otros). Probado desde la consola del navegador: el intento falla.
   - `es_admin()` (`security definer`, `search_path = ''`) se usa en todas las políticas de admin.
   - `pedidos`, `pedido_items`: el cliente solo **lee** lo suyo; ya no hay `FOR ALL`. Las escrituras pasan por funciones SQL / API.
-  - Middleware: `/admin/**` exige rol `admin` y `/distribuidor/**` rol `distribuidor`, verificados en el servidor (no solo sesión); si no, redirige a `/`.
-  - El registro crea siempre clientes: el rol `distribuidor` (y el de admin) solo lo asigna un admin.
+  - Middleware: `/admin/**` exige rol `admin`, `/distribuidor/**` rol `distribuidor` y `/repartidor/**` rol `repartidor` (al admin lo lleva a `/admin/repartidores`), verificados en el servidor (no solo sesión); si no, redirige a `/`.
+  - Roles: `admin`, `cliente`, `distribuidor` y `repartidor` (restricción `perfiles_rol_check`). El registro crea siempre clientes (también con Google): los otros roles solo los asigna un admin.
   - Cuenta con `activo = false` no puede comprar (API responde 403) y ve un aviso.
   - Se corrigen los avisos de Supabase: `search_path` en funciones, `handle_new_user` no ejecutable por `anon`/`authenticated`.
   - Encabezados de seguridad en `next.config.mjs`: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, HSTS.
-- **API:** helpers `requerirSesion()`, `requerirAdmin()` y `requerirDistribuidor()` en `src/lib/api/sesion.ts`; toda ruta declara quién puede llamarla. 401 sin sesión, 403 sin permiso.
-- **HU-S04:** `/admin/usuarios` con datos reales, búsqueda, cambio de rol y activar/desactivar vía `PATCH /api/usuarios/:id`. El admin no puede quitarse su propio rol de admin.
+- **API:** helpers `requerirSesion()`, `requerirAdmin()`, `requerirRepartidor()`, `requerirRol()` y `requerirDistribuidor()` en `src/lib/api/sesion.ts`; toda ruta declara quién puede llamarla. 401 sin sesión, 403 sin permiso.
+- **Código de entrega:** tabla `codigos_entrega` con RLS y sin políticas: solo el dueño ve su código (`mi_codigo_entrega()`); 5 intentos fallidos lo bloquean hasta que el admin lo desbloquea con nota ([`11-entrega-cierre.md`](11-entrega-cierre.md)).
+- **HU-S04:** `/admin/usuarios` con datos reales, búsqueda, cambio de rol (Cliente, Administrador, Distribuidor, Repartidor) y activar/desactivar vía `PATCH /api/usuarios/:id`. El admin no puede quitarse su propio rol de admin.
 - **Contraseñas:** mínimo 8 caracteres en el registro.
 - **Migración de reconciliación:** `0002` deja el repo igual a la base real (`perfiles.activo`, `handle_new_user`).
 

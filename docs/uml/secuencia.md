@@ -1,10 +1,10 @@
 # Diagramas de secuencia
 
-Dos recorridos de punta a punta, con las rutas y funciones reales.
+Cuatro recorridos de punta a punta, con las rutas y funciones reales.
 
 ## 1. Realizar pedido (CU-08)
 
-Compra en 3 clics (fase 9E): «Ir a pagar» en el carrito, «Confirmar pedido» en una sola pantalla y la foto del pago debajo del QR. El total lo calcula siempre la base; el navegador solo manda productos y cantidades.
+Compra en 3 clics: «Ir a pagar» en el carrito, «Confirmar pedido» en una sola pantalla y la foto del pago debajo del QR. Solo se paga con QR. El total lo calcula siempre la base; el navegador solo manda productos y cantidades.
 
 ```mermaid
 sequenceDiagram
@@ -39,7 +39,7 @@ sequenceDiagram
     N->>K: ajustarStock() (el carrito sigue)
     N-->>C: Aviso junto al botón; el carrito y el total se ajustan
   else Hay stock
-    DB->>DB: Inserta pedido AML-…, items, pago QR, envío y seguimiento<br/>(fase 9F: solo QR; otro método → AML02, 422)
+    DB->>DB: Inserta pedido AML-…, items, pago QR, envío y seguimiento<br/>(solo QR; otro método → AML02, 422)
     DB->>DB: Descuenta stock y anota la salida en el kardex
     DB->>DB: COMMIT
     DB->>Q: Trigger aml_aviso_pedido_nuevo encola el mensaje (si la cuenta no es de prueba)
@@ -113,7 +113,7 @@ sequenceDiagram
 
 El admin también puede cancelar la orden con motivo mientras esté en borrador, enviada o aceptada (`POST /api/ordenes-compra/{id}/cancelar`).
 
-## 3. Preparar y dejar «Listo para salir» (CU-34 a CU-38 y CU-52; fase 9C, desde la 9F el admin)
+## 3. Preparar y dejar «Listo para salir» (CU-34 a CU-38 y CU-52; la hace el admin)
 
 Del pedido pagado a la caja cerrada con su etiqueta y, a domicilio, el aviso al grupo de repartidores. Cada paso guarda quién y cuándo.
 
@@ -128,9 +128,9 @@ sequenceDiagram
 
   AD->>A: GET /api/almacen/pedidos («Por preparar»)
   A->>DB: rpc cola_almacen()
-  Note over DB: aml_personal_almacen(): solo admin (0020), si no AML03 (403)
-  DB-->>A: Pedidos confirmados, el más antiguo primero
-  AD->>A: POST /api/almacen/pedidos/{id}/preparar
+  Note over DB: aml_personal_almacen(): solo admin, si no AML03 (403)
+  DB-->>A: Pedidos por preparar (la pantalla pone el más nuevo arriba)
+  AD->>A: «Empezar a preparar» en la lista: POST /api/almacen/pedidos/{id}/preparar
   A->>DB: rpc empezar_preparacion(id)
   Note over DB: confirmado → preparando<br/>preparacion_por, preparacion_en y seguimiento
   loop Cada producto que entra a la caja
@@ -187,7 +187,7 @@ sequenceDiagram
   A-->>C: «Tu código de entrega: 4827»
   R1->>A: PATCH /api/repartidor/disponibilidad (true)
   A->>DB: rpc cambiar_disponibilidad(true)
-  R1->>A: GET /api/repartidor/panel (cada 15 s)
+  R1->>A: GET /api/repartidor/panel (cada 10 s)
   A->>DB: rpc panel_repartidor()
   DB-->>A: Disponibles: zona, dirección, bultos, ganas (sin datos del cliente)
   par Los dos tocan «Aceptar»

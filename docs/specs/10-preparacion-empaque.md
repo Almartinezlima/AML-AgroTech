@@ -1,10 +1,10 @@
 # 10 — Preparación y «Listo para salir»
 
-Fase 9C (migración `0017`), **rehecha en la 9F (migración `0020`): ya no hay rol Almacén.** Preparar, reportar faltantes, dejar el pedido listo e imprimir la etiqueta lo hace el **admin** en «Por preparar» (`/admin/preparar`). La cuenta `almacen@` pasó a cliente.
+Fase 9C (migración `0017`), rehecha en la 9F (migración `0020`). Preparar, reportar faltantes, dejar el pedido listo e imprimir la etiqueta lo hace el **admin** en «Por preparar» (`/admin/preparar`).
 
 Responde a la observación del docente: «controlar la preparación y empaque del producto». La idea de AML: **cada paso tiene un responsable y queda registrado quién lo hizo y cuándo**.
 
-## Roles del flujo de compra (9F)
+## Roles del flujo de compra
 
 | Rol | Qué hace | Panel |
 |---|---|---|
@@ -15,14 +15,14 @@ Responde a la observación del docente: «controlar la preparación y empaque de
 El rol `distribuidor` (proveedor mayorista, [`08-abastecimiento.md`](08-abastecimiento.md)) sigue igual: no es parte del flujo de compra.
 
 - Los roles los asigna **solo el admin** en `/admin/usuarios`. `handle_new_user` crea siempre clientes (también con Google).
-- `aml_personal_almacen()` (mismo nombre desde la 0017) ahora deja pasar **solo al admin**. `es_almacen()` sigue existiendo y siempre da falso.
-- `/almacen` redirige a `/admin/preparar` (los enlaces viejos siguen sirviendo). Las rutas de la API conservan su nombre (`/api/almacen/*`), ahora solo para el admin (`requerirAdmin`).
+- Las funciones de preparación revisan el rol con `aml_personal_almacen()` (nombre heredado de la 0017), que deja pasar **solo al admin**.
+- Las rutas de la API conservan el prefijo `/api/almacen/*` por nombre, pero son **solo para el admin** (`requerirAdmin`). La dirección vieja `/almacen` redirige a `/admin/preparar`.
 
 ## Historias de usuario
 
 | ID | Historia | Prioridad |
 |---|---|---|
-| HU-AL01 | Como **administrador** quiero ver la cola de pedidos pagados, el más antiguo primero, para saber qué preparar | Alta |
+| HU-AL01 | Como **administrador** quiero ver la cola de pedidos pagados, el más nuevo arriba, para saber qué preparar | Alta |
 | HU-AL02 | Como **administrador** quiero tocar «Empezar a preparar» para que quede registrado quién lo está preparando | Alta |
 | HU-AL03 | Como **administrador** quiero marcar cada producto al ponerlo en la caja, para no olvidarme de ninguno | Alta |
 | HU-AL04 | Como **administrador** quiero reportar un faltante con una nota; el cliente ve solo «Revisando un producto de tu pedido» | Alta |

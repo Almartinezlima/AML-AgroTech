@@ -1,6 +1,6 @@
 # 11 — Entrega con código y cierre del pedido
 
-Fase 9D (migración `0018`), **actualizada en la 9F (migración `0020`)**: solo QR (el repartidor no cobra nada), sin rol Almacén (el admin entrega en tienda) y repartidores externos que aceptan las entregas (detalle en [`12-reparto-externo.md`](12-reparto-externo.md)).
+Fase 9D (migración `0018`), actualizada en la 9F (migración `0020`): el pago ya está hecho con QR (el repartidor no cobra nada), el admin entrega en tienda y los repartidores externos aceptan las entregas a domicilio (detalle en [`12-reparto-externo.md`](12-reparto-externo.md)).
 
 Responde a la observación del docente: «controlar la entrega del producto y finalizar el proceso». La idea de AML: **nadie marca «entregado» sin prueba de que el producto llegó**.
 
@@ -9,7 +9,7 @@ Responde a la observación del docente: «controlar la entrega del producto y fi
 - **Código de entrega de 4 dígitos.** Se genera al tocar «Listo para salir» (recojo y a domicilio; por flota no). Solo lo ve el **dueño** del pedido en «Mis pedidos», con el texto «Dáselo a quien te entregue, solo cuando tengas tu pedido en la mano».
 - **Nadie más lo ve.** Está en `codigos_entrega`, con RLS y **sin ninguna política**: ni el repartidor ni el admin lo leen. Solo el dueño lo obtiene con `mi_codigo_entrega()`; quien entrega lo escribe y `entregar_pedido` solo responde si coincide.
 - **5 intentos.** Un código incorrecto responde con los intentos que quedan. Al quinto se bloquea, se avisa por Telegram y el pedido no se entrega hasta que el admin lo desbloquea con una nota.
-- **Completado = entregado + pago verificado.** Desde la 9F todo se paga con QR antes de prepararse, así que al entregar con el código el pedido queda `completado` en el mismo momento. El recibo de compra dice «NOTA FINAL».
+- **Completado = entregado + pago verificado.** Todo se paga con QR antes de prepararse, así que al entregar con el código el pedido queda `completado` en el mismo momento. El recibo de compra dice «NOTA FINAL».
 
 ## Quién entrega
 
@@ -34,7 +34,7 @@ Tres capas, como siempre: middleware (`/repartidor` solo el rol repartidor; el a
 | HU-EN11 | Como **administrador** quiero ver las calificaciones en el panel y enterarme por Telegram de las bajas | Media |
 | HU-EN12 | Como **cliente** o **administrador** quiero ver en la línea de tiempo quién verificó el pago y quién entregó a quién | Alta |
 
-Las historias del repartidor (aceptar, recoger, ganado y por cobrar) están en el spec 12. Quedaron sin efecto en la 9F: HU-EN02/03 (cola y «Tomar y salir» del repartidor interno), HU-EN04 (cobro en efectivo) y HU-EN09 («Recibí el efectivo»).
+Las historias del repartidor (aceptar, recoger, ganado y por cobrar) están en el spec 12. Los números HU-EN02, EN03, EN04 y EN09 no se usan.
 
 ## Criterios de aceptación
 

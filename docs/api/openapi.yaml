@@ -17,8 +17,8 @@ tags:
   - name: Panel
   - name: Abastecimiento
     description: Proveedores mayoristas (rol distribuidor), sus presentaciones, órdenes de compra, recepción y margen
-  - name: Almacén
-    description: 'Preparación y «Listo para salir» (fase 9C; desde la 9F, migración 0020, solo el admin). Cada paso registra quién y cuándo'
+  - name: Preparación
+    description: 'Preparación y «Listo para salir», solo el admin. Las rutas conservan el prefijo /almacen por nombre. Cada paso registra quién y cuándo'
   - name: Entrega
     description: 'Reparto con repartidores externos (fase 9F: disponibilidad, aceptar, recoger, liberar y pago al repartidor), entrega con el código de 4 dígitos del cliente, recepción por flota y calificación. Nadie salvo el dueño ve el código'
 components:
@@ -50,9 +50,9 @@ components:
             codigo: { type: string, example: NO_AUTENTICADO }
             mensaje: { type: string, example: Debes iniciar sesión. }
             detalle: { type: object }
-    Rol: { type: string, enum: [admin, cliente, distribuidor, repartidor], description: 'repartidor desde la 0017 (persona externa desde la 0020); el rol almacen se quitó en la 0020. Solo el admin asigna roles' }
+    Rol: { type: string, enum: [admin, cliente, distribuidor, repartidor], description: 'El repartidor es una persona externa (0020). Solo el admin asigna roles; el registro crea siempre clientes' }
     EstadoPedido: { type: string, enum: [pendiente, confirmado, preparando, empacado, listo_para_recoger, despachado, entregado, completado, cancelado], description: 'Recojo en tienda: al dejarlo listo pasa a listo_para_recoger. A domicilio o por flota: empacado («Listo para salir») y luego despachado (a domicilio, cuando el repartidor que lo aceptó lo recoge, 0020). Entregado solo con el código del cliente o, por flota, con su confirmación; completado = entregado + pago verificado (0018)' }
-    MetodoPago: { type: string, enum: [qr, transferencia, contra_entrega], description: 'Desde la 0020 solo se crean pedidos con qr; los otros quedan en pedidos viejos' }
+    MetodoPago: { type: string, enum: [qr], description: 'Solo se paga con QR (0020)' }
     ProductoEntrada:
       type: object
       required: [nombre, precio, stock_minimo, unidad, categoria_id]
@@ -386,7 +386,7 @@ paths:
         content:
           application/json:
             schema: { $ref: '#/components/schemas/PedidoEntrada' }
-      description: 'Solo QR (fase 9F, 0020): cualquier otro metodo_pago responde 422 «Solo se paga con QR.». El pedido nace pendiente hasta que el admin verifica el comprobante.'
+      description: 'Solo QR (0020): cualquier otro metodo_pago responde 422 «Solo se paga con QR.». El pedido nace pendiente hasta que el admin verifica el comprobante.'
       responses:
         '201': { description: Pedido creado con su código }
         '401': { $ref: '#/components/responses/Error' }
@@ -438,7 +438,7 @@ paths:
     get:
       tags: [Pedidos]
       summary: Detalle con items, pago, envío y seguimiento (dueño o admin)
-      description: 'El seguimiento trae actor_nombre, actor_rol y es_propio (quién hizo cada paso, migración 0017). El admin recibe además los faltantes del almacén. Desde la 0018 trae cierre (quién recibió, cobro en efectivo, calificación) y, solo para el dueño, codigo_entrega.'
+      description: 'El seguimiento trae actor_nombre, actor_rol y es_propio (quién hizo cada paso, migración 0017). El admin recibe además los faltantes de la preparación. Desde la 0018 trae cierre (quién entregó, a quién y la calificación) y, solo para el dueño, codigo_entrega.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       responses:
@@ -449,12 +449,12 @@ paths:
     get:
       tags: [Pedidos]
       summary: Recibo de compra en PDF (dueño o admin)
-      description: 'Documento sin valor fiscal, tamaño carta, generado en el servidor con pdfkit (fase 7). Disponible desde que el pedido se confirma (pago verificado o efectivo al recibir confirmado). Un pedido cancelado que se llegó a confirmar devuelve la nota con la marca ANULADA; uno pendiente o cancelado sin confirmar responde 409 NOTA_NO_DISPONIBLE. Un pedido ajeno o inexistente da 404. Se descarga como Nota-AML-000123.pdf, sin caché.'
+      description: 'Documento sin valor fiscal, tamaño carta, generado en el servidor con pdfkit (fase 7). Disponible desde que el pedido se confirma (pago QR verificado). Un pedido cancelado que se llegó a confirmar devuelve la nota con la marca ANULADA; uno pendiente o cancelado sin confirmar responde 409 NOTA_NO_DISPONIBLE. Un pedido ajeno o inexistente da 404. Se descarga como Recibo-AML-000123.pdf, sin caché.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       responses:
         '200':
-          description: PDF de la recibo de compra
+          description: PDF del recibo de compra
           content:
             application/pdf:
               schema: { type: string, format: binary }
@@ -497,7 +497,7 @@ paths:
     patch:
       tags: [Pedidos]
       summary: Avanzar el estado del pedido (admin)
-      description: 'Solo pendiente a confirmado y, por flota, empacado a despachado (con flota y guía). Preparar y «Listo para salir» se hacen con /almacen/* (admin); a domicilio sale con el repartidor que acepta la entrega y nadie marca entregado aquí (409): se usa /entregas/{id}/entregar o /pedidos/{id}/recibido.'
+      description: 'Solo pendiente a confirmado y, por flota, empacado a despachado (con flota y guía). Preparar y «Listo para salir» se hacen con /almacen/* (solo admin); a domicilio sale con el repartidor que acepta la entrega y nadie marca entregado aquí (409): se usa /entregas/{id}/entregar o /pedidos/{id}/recibido.'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
       requestBody:
@@ -910,8 +910,8 @@ paths:
         '403': { $ref: '#/components/responses/Error' }
   /almacen/pedidos:
     get:
-      tags: [Almacén]
-      summary: Cola de «Por preparar», el más antiguo primero (admin)
+      tags: [Preparación]
+      summary: Cola de «Por preparar» (admin; la pantalla pone el más nuevo arriba)
       description: 'Pedidos confirmado, preparando, empacado y listo_para_recoger, con avance de la caja y faltantes abiertos (función cola_almacen).'
       security: [{ sesion: [] }]
       responses:
@@ -920,7 +920,7 @@ paths:
         '403': { $ref: '#/components/responses/Error' }
   /almacen/pedidos/{id}:
     get:
-      tags: [Almacén]
+      tags: [Preparación]
       summary: Detalle para preparar e imprimir la etiqueta (admin)
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
@@ -931,7 +931,7 @@ paths:
         '404': { $ref: '#/components/responses/Error' }
   /almacen/pedidos/{id}/preparar:
     post:
-      tags: [Almacén]
+      tags: [Preparación]
       summary: Empezar a preparar (de confirmado a preparando, registra quién)
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
@@ -943,7 +943,7 @@ paths:
         '409': { $ref: '#/components/responses/Error' }
   /almacen/items/{id}:
     patch:
-      tags: [Almacén]
+      tags: [Preparación]
       summary: Marcar o desmarcar un producto como puesto en la caja (admin)
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
@@ -964,7 +964,7 @@ paths:
         '409': { $ref: '#/components/responses/Error' }
   /almacen/pedidos/{id}/faltante:
     post:
-      tags: [Almacén]
+      tags: [Preparación]
       summary: Reportar un faltante (admin; frena «Listo para salir»)
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]
@@ -987,7 +987,7 @@ paths:
         '422': { $ref: '#/components/responses/Error' }
   /almacen/pedidos/{id}/empacar:
     post:
-      tags: [Almacén]
+      tags: [Preparación]
       summary: Listo para salir (admin; exige todo marcado y ningún faltante abierto)
       description: 'Recojo en tienda pasa a listo_para_recoger; a domicilio o por flota, a empacado («Listo para salir»). Registra quién, cuándo y los bultos (una etiqueta por bulto). A domicilio la base avisa al grupo de Telegram de repartidores (0020).'
       security: [{ sesion: [] }]
@@ -1010,7 +1010,7 @@ paths:
         '422': { $ref: '#/components/responses/Error' }
   /faltantes/{id}/resolver:
     post:
-      tags: [Almacén]
+      tags: [Preparación]
       summary: 'Resolver un faltante: Repuesto, continuar (admin)'
       security: [{ sesion: [] }]
       parameters: [{ $ref: '#/components/parameters/Id' }]

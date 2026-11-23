@@ -1,15 +1,15 @@
 # Diagramas UML de AML AgroTech
 
-Los diagramas están escritos en **Mermaid** dentro de cada `.md`: GitHub los dibuja solo, y como son texto se revisan en cada Pull Request igual que el código. Están hechos a partir del código y de las migraciones de hoy (`src/`, `supabase/migrations/0001` a `0015`). Si un diagrama contradice al código, manda el código.
+Los diagramas están escritos en **Mermaid** dentro de cada `.md`: GitHub los dibuja solo, y como son texto se revisan en cada Pull Request igual que el código. Están hechos a partir del código y de la base real (`src/`, `supabase/migrations/0001` a `0022`), revisados el 22 nov 2026. Si un diagrama contradice al código, manda el código.
 
 | Diagrama | Archivo | Qué muestra |
 |---|---|---|
-| Casos de uso | [`casos-de-uso.md`](casos-de-uso.md) | Actores (Visitante, Cliente, Administrador, Distribuidor, Supabase, Telegram) y los 33 casos de uso por pilar, con «include» y «extend» |
-| Clases | [`clases.md`](clases.md) | Las 16 tablas de la base como clases, con atributos, multiplicidad, funciones SQL y enumeraciones |
-| Componentes | [`componentes.md`](componentes.md) | Navegador (páginas y contextos), servidor Next.js (middleware y API REST), Supabase (Auth, Postgres, Storage, Vault, pg_net, pg_cron) y Telegram |
-| Despliegue | [`despliegue.md`](despliegue.md) | Navegador → Render → Supabase → Telegram, y GitHub → Render |
-| Secuencia | [`secuencia.md`](secuencia.md) | Realizar pedido y orden de compra, paso a paso con las rutas y funciones reales |
-| Estados | [`estados.md`](estados.md) | Pedido, pago y orden de compra |
+| Casos de uso | [`casos-de-uso.md`](casos-de-uso.md) | Actores (Visitante, Cliente, Administrador, Repartidor, Distribuidor, Supabase, Telegram) y los 50 casos de uso por pilar, con «include» y «extend» |
+| Clases | [`clases.md`](clases.md) | Las 21 tablas de la base como clases, con atributos, multiplicidad, funciones SQL y enumeraciones |
+| Componentes | [`componentes.md`](componentes.md) | Navegador (páginas por rol y contextos), servidor Next.js (middleware y API REST), Supabase (Auth, Postgres, Storage, Vault, pg_net, pg_cron) y Telegram (chat del admin y grupo de repartidores) |
+| Despliegue | [`despliegue.md`](despliegue.md) | Navegador → Render → Supabase → Telegram (admin y repartidores), y GitHub → Render |
+| Secuencia | [`secuencia.md`](secuencia.md) | Realizar pedido con QR, orden de compra, preparar y dejar «Listo para salir», y reparto externo con código y pago al repartidor |
+| Estados | [`estados.md`](estados.md) | Pedido, pago, pago al repartidor y orden de compra |
 
 ## Notas
 
