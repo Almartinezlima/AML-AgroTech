@@ -26,6 +26,7 @@ flowchart LR
   subgraph TEL["«executionEnvironment» Telegram"]
     BOT["Bot API<br/>api.telegram.org"]
     APP["«device» Telegram del admin"]
+    GRP["«device» Grupo de repartidores<br/>(celulares de los repartidores)"]
   end
 
   GIT -->|git push · Pull Request| REPO
@@ -39,6 +40,8 @@ flowchart LR
   PG --> VA
   PG -->|"HTTPS · pg_net, después del commit"| BOT
   BOT --> APP
+  BOT --> GRP
+  GRP -->|"enlace a /repartidor"| BR
 ```
 
 ## Nodos
@@ -48,11 +51,11 @@ flowchart LR
 | Celular o PC del usuario | El navegador con la app (React) | El carrito vive en `localStorage`, uno por cuenta. Probado a 360 px |
 | Render | La aplicación Next.js: páginas, middleware y la API REST | Plan gratis: la primera visita tras un rato sin uso tarda unos 45 s en despertar. URL: https://aml-agrotech.onrender.com |
 | Supabase | Auth, Postgres, Storage y Vault | Postgres tiene `pg_net` (manda los avisos) y `pg_cron` (resumen diario a las 00:00 UTC = 20:00 de Bolivia) |
-| Telegram | Bot API y el chat del admin | Los avisos salen de la base, no de Render: llegan aunque Render esté dormido |
+| Telegram | Bot API, el chat del admin y el grupo de repartidores | Los avisos salen de la base, no de Render: llegan aunque Render esté dormido. El grupo solo recibe «Entrega disponible» con el enlace a `/repartidor` |
 | GitHub | El repositorio | Cada fase entra a `master` por Pull Request; Render publica solo al unir |
 
 ## Configuración por nodo
 
-- **Render** (variables de entorno): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_WHATSAPP_TIENDA` y, opcional, `NEXT_PUBLIC_QR_TIENDA_IMAGEN`. **Ninguna clave secreta**: ni `service_role` ni el token de Telegram.
-- **Supabase Vault**: `aml_telegram_token` y `aml_telegram_chat_admin`. Sin ellos, los avisos no hacen nada.
-- **Migraciones**: `supabase/migrations/0001` a `0015`, corridas a mano en el SQL Editor de Supabase.
+- **Render** (variables de entorno): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_WHATSAPP_TIENDA`, `NEXT_PUBLIC_TELEGRAM_GRUPO_REPARTIDORES` (enlace de invitación al grupo) y, opcional, `NEXT_PUBLIC_QR_TIENDA_IMAGEN`. **Ninguna clave secreta**: ni `service_role` ni el token de Telegram.
+- **Supabase Vault**: `aml_telegram_token`, `aml_telegram_chat_admin` y `aml_telegram_chat_repartidores`. Sin ellos, los avisos no hacen nada.
+- **Migraciones**: `supabase/migrations/0001` a `0022`, todas corridas a mano en el SQL Editor de Supabase.

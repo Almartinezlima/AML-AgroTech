@@ -39,6 +39,7 @@ flowchart LR
   C["«actor»<br/>Cliente"]
   A["«actor»<br/>Administrador"]
   D["«actor»<br/>Distribuidor"]
+  R["«actor»<br/>Repartidor"]
   S["«actor» «sistema»<br/>Supabase Auth"]
   subgraph SEG["AML AgroTech · Seguridad"]
     CU01(["CU-01 Registrarse"])
@@ -51,6 +52,7 @@ flowchart LR
   C --- CU02
   A --- CU02
   D --- CU02
+  R --- CU02
   A --- CU04
   CU04 -.->|«include»| CU02
   CU01 --- S
@@ -203,11 +205,15 @@ flowchart LR
   CU33 -.->|«extend»<br/>despachada| CU28
   CU35b(["CU-35 Reportar faltante"])
   CU33 -.->|«extend»<br/>faltante| CU35b
+  CU42b(["CU-42 Entregar con código"])
+  CU45b(["CU-45 Calificar entrega"])
+  CU33 -.->|«extend»<br/>entregado · código bloqueado| CU42b
+  CU33 -.->|«extend»<br/>1 o 2 estrellas| CU45b
 ```
 
 Condición de todos los «extend» de CU-33: la cuenta no es de prueba y los secretos de Telegram están en Vault. El resumen diario de las 20:00 lo inicia `pg_cron` (actor Supabase) sin otro caso de uso.
 
-## 8. Preparación y «Listo para salir» (fase 9C; desde la 9F, solo el admin)
+## 8. Preparación y «Listo para salir» (la hace el admin)
 
 ```mermaid
 flowchart LR
@@ -234,7 +240,7 @@ flowchart LR
   CU52 --- T
 ```
 
-- Desde la 9F no hay rol Almacén: todo lo hace el Administrador en «Por preparar».
+- Todo lo hace el Administrador en «Por preparar» (`/admin/preparar`).
 - Mientras un faltante (CU-35) siga abierto, CU-37 no se puede completar: lo destraba CU-36.
 - Cada caso deja su paso en la línea de tiempo del pedido con **quién** y **cuándo** (CU-17 Seguir pedido).
 
@@ -285,4 +291,4 @@ flowchart LR
 - CU-48 exige que el repartidor esté disponible (CU-47). Las entregas disponibles no muestran el nombre ni el teléfono del cliente hasta que se aceptan.
 - CU-39 lo ve **solo el dueño**: ni el repartidor ni el admin.
 - Telegram avisa al grupo de repartidores (CU-52, sección 8) y al admin de la entrega, del código bloqueado y de una calificación de 1 o 2 estrellas (CU-33).
-- CU-41 (cobro en efectivo) y CU-46 (recibir el efectivo) se retiraron en la 9F: solo se paga con QR.
+- El pago ya está hecho con QR: el repartidor no cobra nada al entregar. Gana el costo de envío y el admin le paga lo acumulado (CU-51).

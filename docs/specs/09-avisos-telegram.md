@@ -2,13 +2,13 @@
 
 Fases 5 y 6B. Migraciones `0012` (avisos de la tienda) y `0015` (avisos de órdenes de compra), corridas en la base real el 14 y 15 nov 2026. ✅ Programado y probado: los avisos de ejemplo llegaron al chat del admin y las E2E comprobaron que las cuentas de prueba no mandan ninguno.
 
-El **sistema** avisa al admin de lo que pasa en la tienda sin que esté mirando el panel. Desde la 9F (0020) hay un segundo destino: el **grupo de repartidores**, que solo recibe «🛵 Entrega disponible» (detalle y cómo crear el grupo en [`12-reparto-externo.md`](12-reparto-externo.md)).
+El **sistema** avisa al admin de lo que pasa en la tienda sin que esté mirando el panel. Hay un segundo destino (0020): el **grupo de repartidores**, que solo recibe «🛵 Entrega disponible» (detalle y cómo crear el grupo en [`12-reparto-externo.md`](12-reparto-externo.md)).
 
 ## Historias de usuario
 
 | ID | Historia | Prioridad |
 |---|---|---|
-| ✅ HU-T01 | Como **administrador** quiero un aviso por Telegram cuando entra un pedido nuevo (código, cliente, zona, forma de pago, total y enlace) | Alta |
+| ✅ HU-T01 | Como **administrador** quiero un aviso por Telegram cuando entra un pedido nuevo (código, cliente, zona, total y enlace) | Alta |
 | ✅ HU-T02 | Como **administrador** quiero un aviso cuando un cliente sube un comprobante, para revisarlo pronto | Alta |
 | ✅ HU-T03 | Como **administrador** quiero un aviso cuando un producto llega a su stock mínimo o se agota, sin que se repita mientras siga bajo | Alta |
 | ✅ HU-T04 | Como **administrador** quiero un resumen del día a las 20:00 (pedidos, total vendido, pagos por revisar, envíos y productos bajos) | Media |
@@ -33,4 +33,4 @@ El **sistema** avisa al admin de lo que pasa en la tienda sin que esté mirando 
 
 ## Actores
 
-**Supabase** (`pg_net`, `pg_cron`, Vault) dispara los avisos y **Telegram** (Bot API, sistema externo) los entrega al chat del admin.
+**Supabase** (`pg_net`, `pg_cron`, Vault) dispara los avisos y **Telegram** (Bot API, sistema externo) los entrega al chat del admin y al grupo de repartidores.

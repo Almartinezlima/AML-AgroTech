@@ -10,13 +10,13 @@ Rama real: `fase/2-comercio` (recibo de compra: `fase/7-nota-venta`). ✅ Progra
 | ✅ HU-E02 | Como **visitante** quiero buscar, filtrar por categoría y ordenar por precio o nombre para encontrar rápido lo que necesito | Alta |
 | ✅ HU-E03 | Como **visitante** quiero ver la ficha de un producto (descripción, uso, presentación, stock) para decidir mi compra | Alta |
 | ✅ HU-E04 | Como **cliente** quiero agregar productos al carrito y que no se pierda al recargar la página | Alta |
-| ✅ HU-E05 | Como **cliente** quiero confirmar mi compra eligiendo zona de envío y forma de pago, y ver el total con envío antes de pagar | Alta |
+| ✅ HU-E05 | Como **cliente** quiero confirmar mi compra eligiendo la zona de envío y ver el total con envío antes de pagar con QR | Alta |
 | ✅ HU-E06 | Como **cliente** quiero ver mis pedidos con su estado, pago y seguimiento | Alta |
 | ✅ HU-E07 | Como **cliente** quiero cancelar un pedido mientras esté pendiente | Media |
 | ✅ HU-E08 | Como **administrador** quiero crear, editar, activar/desactivar productos con imagen | Alta |
 | ✅ HU-E09 | Como **administrador** quiero ver todos los pedidos con filtros por estado | Alta |
 | ✅ HU-E10 | Como **administrador** quiero un panel con ventas del día/mes, pedidos por estado, productos más vendidos y alertas, con datos reales | Alta |
-| ✅ HU-E11 | Como **cliente** quiero descargar la recibo de compra de mi pedido en PDF para mostrarla al recoger o guardarla; el **administrador** también la descarga desde el panel | Media |
+| ✅ HU-E11 | Como **cliente** quiero descargar el recibo de compra de mi pedido en PDF para mostrarlo al recoger o guardarlo; el **administrador** también lo descarga desde el panel | Media |
 
 ## Criterios de aceptación clave
 
@@ -29,11 +29,11 @@ Rama real: `fase/2-comercio` (recibo de compra: `fase/7-nota-venta`). ✅ Progra
   - Pantalla de éxito con el código y el siguiente paso (pagar con QR y subir la foto del pago).
 - **Compra en 3 clics (fase 9E, HU-E12):**
   1. Carrito → «Ir a pagar».
-  2. `/checkout` es **una sola pantalla**: zona y datos recordados de la última compra (desde la 9F, «Pagas con QR»). «Confirmar pedido · Bs. X» va dentro del cuadro «Tu compra» (sticky); en celular, en una **barra fija abajo** con el total. El total exacto lo pide al servidor al elegir la zona (`/api/pedidos/cotizar`).
+  2. `/checkout` es **una sola pantalla**: zona y datos recordados de la última compra, y «Pagas con QR». «Confirmar pedido · Bs. X» va dentro del cuadro «Tu compra» (sticky); en celular, en una **barra fija abajo** con el total. El total exacto lo pide al servidor al elegir la zona (`/api/pedidos/cotizar`).
   3. `/checkout/exito`: el QR grande con el monto y, **justo debajo**, la subida de la foto del pago con «Enviar». Ya no existe «Ya pagué».
   - Barra de pasos: Carrito → Datos y pago → Pagar → Listo.
   - **Errores junto a cada campo** (borde rojo, mensaje debajo, `aria-invalid`); al confirmar, la vista va al primer error y le da el foco. Los errores que no son de un campo (sin stock, sesión vencida) van junto al botón, nunca arriba.
-  - Desde la 9F (0020) solo se paga con QR: la pantalla dice «Pagas con QR», sin «¿Cómo quieres pagar?».
+  - Solo se paga con QR: la pantalla dice «Pagas con QR», sin elegir forma de pago.
 - **HU-E06:** `/pedidos` lista los pedidos del usuario; `/pedidos/[id]` muestra items, totales, pago, envío y línea de tiempo.
 - **HU-E07:** cancelar devuelve el stock (movimiento `devolucion`) y queda en el seguimiento.
 - **HU-E08:** sin borrado físico; imagen subida al bucket `productos` (jpg/png/webp, máx. 2 MB); precio > 0.

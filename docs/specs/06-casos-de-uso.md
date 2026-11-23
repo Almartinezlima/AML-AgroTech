@@ -10,18 +10,18 @@ Catálogo de casos de uso de lo que la app hace hoy. Cada CU sale de una o más 
 | Cliente | Persona | Compra, paga, sigue sus pedidos |
 | Administrador | Persona | Opera la tienda |
 | Distribuidor | Persona | Proveedor mayorista: publica presentaciones y atiende órdenes de compra |
-| Repartidor | Persona externa | Se registra como cliente y el admin le da el rol (9F): acepta entregas a domicilio, las recoge en la tienda y las entrega con el código; gana el costo de envío |
+| Repartidor | Persona externa | Se registra como cliente y el admin le da el rol: acepta entregas a domicilio, las recoge en la tienda y las entrega con el código; gana el costo de envío |
 | Supabase | Sistema externo | Auth, base, archivos; dispara los avisos (`pg_net`, `pg_cron`) |
-| Telegram | Sistema externo | Entrega los avisos al chat del admin y al grupo de repartidores (9F) |
+| Telegram | Sistema externo | Entrega los avisos al chat del admin y al grupo de repartidores |
 
-Cliente, Administrador, Distribuidor y Repartidor **heredan** de Visitante (generalización): con sesión iniciada también pueden mirar el catálogo.
+Cliente, Administrador, Repartidor y Distribuidor **heredan** de Visitante (generalización): con sesión iniciada también pueden mirar el catálogo.
 
 ## Catálogo
 
 | CU | Nombre | Actor principal | Pilar | HU |
 |---|---|---|---|---|
 | CU-01 | Registrarse | Visitante | Seguridad | HU-S01 |
-| CU-02 | Iniciar / cerrar sesión | Cliente, Administrador, Distribuidor | Seguridad | HU-S02 |
+| CU-02 | Iniciar / cerrar sesión | Cliente, Administrador, Repartidor, Distribuidor | Seguridad | HU-S02 |
 | CU-03 | Recuperar contraseña | Visitante | Seguridad | HU-S03 |
 | CU-04 | Gestionar usuarios y roles | Administrador | Seguridad | HU-S04, S05 |
 | CU-05 | Explorar catálogo | Visitante | E-commerce | HU-E01, E02 |
@@ -60,12 +60,10 @@ Cliente, Administrador, Distribuidor y Repartidor **heredan** de Visitante (gene
 | CU-38 | Imprimir etiquetas de bultos | Administrador | Distribución | HU-AL07 |
 | CU-39 | Ver código de entrega | Cliente | Distribución | HU-EN01 |
 | CU-40 | Recoger el pedido en la tienda | Repartidor | Distribución | HU-RE06 |
-| CU-41 | ~~Registrar cobro en efectivo~~ (retirado en la 9F: solo QR) | — | — | — |
 | CU-42 | Entregar con código | Repartidor, Administrador | Distribución | HU-EN05, EN06, EN12 |
 | CU-43 | Desbloquear código de entrega | Administrador | Seguridad | HU-EN07 |
 | CU-44 | Confirmar recepción por flota | Cliente, Administrador | Distribución | HU-EN08 |
 | CU-45 | Calificar la entrega («Recibí conforme») | Cliente | E-commerce | HU-EN10, EN11 |
-| CU-46 | ~~Recibir el efectivo de una entrega~~ (retirado en la 9F) | — | — | — |
 | CU-47 | Marcar disponibilidad | Repartidor | Distribución | HU-RE02 |
 | CU-48 | Aceptar entrega | Repartidor | Distribución | HU-RE04, RE05 |
 | CU-49 | Ver ganado y por cobrar | Repartidor | Distribución | HU-RE07 |
@@ -73,7 +71,9 @@ Cliente, Administrador, Distribuidor y Repartidor **heredan** de Visitante (gene
 | CU-51 | Pagar al repartidor | Administrador | Distribución | HU-RE10 |
 | CU-52 | Avisar al grupo de repartidores | Supabase (secundario: Telegram) | Distribución | HU-RE08 |
 
-Las HU de abastecimiento (HU-B…) están en [`08-abastecimiento.md`](08-abastecimiento.md), las de avisos (HU-T…) en [`09-avisos-telegram.md`](09-avisos-telegram.md) las de preparación y empaque (HU-AL…) en [`10-preparacion-empaque.md`](10-preparacion-empaque.md) las de entrega y cierre (HU-EN…) en [`11-entrega-cierre.md`](11-entrega-cierre.md) y las del reparto externo (HU-RE…) en [`12-reparto-externo.md`](12-reparto-externo.md).
+Los números CU-41 y CU-46 no se usan (se conservan los demás para no cambiar las referencias).
+
+Las HU de abastecimiento (HU-B…) están en [`08-abastecimiento.md`](08-abastecimiento.md), las de avisos (HU-T…) en [`09-avisos-telegram.md`](09-avisos-telegram.md), las de preparación y empaque (HU-AL…) en [`10-preparacion-empaque.md`](10-preparacion-empaque.md), las de entrega y cierre (HU-EN…) en [`11-entrega-cierre.md`](11-entrega-cierre.md) y las del reparto externo (HU-RE…) en [`12-reparto-externo.md`](12-reparto-externo.md).
 
 ## Relaciones
 
@@ -86,9 +86,9 @@ Las HU de abastecimiento (HU-B…) están en [`08-abastecimiento.md`](08-abastec
 - CU-25 Armar y enviar orden de compra **«include»** «Ver qué reponer» (proveedor más barato por unidad).
 - CU-29 Recibir orden de compra **«include»** «Registrar entrada en el kardex» y «Actualizar costo promedio» (internos).
 - CU-37 Dejar «Listo para salir» **«include»** «Verificar que todo esté marcado y sin faltantes abiertos» (interno).
-- CU-42 Entregar con código **«include»** «Verificar el código (máx. 5 intentos)» y «Completar el pedido si ya está pagado» (internos). Desde la 9F el pago ya está verificado: entregar siempre completa el pedido.
+- CU-42 Entregar con código **«include»** «Verificar el código (máx. 5 intentos)» y «Completar el pedido» (internos). El pago QR ya está verificado antes de preparar: entregar siempre completa el pedido.
 - Los CU del Repartidor (CU-40, CU-42, CU-47 a CU-49) **«include»** CU-02 Iniciar sesión con rol repartidor. CU-48 Aceptar entrega **«include»** «Bloquear la entrega: el primero se la lleva» (interno).
-- La preparación (CU-34, CU-35, CU-37, CU-38) la hace el Administrador desde la 9F (ya no hay rol Almacén). Cada paso queda en la línea de tiempo con quién y cuándo.
+- La preparación (CU-34, CU-35, CU-37, CU-38) la hace el Administrador. Cada paso queda en la línea de tiempo con quién y cuándo.
 - Los CU del Administrador (CU-04, CU-11, CU-12, CU-15, CU-18 a CU-23, CU-25, CU-26, CU-29, CU-31) y del Distribuidor (CU-24, CU-27, CU-28, CU-30) **«include»** CU-02 Iniciar sesión con su rol. Los del Cliente (CU-08 a CU-10, CU-13, CU-14, CU-17, CU-32) piden sesión de cliente. En los diagramas esto va como nota para no cruzar líneas.
 
 ### «extend» (pasa solo si se cumple la condición)
@@ -99,7 +99,7 @@ Las HU de abastecimiento (HU-B…) están en [`08-abastecimiento.md`](08-abastec
 - CU-38 Imprimir etiquetas **«extend»** CU-37 Dejar «Listo para salir»: una etiqueta por bulto.
 - CU-52 Avisar al grupo de repartidores **«extend»** CU-37: solo a domicilio. También **«extend»** CU-50 Liberar entrega.
 - CU-50 Liberar entrega **«extend»** CU-48 Aceptar entrega: solo si el repartidor no la recogió todavía.
-- CU-14 Subir comprobante (foto del pago) **«extend»** CU-08 Realizar pedido desde la 9E: va en la misma pantalla del QR, sin pasar por «Ya pagué».
+- CU-14 Subir comprobante (foto del pago) **«extend»** CU-08 Realizar pedido: va en la misma pantalla del QR.
 - CU-43 Desbloquear código **«extend»** CU-42: solo después de 5 intentos fallidos.
 - CU-33 Avisar por Telegram **«extend»**:
   - CU-08 Realizar pedido (pedido nuevo);

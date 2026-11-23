@@ -30,7 +30,7 @@ flowchart TB
     NET["pg_net<br/>HTTP asíncrono"]
     CRON["pg_cron<br/>resumen 20:00"]
   end
-  TG["«componente externo»<br/>Telegram Bot API"]
+  TG["«componente externo»<br/>Telegram Bot API<br/>chat del admin · grupo de repartidores"]
 
   PAG --> CTX
   PAG --> CLI
@@ -78,6 +78,11 @@ flowchart LR
     A3["/admin/inventario · /admin/inventario/[productoId]"]
     A4["/admin/abastecimiento · /admin/abastecimiento/distribuidores<br/>/admin/abastecimiento/ordenes/[id] · /admin/margen"]
     A5["/admin/usuarios"]
+    A6["/admin/preparar · /admin/preparar/pedidos/[id]<br/>/admin/preparar/pedidos/[id]/etiqueta"]
+    A7["/admin/repartidores"]
+  end
+  subgraph REP["Rol repartidor"]
+    R1["/repartidor · /repartidor/pedidos/[id]"]
   end
   subgraph DIST["Rol distribuidor"]
     D1["/distribuidor · /distribuidor/ordenes/[id]"]
@@ -88,12 +93,13 @@ flowchart LR
   CLIENTE --> CTXA
   ADMIN --> CTXA
   DIST --> CTXA
+  REP --> CTXA
   P2 --> CTXC
   C1 --> CTXC
   P1 --> CTXC
 ```
 
-El middleware pide sesión en `/checkout`, `/pedidos` y `/cuenta`, rol `admin` en `/admin/**` y rol `distribuidor` en `/distribuidor/**`, verificados en el servidor.
+El middleware pide sesión en `/checkout`, `/pedidos` y `/cuenta`, rol `admin` en `/admin/**`, rol `distribuidor` en `/distribuidor/**` y rol `repartidor` en `/repartidor/**` (al admin lo manda a `/admin/repartidores`), verificados en el servidor. La dirección vieja `/almacen` redirige a `/admin/preparar`.
 
 ## 3. API REST y funciones SQL
 
@@ -110,6 +116,8 @@ flowchart LR
     R6["Usuarios<br/>/usuarios · /usuarios/{id}"]
     R7["Abastecimiento<br/>/distribuidores · /distribuidor/ficha<br/>/distribuidor/presentaciones · /distribuidor/ordenes<br/>/abastecimiento/reponer · /ordenes-compra/**"]
     R8["Sistema<br/>/salud · /openapi"]
+    R9["Preparación (admin)<br/>/almacen/pedidos · /almacen/pedidos/{id}<br/>/preparar · /faltante · /empacar<br/>/almacen/items/{id} · /faltantes/{id}/resolver"]
+    R10["Entrega y reparto<br/>/repartidor/panel · /repartidor/disponibilidad<br/>/entregas · /entregas/{id} · /aceptar · /tomar<br/>/entregar · /liberar · /desbloquear<br/>/repartidores · /repartidores/{id}/pagar<br/>/pedidos/{id}/recibido · /calificacion · /calificaciones"]
   end
   subgraph SQL["Funciones SQL (Postgres)"]
     F1["crear_pedido · cancelar_pedido<br/>cambiar_estado_pedido · anular_pedido_prueba"]
@@ -118,7 +126,9 @@ flowchart LR
     F4["resumen_dashboard"]
     F5["crear_ordenes_compra · guardar_linea_orden_compra<br/>enviar_ · cancelar_ · aceptar_ · rechazar_<br/>despachar_ · recibir_orden_compra<br/>anular_orden_compra_prueba"]
     F6["es_admin · es_distribuidor<br/>proteger_campos_perfil · handle_new_user"]
-    F7["Avisos: aml_enviar_telegram<br/>triggers aml_aviso_* · aml_aviso_resumen_diario"]
+    F7["Avisos: aml_enviar_telegram · aml_enviar_telegram_a<br/>triggers aml_aviso_* · aml_aviso_resumen_diario"]
+    F8["cola_almacen · detalle_preparacion · empezar_preparacion<br/>marcar_item_pedido · reportar_ · resolver_faltante<br/>empacar_pedido"]
+    F9["panel_repartidor · cambiar_disponibilidad<br/>aceptar_entrega · tomar_pedido · entregar_pedido<br/>liberar_entrega · desbloquear_codigo_entrega<br/>cola_reparto · detalle_entrega · confirmar_recepcion<br/>calificar_entrega · deudas_ · pagar_repartidor"]
   end
   STO[("Storage")]
   R2 --> F1
@@ -133,6 +143,10 @@ flowchart LR
   F2 -. trigger .-> F7
   F3 -. trigger .-> F7
   F5 -. trigger .-> F7
+  R9 --> F8
+  R10 --> F9
+  F8 -. trigger .-> F7
+  F9 -. trigger .-> F7
 ```
 
 Las lecturas simples (listas, detalle) son `select` con columnas explícitas sobre las tablas, filtradas por RLS. Toda escritura que mueve stock, dinero o estados pasa por una función SQL en una sola transacción.

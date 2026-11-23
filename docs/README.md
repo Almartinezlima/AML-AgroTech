@@ -10,6 +10,7 @@
 4. [`uml/`](uml/README.md) — diagramas UML: casos de uso, clases, componentes, despliegue, secuencia y estados.
 5. La especificación del pilar que se va a trabajar, en [`specs/`](specs/).
 6. [`PRUEBAS.md`](PRUEBAS.md) — cómo correr las pruebas E2E (Playwright).
+7. [`MEJORAS_FUTURAS.md`](MEJORAS_FUTURAS.md) — lo que queda para después de la feria.
 
 ## Especificación (SDD: especificar → planificar → tareas → implementar)
 
@@ -25,8 +26,8 @@
 | [`specs/07-reingenieria.md`](specs/07-reingenieria.md) | Reingeniería del catálogo: ficha técnica y precio de mercado |
 | [`specs/08-abastecimiento.md`](specs/08-abastecimiento.md) | Abastecimiento: proveedores, órdenes de compra, recepción y margen |
 | [`specs/09-avisos-telegram.md`](specs/09-avisos-telegram.md) | Avisos por Telegram al administrador |
-| [`specs/10-preparacion-empaque.md`](specs/10-preparacion-empaque.md) | Preparación y «Listo para salir» (fase 9C; desde la 9F la hace el admin) |
-| [`specs/11-entrega-cierre.md`](specs/11-entrega-cierre.md) | Entrega con código, completado y calificación (fase 9D, actualizada en la 9F) |
+| [`specs/10-preparacion-empaque.md`](specs/10-preparacion-empaque.md) | Preparación y «Listo para salir» por el admin |
+| [`specs/11-entrega-cierre.md`](specs/11-entrega-cierre.md) | Entrega con código de 4 dígitos, recojo en tienda, completado y calificación |
 | [`specs/12-reparto-externo.md`](specs/12-reparto-externo.md) | Repartidores externos, grupo de Telegram y pago al repartidor (fase 9F) |
 
 ## Carpetas
@@ -34,6 +35,6 @@
 | Carpeta | Qué hay |
 |---|---|
 | `specs/` | Historias de usuario, criterios de aceptación y casos de uso |
-| `api/` | Contrato OpenAPI de la API REST: 42 rutas, 50 operaciones |
+| `api/` | Contrato OpenAPI de la API REST: 63 rutas, 71 operaciones |
 | [`uml/`](uml/README.md) | Diagramas UML en Mermaid (GitHub los dibuja) |
 | `sesiones/` | Qué se hizo en cada sesión, con fecha adelante |

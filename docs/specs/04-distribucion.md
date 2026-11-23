@@ -1,13 +1,15 @@
 # 04 — Distribución
 
-Rama real: `fase/2-comercio` (zonas: `fase/2a-zonas`). ✅ Programado. Migraciones corridas en la base real y probado E2E.
+Rama real: `fase/2-comercio` (zonas: `fase/2a-zonas`; preparación 9C, entrega 9D y reparto externo 9F). ✅ Programado. Migraciones corridas en la base real.
+
+La preparación está en [`10-preparacion-empaque.md`](10-preparacion-empaque.md), la entrega con código en [`11-entrega-cierre.md`](11-entrega-cierre.md) y los repartidores externos en [`12-reparto-externo.md`](12-reparto-externo.md).
 
 ## Historias de usuario
 
 | ID | Historia | Prioridad |
 |---|---|---|
 | ✅ HU-D01 | Como **cliente** quiero elegir dónde recibir mi pedido (recojo en tienda, a domicilio en mi distrito o por flota a mi municipio) y ver el costo y el tiempo estimado | Alta |
-| ✅ HU-D02 | Como **cliente** quiero seguir mi pedido en una línea de tiempo (pendiente, confirmado, preparando, despachado, entregado) | Alta |
+| ✅ HU-D02 | Como **cliente** quiero seguir mi pedido en una línea de tiempo (pendiente, confirmado, preparando, listo, en camino, completado) con quién hizo cada paso | Alta |
 | ✅ HU-D03 | Como **cliente** de provincia quiero ver la empresa de flota y el número de guía para recoger mi encomienda | Alta |
 | ✅ HU-D04 | Como **administrador** quiero un panel de despachos con los pedidos por preparar y por entregar | Alta |
 | ✅ HU-D05 | Como **administrador** quiero registrar la flota y el número de guía al despachar a provincia | Alta |
@@ -29,7 +31,7 @@ Rama real: `fase/2-comercio` (zonas: `fase/2a-zonas`). ✅ Programado. Migracion
   | Incahuasi | provincia | Bs. 20 | 1–2 días |
   | Culpina | provincia | Bs. 25 | 1–2 días |
 
-  *Desde la 9F (0020) solo se paga con QR: ninguna zona permite efectivo. A domicilio, el costo de envío lo gana el repartidor externo que acepta la entrega ([`12-reparto-externo.md`](12-reparto-externo.md)).*
+  *A domicilio, el costo de envío lo gana el repartidor externo que acepta la entrega ([`12-reparto-externo.md`](12-reparto-externo.md)).*
 
   *Tienda en Villa Charcas. Costos definidos por Aldo el 14 nov 2026. Sucre (terminal de buses) quedó **inactiva**: no se borra porque hay pedidos viejos que la usan, y cada cliente sigue viendo la zona de sus pedidos (política `zonas_select_pedidos_propios`).*
 - El checkout agrupa las zonas por tipo: **"Villa Charcas y sus distritos"** (recojo y a domicilio) y **"Otros municipios"** (por flota).
@@ -46,4 +48,4 @@ Rama real: `fase/2-comercio` (zonas: `fase/2a-zonas`). ✅ Programado. Migracion
 
 ## Pantallas
 
-`/checkout` (paso de entrega), `/pedidos/[id]` (línea de tiempo), `/admin/envios`, `/admin/zonas`.
+`/checkout` (zona y datos de entrega), `/pedidos/[id]` (línea de tiempo y código), `/admin/preparar`, `/admin/envios`, `/admin/repartidores`, `/admin/zonas`, `/repartidor`.

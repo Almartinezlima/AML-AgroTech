@@ -16,23 +16,33 @@ Tienda en línea de insumos agrícolas (semillas, fertilizantes, agroquímicos y
 
 ## Qué hace la app
 
-La app tiene tres tipos de usuario y cada uno ve su propio panel.
+La app tiene cuatro roles y cada uno ve su propio panel: **cliente**, **administrador**, **repartidor** y **distribuidor**. Solo se paga con **QR**.
 
 ### Cliente
 - Navega el catálogo con búsqueda, filtros y ficha técnica de cada producto.
-- Arma su carrito (también sin cuenta) y compra con un checkout de 3 pasos.
-- Elige cómo recibir el pedido: envío a su zona o recojo en tienda.
-- Paga con QR desde la app de su banco y sube la foto del comprobante.
-- Sigue su pedido en una línea de tiempo, puede cancelarlo y descarga la **nota de venta en PDF**.
+- Arma su carrito (también sin cuenta) y confirma la compra en una sola pantalla, con sus datos recordados.
+- Elige cómo recibir el pedido: recojo en tienda, a domicilio en su distrito o por flota a su municipio.
+- Paga con el QR de la tienda desde la app de su banco y sube la foto del comprobante justo debajo.
+- Sigue su pedido en una línea de tiempo (quién hizo cada paso y a qué hora), lo cancela mientras esté pendiente y descarga el **recibo de compra en PDF**.
+- Recibe un **código de 4 dígitos** y lo dicta solo cuando tiene el pedido en la mano (en la tienda o al repartidor).
+
+### Administrador
+- Verifica cada comprobante y **prepara** el pedido: marca cada producto, reporta faltantes y lo deja «Listo para salir» con su etiqueta.
+- Entrega en tienda con el código del cliente y despacha por flota con empresa y número de guía.
+- Paga a los repartidores lo que ganaron y libera una entrega si el repartidor no aparece.
+- Gestiona productos, inventario (kardex, entradas, ajustes y alertas de stock mínimo), zonas y usuarios.
+- **Abastecimiento:** ve qué hay que reponer, con el proveedor más barato y la cantidad sugerida, arma las órdenes de compra y las recibe. El stock y el costo se actualizan solos.
+- Ve el margen por producto y recibe avisos por Telegram.
+
+### Repartidor (persona externa)
+- Se registra como cliente y el administrador le da el rol.
+- Marca «Estoy disponible» y se entera de cada entrega nueva por el grupo de Telegram.
+- Acepta la entrega (el primero se la lleva), la recoge en la tienda y la entrega con el código del cliente.
+- Gana el costo de envío y ve cuánto ganó y cuánto le falta cobrar.
 
 ### Distribuidor (proveedor mayorista)
 - Carga las presentaciones que le vende a la tienda: producto, cuánto trae y precio mayorista.
 - Recibe las órdenes de compra de la tienda, las acepta o las rechaza y las marca como despachadas.
-
-### Administrador
-- Gestiona productos, inventario (kardex, entradas, ajustes y alertas de stock mínimo), pedidos, pagos, envíos, zonas y usuarios.
-- **Abastecimiento:** ve qué hay que reponer, con el proveedor más barato y la cantidad sugerida, arma las órdenes de compra y las recibe. El stock y el costo se actualizan solos.
-- Ve el margen por producto y recibe avisos por Telegram.
 
 La API REST está documentada con OpenAPI; se puede ver en `/api-docs` (Swagger).
 
@@ -44,6 +54,7 @@ La API REST está documentada con OpenAPI; se puede ver en `/api-docs` (Swagger)
 | Estilos | Tailwind CSS |
 | Base de datos, autenticación y archivos | Supabase (PostgreSQL con RLS, Auth y Storage) |
 | PDF | pdfkit |
+| Avisos | Telegram Bot API desde Postgres (`pg_net` + `pg_cron`) |
 | Pruebas | Playwright (E2E) |
 | Deploy | Render |
 
@@ -69,6 +80,9 @@ Variables de entorno (en `.env.local`, que **nunca** se sube al repositorio):
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave pública (anon) del proyecto de Supabase |
 | `NEXT_PUBLIC_WHATSAPP_TIENDA` | Número de WhatsApp de la tienda (opcional) |
 | `NEXT_PUBLIC_QR_TIENDA_IMAGEN` | URL de otra imagen de QR de cobro (opcional; por defecto se usa `public/qr-bnb.jpg`) |
+| `NEXT_PUBLIC_TELEGRAM_GRUPO_REPARTIDORES` | Enlace de invitación al grupo de Telegram de repartidores (opcional; sin él no sale el botón «Unirme al grupo») |
+
+Los secretos de Telegram (token del bot y chats) viven en Supabase Vault, nunca en `.env.local` ni en Render.
 
 Otros comandos:
 
@@ -80,4 +94,4 @@ npm run test:e2e   # pruebas E2E (ver docs/PRUEBAS.md)
 
 ## Documentación
 
-Está en [`docs/`](docs/README.md): especificación por pilar (historias de usuario y casos de uso), arquitectura, diagramas UML en [`docs/uml/`](docs/uml/README.md), contrato de la API en [`docs/api/openapi.yaml`](docs/api/openapi.yaml), diseño, estado del proyecto y guía de pruebas.
+Está en [`docs/`](docs/README.md): especificación por pilar (historias de usuario y casos de uso), arquitectura, diagramas UML en [`docs/uml/`](docs/uml/README.md), contrato de la API en [`docs/api/openapi.yaml`](docs/api/openapi.yaml), diseño, estado del proyecto, guía de pruebas y [mejoras futuras](docs/MEJORAS_FUTURAS.md).

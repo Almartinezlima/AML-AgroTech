@@ -1,6 +1,8 @@
 # Pruebas E2E (Playwright)
 
-Pruebas de punta a punta que usan la app **como un usuario de verdad**: el cliente compra y sube comprobantes; el admin aprueba, despacha y mueve inventario. Corren contra la **base real de Supabase** (no hay base de pruebas aparte), así que **cada prueba deja la base como estaba** (fase 2B, 14 nov 2026): solo usan 2 cuentas fijas y cierran todo lo que crean.
+Pruebas de punta a punta que usan la app **como un usuario de verdad**: el cliente compra con QR y sube comprobantes; el admin aprueba, prepara, entrega en tienda, despacha por flota y mueve inventario; el repartidor acepta y entrega con el código; los distribuidores atienden órdenes de compra. Corren contra la **base real de Supabase** (no hay base de pruebas aparte), así que **cada prueba deja la base como estaba** (fase 2B, 14 nov 2026): solo usan cuentas fijas (admin, cliente `.test`, 2 distribuidores `.test` y el repartidor `.test`) y cierran todo lo que crean.
+
+> ⚠️ **Desde el 20 nov la base tiene datos reales** (pedidos y órdenes de compra de verdad). Correr la suite **solo con OK de Aldo**: no toca lo real, pero deja rastros cancelados de las cuentas `.test` (ver la sección 4).
 
 ## 1. Preparar (una sola vez)
 
@@ -18,7 +20,7 @@ Pruebas de punta a punta que usan la app **como un usuario de verdad**: el clien
 
 3. Crear la **cuenta cliente de prueba** registrándose en la web con un correo **`@amlagrotech.test`** (por ejemplo `cliente@amlagrotech.test`). Ese dominio es obligatorio: solo los pedidos de esas cuentas se pueden anular, y no mandan avisos por Telegram.
 
-4. Copiar `.env.test.example` como `.env.test.local` y completar las **2 cuentas fijas**:
+4. Copiar `.env.test.example` como `.env.test.local` y completar las **cuentas fijas**:
 
    ```
    E2E_ADMIN_EMAIL=...
@@ -30,6 +32,9 @@ Pruebas de punta a punta que usan la app **como un usuario de verdad**: el clien
    E2E_DIST1_PASSWORD=...
    E2E_DIST2_EMAIL=distribuidor.scz@amlagrotech.test
    E2E_DIST2_PASSWORD=...
+   # Fase 9F: repartidor externo de prueba (rol repartidor, lo asigna el admin)
+   E2E_REPARTIDOR_EMAIL=repartidor@amlagrotech.test
+   E2E_REPARTIDOR_PASSWORD=...
    ```
 
    Las cuentas de los distribuidores se crean en Supabase Auth con esas contraseñas **antes** de correr la 0014. La cuenta admin de las E2E cuenta como prueba desde la 0013 (`aml_es_cuenta_prueba`, por su id): sus movimientos no avisan por Telegram ni cuentan en el resumen.
@@ -47,7 +52,7 @@ Pruebas de punta a punta que usan la app **como un usuario de verdad**: el clien
 | `npm run test:e2e:ui` | Modo visual de Playwright para ver cada paso | Para depurar una prueba |
 | `E2E_BASE_URL=http://localhost:3210 npx playwright test` | Prueba contra un servidor ya levantado, sin levantar nada | **Si `test:e2e:prod` corta a la mitad con `ERR_CONNECTION_REFUSED`.** Primero `npx next build` con `NEXT_DIST_DIR=.next-e2e` y después, en otra terminal, `NEXT_DIST_DIR=.next-e2e npx next start -p 3210` (en PowerShell: `$env:NEXT_DIST_DIR='.next-e2e'`). Así fue la corrida de la 6B, 41/41 |
 
-Una sola prueba: `npx playwright test seguridad` (o `compra`, `pagos`, `inventario`, `registro`, `responsive`, `distribuidor`, `abastecimiento`, `nota-venta`).
+Una sola prueba: `npx playwright test seguridad` (o `registro`, `compra`, `pagos-distribucion`, `inventario`, `fase-6b`, `distribuidor`, `abastecimiento`, `nota-venta`, `reparto`, `recojo`, `responsive`).
 
 > ⚠️ En Windows, el `next start` que levantaba Playwright con `build && start` se cayó 2 veces sin dejar error (6A y 6B). Desde la fase 7 la compilación va aparte y la salida del servidor se ve en la terminal: si vuelve a caerse, queda el error. Si pasa, las pruebas siguientes dan `ERR_CONNECTION_REFUSED` y lo que quedó abierto lo anula el barrido de la corrida siguiente.
 
@@ -94,9 +99,9 @@ Resultado: **el stock queda igual, no queda ningún pedido abierto ni nada por c
 
 Desde la fase 8A-2 el panel admin muestra **siempre** los datos de todas las cuentas, también las `@amlagrotech.test` (ya no hay interruptor «Mostrar datos de prueba» ni parámetro `?pruebas=1`). Lo que deja una corrida se reconoce por los textos «E2E» y «Limpieza E2E» y porque queda cancelado. Los avisos de Telegram y el resumen de las 20:00 siguen sin contar las cuentas de prueba.
 
-### Datos viejos
+### Datos que quedan
 
-Antes de la revisión del 16 nov la base quedó limpia: 0 pedidos y 0 órdenes de compra. Para ver si una corrida dejó algo de las cuentas de prueba, en el SQL Editor:
+La migración 0022 (17 nov) dejó la base en 0 pedidos y 0 órdenes de compra; desde el 20 nov hay pedidos y órdenes reales, que las pruebas no tocan. Para ver si una corrida dejó algo de las cuentas de prueba, en el SQL Editor:
 
 ```sql
 select p.codigo, p.estado, p.total, u.email

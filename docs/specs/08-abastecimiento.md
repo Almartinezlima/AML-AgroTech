@@ -2,7 +2,7 @@
 
 Fases 6A y 6B. Migraciones `0013` (proveedores y presentaciones), `0014` (2 proveedores de demostración) y `0015` (órdenes de compra), corridas en la base real el 14 y 15 nov 2026. ✅ Programado y probado E2E (`distribuidor.spec.ts`, `abastecimiento.spec.ts`).
 
-Es la parte de **Almacenamiento** que mira hacia atrás: la tienda le compra a sus proveedores mayoristas y la mercadería entra al kardex con su costo. El **distribuidor** es ese proveedor (Sucre o Santa Cruz): no reparte a clientes ni ve sus pedidos.
+Es la parte de **Almacenamiento** que mira hacia atrás: la tienda le compra a sus proveedores mayoristas y la mercadería entra al kardex con su costo. El **distribuidor** es ese proveedor (Sucre o Santa Cruz): no reparte a clientes ni ve sus pedidos (eso lo hacen el admin y los repartidores externos).
 
 ## Historias de usuario
 
